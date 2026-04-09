@@ -49,14 +49,6 @@ async function createDriver(input: CreateDriverInput): Promise<string> {
     cr6cd_dix_transferoccacc: input.transferOccAcc,
     cr6cd_dix_transferequipment: input.transferEquipment,
     cr6cd_dix_reactivateequipment: input.reactivateEquipment,
-    cr6cd_dix_transfersecuritydeposit: input.transferItems.security_deposit,
-    cr6cd_dix_transfereld: input.transferItems.eld,
-    cr6cd_dix_transferdashcam: input.transferItems.dashcam,
-    cr6cd_dix_transferplate: input.transferItems.plate,
-    cr6cd_dix_reactivatesecuritydeposit: input.reactivateItems.security_deposit,
-    cr6cd_dix_reactivateeld: input.reactivateItems.eld,
-    cr6cd_dix_reactivatedashcam: input.reactivateItems.dashcam,
-    cr6cd_dix_reactivateplate: input.reactivateItems.plate,
     cr6cd_dix_fuelcardnumber: input.form.fuelCardNumber || undefined,
   };
 
@@ -78,7 +70,10 @@ async function createDriver(input: CreateDriverInput): Promise<string> {
   const { getClient } = await import('@microsoft/power-apps/data');
   const { dataSourcesInfo } = await import('../../.power/schemas/appschemas/dataSourcesInfo');
   const client = getClient(dataSourcesInfo);
-  const result = await client.createRecordAsync('cr6cd_dix_driver', payload);
+  const result = await client.createRecordAsync('cr6cd_dix_drivers', payload);
+  if (!result.success || !result.data) {
+    throw new Error(result.error?.message || 'Failed to create driver record');
+  }
   const driverId = (result.data as Record<string, string>).cr6cd_dix_driverid;
 
   // Save deduction selections — one row per selected deduction
@@ -99,7 +94,7 @@ async function createDriver(input: CreateDriverInput): Promise<string> {
     if (key === 'maintenance_fund' && input.maintenanceAmount) {
       deductionRecord.cr6cd_dix_customvalue = parseFloat(input.maintenanceAmount);
     }
-    await client.createRecordAsync('cr6cd_dix_driverdeduction', deductionRecord);
+    await client.createRecordAsync('cr6cd_dix_driverdeductions', deductionRecord);
   }
 
   return driverId;

@@ -2,6 +2,7 @@ import { CircleCheck, User, Building2, FileText, Shield, Star, Minus, Clock, Mai
 import { cn, formatCurrency } from '../../lib/utils';
 import { CONTRACT_TYPE_LABELS, type Agent } from '../../lib/mockData';
 import { generateAgentConfirmation } from '../../lib/generateAgentConfirmation';
+import { generateFleetCommitment } from '../../lib/generateFleetCommitment';
 import { toast } from 'sonner';
 import type { TestStatus } from './Step3Testing';
 import type { TransferItemKey } from './Step4Transfers';
@@ -204,15 +205,18 @@ export default function Step6Review({
                 icon={doc.icon}
                 delay={i * 50}
                 onClick={() => {
-                  if (doc.id === 'agent_confirmation') {
-                    try {
-                      generateAgentConfirmation({ form, agent, selections, transferItems, reactivateItems, pdiMonthly, iftaNumber });
+                  try {
+                    if (doc.id === 'agent_confirmation') {
+                      generateAgentConfirmation({ form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber });
                       toast.success(`${doc.name} downloaded`);
-                    } catch (err) {
-                      toast.error(`Failed to generate ${doc.name}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                    } else if (doc.id === 'fleet_commitment') {
+                      generateFleetCommitment({ form, agent });
+                      toast.success(`${doc.name} downloaded`);
+                    } else {
+                      toast.info(`Generating ${doc.name}...`, { description: 'Power Automate flow will be connected soon.' });
                     }
-                  } else {
-                    toast.info(`Generating ${doc.name}...`, { description: 'Power Automate flow will be connected soon.' });
+                  } catch (err) {
+                    toast.error(`Failed to generate ${doc.name}: ${err instanceof Error ? err.message : 'Unknown error'}`);
                   }
                 }}
               />

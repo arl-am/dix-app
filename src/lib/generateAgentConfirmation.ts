@@ -23,6 +23,8 @@ export interface AgentConfirmationData {
   form: Record<string, string>;
   agent: Agent | null;
   selections: Record<string, boolean>;
+  transferEquipment: boolean;
+  reactivateEquipment: boolean;
   transferItems: Record<string, boolean>;
   reactivateItems: Record<string, boolean>;
   pdiMonthly: number;
@@ -30,7 +32,7 @@ export interface AgentConfirmationData {
 }
 
 export function generateAgentConfirmation(data: AgentConfirmationData): void {
-  const { form, agent, selections, transferItems, reactivateItems, pdiMonthly, iftaNumber } = data;
+  const { form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber } = data;
 
   const bobtailValue = agent?.cr6cd_bobtailvalue ?? 0;
   const occAccMonthly = agent?.cr6cd_occaccmonthly ?? 0;
@@ -185,19 +187,22 @@ export function generateAgentConfirmation(data: AgentConfirmationData): void {
   const plateDepositWeekly = 100;
   drawDeductionLine(`Plate Deposit ${fmtCurrency(plateDeposit)} Deduction of ${fmtCurrency(plateDepositWeekly)} Per Week and IRP Admin Fee ${fmtCurrency(plateAdminFee)} One-time deduction`, irpSelected);
 
-  // Security Deposit
-  const securitySelected = !!selections.security_deposit && !transferItems.security_deposit && !reactivateItems.security_deposit;
+  // Security Deposit — only excluded if parent transfer/reactivate toggle is ON and item is checked
+  const isTransferred = (key: string) => transferEquipment && !!transferItems[key];
+  const isReactivated = (key: string) => reactivateEquipment && !!reactivateItems[key];
+
+  const securitySelected = !!selections.security_deposit && !isTransferred('security_deposit') && !isReactivated('security_deposit');
   drawDeductionLine(`Security Deposit ${fmtCurrency(securityDepositFull)} Deducted at ${fmtCurrency(securityDepositWeekly)} Per Week (Deduction starts 3 week from hire date)`, securitySelected);
 
   // ELD
-  const eldSelected = !!selections.eld_deposit && !transferItems.eld && !reactivateItems.eld;
+  const eldSelected = !!selections.eld_deposit && !isTransferred('eld') && !isReactivated('eld');
   drawDeductionLine(`ELD Deposit ${fmtCurrency(eldDeposit)} paid ${fmtCurrency(eldWeekly)} Per week until paid in full and Weekly`, eldSelected);
 
-  // ELD Data Fee
-  drawDeductionLine(`ELD Data Fee ${fmtCurrency(eldDataFee)} Per week`, eldDataFee > 0);
+  // ELD Data Fee — follows ELD selection (ongoing fee whenever ELD is in use)
+  drawDeductionLine(`ELD Data Fee ${fmtCurrency(eldDataFee)} Per week`, !!selections.eld_deposit && eldDataFee > 0);
 
   // Dashcam
-  const dashcamSelected = !!selections.dashcam_deposit && !transferItems.dashcam && !reactivateItems.dashcam;
+  const dashcamSelected = !!selections.dashcam_deposit && !isTransferred('dashcam') && !isReactivated('dashcam');
   drawDeductionLine(`Dashcam deposit ${fmtCurrency(dashcamDeposit)} paid ${fmtCurrency(dashcamWeekly)} Per week until paid in full`, dashcamSelected);
 
   // Buy-Down

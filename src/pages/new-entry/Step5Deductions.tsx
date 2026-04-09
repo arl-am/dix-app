@@ -1,11 +1,10 @@
 import { useMemo, useRef } from 'react';
 import {
   Shield, Car, Zap, CreditCard, HardDrive, Camera, TrendingDown,
-  Fuel, Wrench, Container, Radio, Calendar, DollarSign, Building2,
+  Fuel, Wrench, Container, Radio, Calendar, DollarSign, Building2, Check,
 } from 'lucide-react';
 import { cn, formatCurrency } from '../../lib/utils';
 import type { Agent } from '../../lib/mockData';
-import Toggle from '../../components/Toggle';
 
 interface DeductionDef {
   key: string;
@@ -110,49 +109,66 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
           <p className="text-sm text-muted-foreground mb-4">
             Values auto-populated from {agent?.cr6cd_terminal || '—'} agent configuration
           </p>
-          <div className="space-y-1">
-            {DEDUCTIONS.map((d, idx) => {
+          <div className="space-y-2">
+            {DEDUCTIONS.map((d) => {
               const Icon = d.icon;
               const val = d.key === 'pdi' ? pdiMonthly : (agent ? d.getValueFromAgent(agent) : null);
               const isDisabled = d.key === 'chassis_usage' && chassisDisabled;
+              const isSelected = !!selections[d.key];
               return (
                 <div key={d.key}>
-                  <div className={cn(
-                    'flex items-center justify-between py-3 px-4 rounded-lg relative',
-                    'transition-all duration-300 ease-out',
-                    selections[d.key]
-                      ? 'bg-primary/5 border border-primary/15 border-l-[3px] border-l-primary shadow-md ring-1 ring-primary/5'
-                      : (idx % 2 === 0 ? 'bg-muted/40 border border-transparent' : 'bg-transparent border border-transparent'),
-                    isDisabled && 'opacity-50',
-                    !isDisabled && 'hover:bg-muted/60 cursor-pointer',
-                  )}>
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={cn(
-                        'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
-                        'transition-all duration-300 ease-out',
-                        selections[d.key] ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
-                      )}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className={cn('text-sm font-medium truncate transition-colors duration-300 block', selections[d.key] ? 'text-foreground' : 'text-muted-foreground')}>{d.label}</span>
-                        {d.key === 'pdi' && pdiMonthly === 0 && (
-                          <span className="text-xs text-amber-500">Enter truck value in Step 2</span>
-                        )}
-                      </div>
+                  <div
+                    onClick={() => !isDisabled && handleToggle(d.key)}
+                    className={cn(
+                      'group flex items-center gap-3 py-3 px-4 rounded-xl',
+                      'transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+                      'select-none',
+                      isSelected
+                        ? 'bg-primary/[0.04] dark:bg-primary/10 border border-primary/20 shadow-[0_2px_12px_rgba(37,99,235,0.06)]'
+                        : 'border border-border/40 hover:border-border/70 hover:bg-muted/30',
+                      isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer active:scale-[0.995]',
+                    )}
+                  >
+                    <div className={cn(
+                      'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
+                      'transition-all duration-300',
+                      isSelected ? 'bg-primary/10 text-primary' : 'bg-muted/70 text-muted-foreground',
+                    )}>
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex-1 min-w-0">
                       <span className={cn(
-                        'text-sm font-mono w-20 text-right transition-colors duration-300',
-                        selections[d.key] ? 'text-foreground font-semibold' : 'text-muted-foreground',
+                        'text-[0.8125rem] font-medium leading-tight block transition-colors duration-300',
+                        isSelected ? 'text-foreground' : 'text-muted-foreground',
+                      )}>{d.label}</span>
+                      {d.key === 'pdi' && pdiMonthly === 0 && (
+                        <span className="text-xs text-amber-500 mt-0.5 block">Enter truck value in Step 2</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className={cn(
+                        'text-[0.8125rem] tabular-nums tracking-tight text-right min-w-[4.5rem]',
+                        'transition-all duration-300',
+                        isSelected ? 'text-foreground font-semibold' : 'text-muted-foreground/70',
                       )}>
                         {d.key === 'pdi' ? formatCurrency(pdiMonthly) : val !== null ? formatCurrency(val) : d.key === 'irp_plate_prepaid' ? '' : '—'}
                       </span>
-                      <Toggle checked={!!selections[d.key]} onChange={() => handleToggle(d.key)} disabled={isDisabled} />
+                      <div className={cn(
+                        'w-[22px] h-[22px] rounded-full flex items-center justify-center flex-shrink-0',
+                        'transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+                        isSelected
+                          ? 'bg-primary text-white shadow-[0_0_8px_rgba(37,99,235,0.3)] scale-100'
+                          : 'border-2 border-muted-foreground/20 scale-[0.85] group-hover:border-muted-foreground/40',
+                      )}>
+                        <Check className={cn(
+                          'w-3 h-3 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
+                          isSelected ? 'opacity-100 scale-100' : 'opacity-0 scale-50',
+                        )} strokeWidth={3} />
+                      </div>
                     </div>
                   </div>
                   {d.hasConditionalInput === 'ifta' && selections['ifta'] && (
-                    <div className="px-14 pb-2 pt-1 animate-fade-in-down">
+                    <div className="ml-12 mr-4 mt-1.5 mb-0.5 animate-fade-in-down">
                       <input
                         type="text"
                         placeholder="Enter IFTA Number"
@@ -163,7 +179,7 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
                     </div>
                   )}
                   {d.hasConditionalInput === 'maintenance' && selections['maintenance_fund'] && (
-                    <div className="px-14 pb-2 pt-1 animate-fade-in-down">
+                    <div className="ml-12 mr-4 mt-1.5 mb-0.5 animate-fade-in-down">
                       <input
                         type="number"
                         placeholder="Enter weekly amount"
