@@ -268,9 +268,11 @@ New-Table -SchemaName "cr6cd_dix_unit" -DisplayName "DIX Unit" -PluralName "DIX 
     (IntCol     "cr6cd_dix_year"          "Year")
     (StringCol  "cr6cd_dix_color"         "Color")
     (StringCol  "cr6cd_dix_vin"           "VIN")
-    (CurrencyCol "cr6cd_dix_truckvalue"   "Truck Value")
-    (DecimalCol "cr6cd_dix_unladenweight" "Unladen Weight")
-    (DateCol    "cr6cd_dix_purchasedate"  "Purchase Date")
+    (CurrencyCol "cr6cd_dix_truckvalue"       "Truck Value")
+    (DecimalCol  "cr6cd_dix_unladenweight"   "Unladen Weight")
+    (DateCol     "cr6cd_dix_purchasedate"    "Purchase Date")
+    (StringCol   "cr6cd_dix_lienholdername"  "Lienholder Name")
+    (StringCol   "cr6cd_dix_lienholderaddress" "Lienholder Address" 500)
 )
 
 # 3. cr6cd_dix_appsetting

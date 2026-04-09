@@ -19,7 +19,7 @@ interface DeductionDef {
 const DEDUCTIONS: DeductionDef[] = [
   { key: 'occacc', label: 'Occ/Acc Insurance', icon: Shield, category: 'monthly', getValueFromAgent: (a) => a.cr6cd_occaccmonthly },
   { key: 'bobtail', label: 'Bobtail Insurance', icon: Car, category: 'monthly', getValueFromAgent: (a) => a.cr6cd_bobtailvalue },
-  { key: 'pdi', label: 'Physical Damage Insurance - PDI', icon: Zap, category: 'monthly', getValueFromAgent: () => 95.60 },
+  { key: 'pdi', label: 'Physical Damage Insurance - PDI', icon: Zap, category: 'monthly', getValueFromAgent: () => 0 },
   { key: 'security_deposit', label: 'Security Deposit', icon: CreditCard, category: 'weekly', getValueFromAgent: (a) => a.cr6cd_securitydepositweeklyvalue },
   { key: 'eld_deposit', label: 'ELD Deposit', icon: HardDrive, category: 'weekly', getValueFromAgent: (a) => a.cr6cd_elddepositvalue },
   { key: 'dashcam_deposit', label: 'DashCam Deposit', icon: Camera, category: 'weekly', getValueFromAgent: (a) => a.cr6cd_dashcamdepositvalue },
@@ -42,9 +42,11 @@ interface Step5Props {
   onIftaNumberChange: (v: string) => void;
   maintenanceAmount: string;
   onMaintenanceAmountChange: (v: string) => void;
+  pdiMonthly: number;
+  pdiWeeklyDeposit: number;
 }
 
-export default function Step5Deductions({ agent, selections, onToggle, iftaNumber, onIftaNumberChange, maintenanceAmount, onMaintenanceAmountChange }: Step5Props) {
+export default function Step5Deductions({ agent, selections, onToggle, iftaNumber, onIftaNumberChange, maintenanceAmount, onMaintenanceAmountChange, pdiMonthly, pdiWeeklyDeposit }: Step5Props) {
   const handleToggle = (key: string) => {
     if (key === 'irp_plate_prepaid' && !selections['irp_plate_prepaid'] && selections['irp_plate_settlements']) onToggle('irp_plate_settlements');
     if (key === 'irp_plate_settlements' && !selections['irp_plate_settlements'] && selections['irp_plate_prepaid']) onToggle('irp_plate_prepaid');
@@ -75,8 +77,8 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
         weekly.push({ label: 'IRP Plate Deposit', value: agent.cr6cd_platedepositvalue, subtitle: `Full value ${formatCurrency(agent.cr6cd_platedepositfullvalue)}` });
         onetime.push({ label: 'IRP Plate Admin Fee', value: agent.cr6cd_plateadminfee });
       } else if (d.key === 'pdi') {
-        weekly.push({ label: 'PDI Deposit', value: val / 4, subtitle: 'Collected in 4 payments' });
-        monthly.push({ label: 'Physical Damage Ins (PDI)', value: val });
+        weekly.push({ label: 'PDI Deposit', value: pdiWeeklyDeposit, subtitle: 'Collected in 4 payments' });
+        monthly.push({ label: 'Physical Damage Ins (PDI)', value: pdiMonthly });
       } else if (d.key === 'occacc') {
         monthly.push({ label: 'Occ/Acc Insurance', value: val, subtitle: `(Billed bi-weekly at ${formatCurrency(agent.cr6cd_occaccbiweekly)})` });
       } else if (d.key === 'maintenance_fund') {
@@ -91,7 +93,7 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
       }
     }
     return { weekly, monthly, onetime };
-  }, [agent, selections, maintenanceAmount]);
+  }, [agent, selections, maintenanceAmount, pdiMonthly, pdiWeeklyDeposit]);
 
   const weeklyTotal = summary.weekly.reduce((s, i) => s + i.value, 0);
   const monthlyTotal = summary.monthly.reduce((s, i) => s + i.value, 0);
@@ -111,7 +113,7 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
           <div className="space-y-1">
             {DEDUCTIONS.map((d, idx) => {
               const Icon = d.icon;
-              const val = agent ? d.getValueFromAgent(agent) : null;
+              const val = d.key === 'pdi' ? pdiMonthly : (agent ? d.getValueFromAgent(agent) : null);
               const isDisabled = d.key === 'chassis_usage' && chassisDisabled;
               return (
                 <div key={d.key}>
@@ -124,11 +126,16 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
                   )}>
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <Icon className={cn('w-5 h-5 flex-shrink-0 transition-colors duration-200', selections[d.key] ? 'text-primary' : 'text-muted-foreground')} />
-                      <span className={cn('text-sm font-medium truncate transition-colors duration-200', selections[d.key] ? 'text-foreground' : 'text-muted-foreground')}>{d.label}</span>
+                      <div className="min-w-0">
+                        <span className={cn('text-sm font-medium truncate transition-colors duration-200 block', selections[d.key] ? 'text-foreground' : 'text-muted-foreground')}>{d.label}</span>
+                        {d.key === 'pdi' && pdiMonthly === 0 && (
+                          <span className="text-xs text-amber-500">Enter truck value in Step 2</span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-sm font-mono text-muted-foreground w-20 text-right">
-                        {val !== null ? formatCurrency(val) : d.key === 'maintenance_fund' ? '—' : d.key === 'irp_plate_prepaid' ? 'Toggle' : '—'}
+                        {d.key === 'pdi' ? formatCurrency(pdiMonthly) : val !== null ? formatCurrency(val) : d.key === 'maintenance_fund' ? '—' : d.key === 'irp_plate_prepaid' ? 'Toggle' : '—'}
                       </span>
                       <Toggle checked={!!selections[d.key]} onChange={() => handleToggle(d.key)} disabled={isDisabled} />
                     </div>

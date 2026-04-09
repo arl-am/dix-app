@@ -1,7 +1,8 @@
-import { useState, useEffect, type ReactNode } from 'react';
-import { ChevronDown, UserRound, Building2, Truck } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
+import { ChevronDown, UserRound, Building2, Truck, ShieldCheck, Info } from 'lucide-react';
+import { cn, formatCurrency } from '../../lib/utils';
 import { US_STATES } from '../../lib/mockData';
+import { calculatePDI } from '../../lib/pdiRates';
 import CustomSelect from '../../components/CustomSelect';
 import DatePicker from '../../components/DatePicker';
 import Toggle from '../../components/Toggle';
@@ -15,7 +16,10 @@ export default function Step2RecordDetails({ form, onChange }: Step2Props) {
   const [driverOpen, setDriverOpen] = useState(true);
   const [vendorOpen, setVendorOpen] = useState(true);
   const [truckOpen, setTruckOpen] = useState(true);
+  const [lienholderOpen, setLienholderOpen] = useState(false);
   const [sameAsDriver, setSameAsDriver] = useState(false);
+
+  const pdi = useMemo(() => calculatePDI(parseFloat(form.truckValue || '0')), [form.truckValue]);
 
   useEffect(() => {
     if (sameAsDriver) {
@@ -32,7 +36,7 @@ export default function Step2RecordDetails({ form, onChange }: Step2Props) {
   ];
 
   const currentYear = new Date().getFullYear();
-  const YEARS = Array.from({ length: currentYear - 1989 + 1 }, (_, i) => String(currentYear + 1 - i));
+  const YEARS = Array.from({ length: currentYear - 1989 }, (_, i) => String(currentYear - i));
 
   const input = (field: string, label: string, opts?: { type?: string; placeholder?: string; required?: boolean; colSpan?: number; numbersOnly?: boolean; disabled?: boolean }) => (
     <div className={cn(opts?.colSpan === 2 ? 'md:col-span-2 space-y-2' : 'space-y-2')}>
@@ -185,30 +189,100 @@ export default function Step2RecordDetails({ form, onChange }: Step2Props) {
       ))}
 
       {section('Truck Information', <Truck className="w-5 h-5" />, '#10B981', truckOpen, () => setTruckOpen(!truckOpen), '140ms', (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {input('unitNumber', 'Unit Number', { placeholder: 'Enter unit number' })}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">Year</label>
-            <CustomSelect
-              options={YEARS.map((y) => ({ value: y, label: y }))}
-              value={form.year || ''}
-              onChange={(v) => onChange('year', v)}
-              placeholder="Select year..."
-            />
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {input('unitNumber', 'Unit Number', { placeholder: 'Enter unit number' })}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">Year</label>
+              <CustomSelect
+                options={YEARS.map((y) => ({ value: y, label: y }))}
+                value={form.year || ''}
+                onChange={(v) => onChange('year', v)}
+                placeholder="Select year..."
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">Make</label>
+              <CustomSelect
+                options={TRUCK_MAKES.map((m) => ({ value: m, label: m }))}
+                value={form.make || ''}
+                onChange={(v) => onChange('make', v)}
+                placeholder="Select make..."
+              />
+            </div>
+            {input('model', 'Model', { placeholder: 'Enter model' })}
+            {input('vin', 'VIN', { placeholder: '17-character VIN' })}
+            {input('color', 'Color', { placeholder: 'Color' })}
+            {input('truckValue', 'Truck Value', { placeholder: '0.00', numbersOnly: true })}
+            {input('unladenWeight', 'Unladen Weight', { placeholder: 'Enter weight', numbersOnly: true })}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">Purchase Date</label>
+              <DatePicker
+                value={form.purchaseDate || ''}
+                onChange={(v) => onChange('purchaseDate', v)}
+                placeholder="Select date..."
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">Make</label>
-            <CustomSelect
-              options={TRUCK_MAKES.map((m) => ({ value: m, label: m }))}
-              value={form.make || ''}
-              onChange={(v) => onChange('make', v)}
-              placeholder="Select make..."
-            />
+
+          {parseFloat(form.truckValue || '0') > 0 && (
+            <div className="mt-4 rounded-xl border border-border/60 bg-card shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-slate-900 to-slate-800 flex items-center gap-2">
+                <Info className="w-4 h-4 text-slate-300" />
+                <span className="text-sm font-semibold text-white">PDI Estimate</span>
+                {pdi.pdiPercentage > 0 && (
+                  <span className="ml-auto text-xs text-slate-400 tabular-nums">{pdi.pdiPercentage}% rate</span>
+                )}
+              </div>
+              <div className="px-4 py-3 flex items-center gap-6">
+                <div>
+                  <span className="text-xs text-muted-foreground">Monthly</span>
+                  <p className="text-sm font-semibold text-foreground tabular-nums">{formatCurrency(pdi.pdiMonthly)}</p>
+                </div>
+                <div className="w-px h-8 bg-border" />
+                <div>
+                  <span className="text-xs text-muted-foreground">Weekly Deposit</span>
+                  <p className="text-sm font-semibold text-foreground tabular-nums">{formatCurrency(pdi.pdiWeeklyDeposit)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 rounded-lg border border-border/60 overflow-hidden">
+            <button
+              onClick={() => setLienholderOpen(!lienholderOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 transition-all duration-200 group hover:bg-muted/30"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-md flex items-center justify-center bg-amber-500/10 text-amber-500">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <span className="font-medium text-foreground text-sm">Lienholder Information</span>
+              </div>
+              <div
+                className={cn(
+                  'w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 bg-muted/60 group-hover:bg-muted',
+                  lienholderOpen && 'rotate-180',
+                )}
+              >
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+            </button>
+            <div
+              className={cn(
+                'grid transition-all duration-300 ease-out',
+                lienholderOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+              )}
+            >
+              <div className="overflow-hidden">
+                <div className="px-4 pb-4 pt-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {input('lienholderName', 'Lienholder Name', { placeholder: 'Enter lienholder name' })}
+                  {input('lienholderAddress', 'Lienholder Address', { placeholder: 'Full address (street, city, state, zip)' })}
+                </div>
+              </div>
+            </div>
           </div>
-          {input('model', 'Model', { placeholder: 'Enter model' })}
-          {input('vin', 'VIN', { placeholder: '17-character VIN' })}
-          {input('color', 'Color', { placeholder: 'Color' })}
-        </div>
+        </>
       ))}
     </div>
   );

@@ -182,6 +182,7 @@ Fields:
 - cr6cd_dix_onboardingdate, cr6cd_dix_isactive, cr6cd_dix_fuelcardnumber
 - cr6cd_dix_elprequired, cr6cd_dix_hazmat, cr6cd_dix_homelandsecurity,
   cr6cd_dix_reactivateequipment, cr6cd_dix_transferequipment, cr6cd_dix_transferoccacc
+- cr6cd_dix_pdimonthly (Currency), cr6cd_dix_pdipercentage (Decimal)
 
 Choice values:
 - contracttype: 1=Owner Operator, 2=Company Driver, 3=Lease
@@ -348,7 +349,8 @@ cr6cd_dix_state, cr6cd_dix_zipcode
 Fields: cr6cd_dix_unitnumber, cr6cd_dix_make, cr6cd_dix_model,
 cr6cd_dix_year (Int), cr6cd_dix_color, cr6cd_dix_vin,
 cr6cd_dix_truckvalue (Currency), cr6cd_dix_unladenweight (Decimal),
-cr6cd_dix_purchasedate (Date)
+cr6cd_dix_purchasedate (Date),
+cr6cd_dix_lienholdername (String 200), cr6cd_dix_lienholderaddress (String 500)
 
 ### cr6cd_dix_appsetting
 Fields: cr6cd_dix_value (String 2000), cr6cd_dix_description (String 500),

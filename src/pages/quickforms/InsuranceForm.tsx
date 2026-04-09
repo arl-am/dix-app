@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileDown, Shield, Calculator } from 'lucide-react';
 import { useAgents } from '../../hooks/useAgents';
 import { formatCurrency } from '../../lib/utils';
+import { calculatePDI, type PDIResult } from '../../lib/pdiRates';
 import { toast } from 'sonner';
 import CustomSelect from '../../components/CustomSelect';
 import DatePicker from '../../components/DatePicker';
@@ -14,15 +15,16 @@ export default function InsuranceForm() {
 
   const selectedAgent = agents.find((a) => a.cr6cd_terminal === form.terminal);
 
-  const pdiCalc = useMemo(() => {
+  const [pdiResult, setPdiResult] = useState<PDIResult>({ pdiMonthly: 0, pdiPercentage: 0, pdiWeeklyDeposit: 0 });
+
+  const handleGetPDI = () => {
     const truckValue = parseFloat(form.truckValue || '0');
-    if (!truckValue) return { monthly: 0, deposit: 0, weekly: 0 };
-    const rate = 0.012;
-    const monthly = truckValue * rate;
-    const deposit = monthly;
-    const weekly = deposit / 4;
-    return { monthly, deposit, weekly };
-  }, [form.truckValue]);
+    if (!truckValue) { toast.error('Please enter a truck value'); return; }
+    const result = calculatePDI(truckValue);
+    setPdiResult(result);
+    if (result.pdiMonthly === 0) toast.error('Truck value is outside the supported range');
+    else toast.success(`PDI calculated: ${formatCurrency(result.pdiMonthly)}/month`);
+  };
 
   const field = (name: string, label: string, opts?: { type?: string; placeholder?: string }) => (
     <div className="space-y-1.5">
@@ -73,6 +75,19 @@ export default function InsuranceForm() {
               <h3 className="text-base font-semibold text-foreground">Vehicle & Insurance</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {field('truckValue', 'Truck Value ($)', { type: 'number', placeholder: '0.00' })}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-muted-foreground">PDI Monthly Deduction</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                      <input type="text" disabled value={pdiResult.pdiMonthly > 0 ? pdiResult.pdiMonthly.toFixed(2) : ''} placeholder="—" className="w-full h-10 rounded-lg border border-input bg-muted px-3 pl-7 text-sm shadow-sm outline-none opacity-70 cursor-not-allowed" />
+                    </div>
+                    <button onClick={handleGetPDI} className="inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium h-10 px-4 bg-[#2563EB] text-white transition-all duration-200 hover:bg-[#1D4ED8] hover:shadow-lg hover:shadow-primary/25 active:scale-95 whitespace-nowrap">
+                      <Calculator className="w-4 h-4" />
+                      Get PDI
+                    </button>
+                  </div>
+                </div>
                 {field('vin', 'VIN', { placeholder: '17-character VIN' })}
                 {field('year', 'Year')}
                 {field('make', 'Make')}
@@ -132,15 +147,17 @@ export default function InsuranceForm() {
                 <div className="h-px bg-border" />
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Monthly PDI</span>
-                  <span className="text-sm font-semibold tabular-nums">{formatCurrency(pdiCalc.monthly)}</span>
+                  <span className="text-sm font-semibold tabular-nums">{formatCurrency(pdiResult.pdiMonthly)}</span>
                 </div>
+                {pdiResult.pdiPercentage > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Rate</span>
+                    <span className="text-sm font-semibold tabular-nums">{pdiResult.pdiPercentage}%</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">PDI Deposit (4x)</span>
-                  <span className="text-sm font-semibold tabular-nums">{formatCurrency(pdiCalc.deposit)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Weekly Deduction</span>
-                  <span className="text-sm font-semibold tabular-nums">{formatCurrency(pdiCalc.weekly)}</span>
+                  <span className="text-sm text-muted-foreground">Weekly Deposit</span>
+                  <span className="text-sm font-semibold tabular-nums">{formatCurrency(pdiResult.pdiWeeklyDeposit)}</span>
                 </div>
                 {selectedAgent && (
                   <>
@@ -160,7 +177,7 @@ export default function InsuranceForm() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-amber-100">Est. Monthly Total</span>
                   <span className="text-xl font-bold text-white tabular-nums">
-                    {formatCurrency(pdiCalc.monthly + (selectedAgent?.cr6cd_occaccmonthly || 0) + (selectedAgent?.cr6cd_bobtailvalue || 0))}
+                    {formatCurrency(pdiResult.pdiMonthly + (selectedAgent?.cr6cd_occaccmonthly || 0) + (selectedAgent?.cr6cd_bobtailvalue || 0))}
                   </span>
                 </div>
               </div>

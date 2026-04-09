@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CircleCheck, ChevronDown, User, Building2, FileText, ClipboardList } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, formatCurrency } from '../../lib/utils';
 import { CONTRACT_TYPE_LABELS, type Agent } from '../../lib/mockData';
 
 interface Step6Props {
@@ -15,6 +15,9 @@ interface Step6Props {
   transferOccAcc: boolean;
   transferEquipment: boolean;
   reactivateEquipment: boolean;
+  pdiMonthly: number;
+  pdiWeeklyDeposit: number;
+  maintenanceAmount: string;
   onSubmit: () => void;
   isSaving: boolean;
 }
@@ -58,10 +61,29 @@ function Field({ label, value }: { label: string; value: string }) {
 
 const CONTRACT_MAP = CONTRACT_TYPE_LABELS;
 
+const DEDUCTION_LABELS: Record<string, string> = {
+  occacc: 'Occ/Acc Insurance',
+  bobtail: 'Bobtail Insurance',
+  pdi: 'Physical Damage Ins (PDI)',
+  security_deposit: 'Security Deposit',
+  eld_deposit: 'ELD Deposit',
+  dashcam_deposit: 'DashCam Deposit',
+  buydown: 'Buy-Down Program',
+  ifta: 'IFTA',
+  irp_plate_prepaid: 'IRP Plate: PrePaid',
+  irp_plate_settlements: 'IRP Plate: Settlements',
+  prepass_tolls_bypass: 'PrePass: Tolls & Bypass',
+  prepass_bypass: 'PrePass: Bypass',
+  maintenance_fund: 'Maintenance Fund',
+  chassis_usage: 'Chassis Usage',
+  rfid: 'RFID Tag',
+};
+
 export default function Step6Review({
   form, agent, actionType, contractType, selections,
   elpRequired, hazmat, homelandSecurity,
   transferOccAcc, transferEquipment, reactivateEquipment,
+  pdiMonthly, pdiWeeklyDeposit, maintenanceAmount,
   onSubmit, isSaving,
 }: Step6Props) {
   const selectedDeductions = Object.entries(selections).filter(([, v]) => v).map(([k]) => k);
@@ -136,12 +158,20 @@ export default function Step6Review({
           {selectedDeductions.length === 0 ? (
             <p className="text-sm text-muted-foreground py-2">No deductions selected</p>
           ) : (
-            <div className="flex flex-wrap gap-2 py-2">
-              {selectedDeductions.map((k) => (
-                <span key={k} className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
-                  {k.replace(/_/g, ' ')}
-                </span>
-              ))}
+            <div className="space-y-1 py-2">
+              {selectedDeductions.map((k) => {
+                let detail = '';
+                if (k === 'pdi') detail = `Monthly: ${formatCurrency(pdiMonthly)} | Weekly deposit: ${formatCurrency(pdiWeeklyDeposit)}`;
+                else if (k === 'maintenance_fund' && maintenanceAmount) detail = `${formatCurrency(parseFloat(maintenanceAmount))}/week`;
+                return (
+                  <div key={k} className="flex items-center justify-between py-1.5">
+                    <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+                      {DEDUCTION_LABELS[k] || k.replace(/_/g, ' ')}
+                    </span>
+                    {detail && <span className="text-xs text-muted-foreground tabular-nums">{detail}</span>}
+                  </div>
+                );
+              })}
             </div>
           )}
         </Section>

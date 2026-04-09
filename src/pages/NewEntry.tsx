@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAgents } from '../hooks/useAgents';
+import { calculatePDI } from '../lib/pdiRates';
 import StepProgress from './new-entry/StepProgress';
 import Step1Setup from './new-entry/Step1Setup';
 import Step2RecordDetails from './new-entry/Step2RecordDetails';
@@ -40,6 +41,8 @@ export default function NewEntry() {
   const [isSaving, setIsSaving] = useState(false);
 
   const agent = agents.find((a) => a.cr6cd_agentsid === selectedAgent) || null;
+
+  const pdi = useMemo(() => calculatePDI(parseFloat(form.truckValue || '0')), [form.truckValue]);
 
   const validateStep = (s: number): string | null => {
     switch (s) {
@@ -133,6 +136,8 @@ export default function NewEntry() {
                   onIftaNumberChange={setIftaNumber}
                   maintenanceAmount={maintenanceAmount}
                   onMaintenanceAmountChange={setMaintenanceAmount}
+                  pdiMonthly={pdi.pdiMonthly}
+                  pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
                 />
               )}
               {step === 5 && (
@@ -141,6 +146,8 @@ export default function NewEntry() {
                   selections={deductionSelections}
                   elpRequired={elpRequired} hazmat={hazmat} homelandSecurity={homelandSecurity}
                   transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment}
+                  pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
+                  maintenanceAmount={maintenanceAmount}
                   onSubmit={handleSubmit} isSaving={isSaving}
                 />
               )}
