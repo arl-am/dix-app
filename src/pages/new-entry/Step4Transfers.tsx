@@ -13,6 +13,8 @@ interface Step4Props {
   onReactivateEquipmentChange: (v: boolean) => void;
   transferItems: Record<TransferItemKey, boolean>;
   onTransferItemChange: (key: TransferItemKey, v: boolean) => void;
+  reactivateItems: Record<TransferItemKey, boolean>;
+  onReactivateItemChange: (key: TransferItemKey, v: boolean) => void;
 }
 
 const EQUIPMENT_ITEMS: { key: TransferItemKey; label: string; icon: React.ElementType }[] = [
@@ -22,33 +24,66 @@ const EQUIPMENT_ITEMS: { key: TransferItemKey; label: string; icon: React.Elemen
   { key: 'plate', label: 'Plate', icon: FileText },
 ];
 
-function ItemButton({ icon: Icon, label, active, onChange }: {
-  icon: React.ElementType; label: string; active: boolean; onChange: (v: boolean) => void;
+function EquipmentToggles({ items, onItemChange, color }: {
+  items: Record<TransferItemKey, boolean>;
+  onItemChange: (key: TransferItemKey, v: boolean) => void;
+  color: 'emerald' | 'purple';
 }) {
+  const colorMap = {
+    emerald: {
+      activeBg: 'bg-emerald-500/10',
+      activeBorder: 'border-emerald-500/30',
+      iconBg: 'bg-emerald-500/15',
+      iconColor: 'text-emerald-500',
+      textColor: 'text-emerald-700 dark:text-emerald-400',
+      trackActive: 'bg-emerald-500',
+    },
+    purple: {
+      activeBg: 'bg-purple-500/10',
+      activeBorder: 'border-purple-500/30',
+      iconBg: 'bg-purple-500/15',
+      iconColor: 'text-purple-500',
+      textColor: 'text-purple-700 dark:text-purple-400',
+      trackActive: 'bg-purple-500',
+    },
+  };
+  const c = colorMap[color];
+
   return (
-    <button
-      onClick={() => onChange(!active)}
-      className={cn(
-        'flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200 text-left',
-        active
-          ? 'bg-primary/10 border-primary/30 shadow-sm'
-          : 'bg-muted/40 dark:bg-muted/20 border-border hover:bg-muted/70 dark:hover:bg-muted/40 hover:border-border/80',
-      )}
-    >
-      <div className={cn(
-        'w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200',
-        active ? 'bg-primary/15' : 'bg-background dark:bg-muted/50',
-      )}>
-        <Icon className={cn('w-4.5 h-4.5 transition-colors duration-200', active ? 'text-primary' : 'text-muted-foreground')} />
-      </div>
-      <span className={cn('text-sm font-medium transition-colors duration-200', active ? 'text-foreground' : 'text-muted-foreground')}>{label}</span>
-      <div className={cn(
-        'ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200',
-        active ? 'border-primary bg-primary' : 'border-muted-foreground/30',
-      )}>
-        {active && <div className="w-2 h-2 rounded-full bg-white" />}
-      </div>
-    </button>
+    <div className="grid grid-cols-2 gap-2.5 mt-3">
+      {EQUIPMENT_ITEMS.map(({ key, label, icon: Icon }) => {
+        const active = items[key];
+        return (
+          <button
+            key={key}
+            onClick={() => onItemChange(key, !active)}
+            className={cn(
+              'flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border transition-all duration-200 text-left',
+              active
+                ? `${c.activeBg} ${c.activeBorder} shadow-sm`
+                : 'bg-muted/30 dark:bg-muted/15 border-border hover:bg-muted/60 dark:hover:bg-muted/30',
+            )}
+          >
+            <div className={cn(
+              'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200',
+              active ? c.iconBg : 'bg-background dark:bg-muted/50',
+            )}>
+              <Icon className={cn('w-4 h-4 transition-colors duration-200', active ? c.iconColor : 'text-muted-foreground')} />
+            </div>
+            <span className={cn('text-sm font-medium transition-colors duration-200 flex-1', active ? 'text-foreground' : 'text-muted-foreground')}>{label}</span>
+            <div className={cn(
+              'w-8 h-[18px] rounded-full transition-all duration-200 flex items-center px-0.5 flex-shrink-0',
+              active ? c.trackActive : 'bg-muted-foreground/20',
+            )}>
+              <div className={cn(
+                'w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-all duration-200',
+                active ? 'translate-x-[14px]' : 'translate-x-0',
+              )} />
+            </div>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -57,9 +92,8 @@ export default function Step4Transfers({
   transferEquipment, onTransferEquipmentChange,
   reactivateEquipment, onReactivateEquipmentChange,
   transferItems, onTransferItemChange,
+  reactivateItems, onReactivateItemChange,
 }: Step4Props) {
-  const showTransferItems = transferEquipment || reactivateEquipment;
-
   return (
     <div className="flex-1 flex justify-center">
       <div className="w-full max-w-[1000px] space-y-6">
@@ -94,16 +128,28 @@ export default function Step4Transfers({
               </div>
 
               <div className={cn(
-                'flex items-center justify-between py-4 px-5 rounded-xl border transition-all duration-200',
+                'rounded-xl border transition-all duration-200',
                 transferEquipment
                   ? 'bg-primary/5 border-primary/20 shadow-sm'
                   : 'bg-muted/40 dark:bg-muted/20 border-border hover:bg-muted/60 dark:hover:bg-muted/30',
               )}>
-                <div className="flex items-center gap-3">
-                  <Package className={cn('w-5 h-5 transition-colors duration-200', transferEquipment ? 'text-primary' : 'text-muted-foreground')} />
-                  <span className={cn('text-sm font-semibold transition-colors duration-200', transferEquipment ? 'text-foreground' : 'text-muted-foreground')}>Transfer Equipment</span>
+                <div className="flex items-center justify-between py-4 px-5">
+                  <div className="flex items-center gap-3">
+                    <Package className={cn('w-5 h-5 transition-colors duration-200', transferEquipment ? 'text-primary' : 'text-muted-foreground')} />
+                    <span className={cn('text-sm font-semibold transition-colors duration-200', transferEquipment ? 'text-foreground' : 'text-muted-foreground')}>Transfer Equipment</span>
+                  </div>
+                  <Toggle checked={transferEquipment} onChange={onTransferEquipmentChange} />
                 </div>
-                <Toggle checked={transferEquipment} onChange={onTransferEquipmentChange} />
+                <div className={cn(
+                  'grid transition-all duration-300 ease-out',
+                  transferEquipment ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+                )}>
+                  <div className="overflow-hidden">
+                    <div className="px-5 pb-4 border-t border-emerald-500/15">
+                      <EquipmentToggles items={transferItems} onItemChange={onTransferItemChange} color="emerald" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -121,48 +167,26 @@ export default function Step4Transfers({
               </div>
             </div>
             <div className={cn(
-              'flex items-center justify-between py-4 px-5 rounded-xl border transition-all duration-200',
+              'rounded-xl border transition-all duration-200',
               reactivateEquipment
                 ? 'bg-primary/5 border-primary/20 shadow-sm'
                 : 'bg-muted/40 dark:bg-muted/20 border-border hover:bg-muted/60 dark:hover:bg-muted/30',
             )}>
-              <div className="flex items-center gap-3">
-                <RefreshCw className={cn('w-5 h-5 transition-colors duration-200', reactivateEquipment ? 'text-primary' : 'text-muted-foreground')} />
-                <span className={cn('text-sm font-semibold transition-colors duration-200', reactivateEquipment ? 'text-foreground' : 'text-muted-foreground')}>Reactivate Equipment</span>
-              </div>
-              <Toggle checked={reactivateEquipment} onChange={onReactivateEquipmentChange} />
-            </div>
-          </div>
-        </div>
-
-        <div
-          className={cn(
-            'grid transition-all duration-300 ease-out',
-            showTransferItems ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
-          )}
-        >
-          <div className="overflow-hidden">
-            <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              <div className="p-6">
-                <div className="flex items-start gap-4 mb-5">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 flex-shrink-0">
-                    <Package className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-foreground">Equipment Items</h4>
-                    <p className="text-sm text-muted-foreground mt-1">Select which equipment items to {transferEquipment && reactivateEquipment ? 'transfer or reactivate' : transferEquipment ? 'transfer' : 'reactivate'}</p>
-                  </div>
+              <div className="flex items-center justify-between py-4 px-5">
+                <div className="flex items-center gap-3">
+                  <RefreshCw className={cn('w-5 h-5 transition-colors duration-200', reactivateEquipment ? 'text-primary' : 'text-muted-foreground')} />
+                  <span className={cn('text-sm font-semibold transition-colors duration-200', reactivateEquipment ? 'text-foreground' : 'text-muted-foreground')}>Reactivate Equipment</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {EQUIPMENT_ITEMS.map((item) => (
-                    <ItemButton
-                      key={item.key}
-                      icon={item.icon}
-                      label={item.label}
-                      active={transferItems[item.key]}
-                      onChange={(v) => onTransferItemChange(item.key, v)}
-                    />
-                  ))}
+                <Toggle checked={reactivateEquipment} onChange={onReactivateEquipmentChange} />
+              </div>
+              <div className={cn(
+                'grid transition-all duration-300 ease-out',
+                reactivateEquipment ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+              )}>
+                <div className="overflow-hidden">
+                  <div className="px-5 pb-4 border-t border-purple-500/15">
+                    <EquipmentToggles items={reactivateItems} onItemChange={onReactivateItemChange} color="purple" />
+                  </div>
                 </div>
               </div>
             </div>

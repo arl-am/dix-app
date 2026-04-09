@@ -25,6 +25,7 @@ interface Step6Props {
   transferEquipment: boolean;
   reactivateEquipment: boolean;
   transferItems: Record<TransferItemKey, boolean>;
+  reactivateItems: Record<TransferItemKey, boolean>;
   pdiMonthly: number;
   pdiWeeklyDeposit: number;
   maintenanceAmount: string;
@@ -116,7 +117,7 @@ export default function Step6Review({
   form, agent, actionType, contractType, selections,
   elpRequired,
   hazmatStatus, homelandStatus,
-  transferOccAcc, transferEquipment, reactivateEquipment, transferItems,
+  transferOccAcc, transferEquipment, reactivateEquipment, transferItems, reactivateItems,
   pdiMonthly, pdiWeeklyDeposit, maintenanceAmount,
   onSubmit, isSaving,
 }: Step6Props) {
@@ -192,24 +193,37 @@ export default function Step6Review({
 
         <Section title="Transfers & Reactivation" icon={FileText}>
           <div className="space-y-1">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6">
-              <Field label="Transfer Occ/Acc" value={transferOccAcc ? 'Yes' : 'No'} />
-              <Field label="Transfer Equipment" value={transferEquipment ? 'Yes' : 'No'} />
-              <Field label="Reactivate Equipment" value={reactivateEquipment ? 'Yes' : 'No'} />
-            </div>
-            {(transferEquipment || reactivateEquipment) && (
-              <div className="pt-2 mt-1 border-t border-border">
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">Equipment Items</span>
-                <div className="flex flex-wrap gap-2 mt-2">
+            <Field label="Transfer Occ/Acc" value={transferOccAcc ? 'Yes' : 'No'} />
+            <Field label="Transfer Equipment" value={transferEquipment ? 'Yes' : 'No'} />
+            {transferEquipment && (
+              <div className="pl-4 pb-1">
+                <div className="flex flex-wrap gap-2">
                   {(Object.entries(transferItems) as [TransferItemKey, boolean][])
                     .filter(([, v]) => v)
                     .map(([k]) => (
-                      <span key={k} className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+                      <span key={k} className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
                         {TRANSFER_ITEM_LABELS[k]}
                       </span>
                     ))}
                   {Object.values(transferItems).every((v) => !v) && (
-                    <span className="text-sm text-muted-foreground">None selected</span>
+                    <span className="text-xs text-muted-foreground">None selected</span>
+                  )}
+                </div>
+              </div>
+            )}
+            <Field label="Reactivate Equipment" value={reactivateEquipment ? 'Yes' : 'No'} />
+            {reactivateEquipment && (
+              <div className="pl-4 pb-1">
+                <div className="flex flex-wrap gap-2">
+                  {(Object.entries(reactivateItems) as [TransferItemKey, boolean][])
+                    .filter(([, v]) => v)
+                    .map(([k]) => (
+                      <span key={k} className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20">
+                        {TRANSFER_ITEM_LABELS[k]}
+                      </span>
+                    ))}
+                  {Object.values(reactivateItems).every((v) => !v) && (
+                    <span className="text-xs text-muted-foreground">None selected</span>
                   )}
                 </div>
               </div>

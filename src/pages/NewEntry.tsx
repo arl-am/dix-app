@@ -51,6 +51,11 @@ export default function NewEntry() {
   });
   const handleTransferItemChange = (key: TransferItemKey, v: boolean) =>
     setTransferItems((s) => ({ ...s, [key]: v }));
+  const [reactivateItems, setReactivateItems] = useState<Record<TransferItemKey, boolean>>({
+    security_deposit: false, eld: false, dashcam: false, plate: false,
+  });
+  const handleReactivateItemChange = (key: TransferItemKey, v: boolean) =>
+    setReactivateItems((s) => ({ ...s, [key]: v }));
 
   const [deductionSelections, setDeductionSelections] = useState<Record<string, boolean>>({});
   const [iftaNumber, setIftaNumber] = useState('');
@@ -153,6 +158,7 @@ export default function NewEntry() {
                   transferEquipment={transferEquipment} onTransferEquipmentChange={setTransferEquipment}
                   reactivateEquipment={reactivateEquipment} onReactivateEquipmentChange={setReactivateEquipment}
                   transferItems={transferItems} onTransferItemChange={handleTransferItemChange}
+                  reactivateItems={reactivateItems} onReactivateItemChange={handleReactivateItemChange}
                 />
               )}
               {step === 4 && (
@@ -174,7 +180,7 @@ export default function NewEntry() {
                   selections={deductionSelections}
                   elpRequired={elpRequired}
                   hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
-                  transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment} transferItems={transferItems}
+                  transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment} transferItems={transferItems} reactivateItems={reactivateItems}
                   pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
                   maintenanceAmount={maintenanceAmount}
                   onSubmit={handleSubmit} isSaving={isSaving}
