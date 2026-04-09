@@ -38,12 +38,15 @@ terminals. All connected to Dataverse.
 
 ### Fonts (CRITICAL)
 Power Apps CSP blocks external fonts AND base64-inlined fonts.
+The SAS-token hosting model also prevents static CSS @font-face from
+loading local font files (CSS url() cannot carry the SAS query string).
 Use ONLY this system font stack everywhere:
 ```
 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
   "Helvetica Neue", Arial, sans-serif;
 ```
 Do NOT import Google Fonts. Do NOT use @font-face with external URLs.
+Do NOT attempt self-hosted webfonts — they cannot work in this CDN model.
 
 ### Colors
 - Primary blue: #2563EB, hover: #1D4ED8

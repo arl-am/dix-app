@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAgents } from '../hooks/useAgents';
+import { useCreateDriver } from '../hooks/useCreateDriver';
 import { calculatePDI } from '../lib/pdiRates';
 import type { TestStatus } from './new-entry/Step3Testing';
 import type { TransferItemKey } from './new-entry/Step4Transfers';
@@ -62,7 +63,7 @@ export default function NewEntry() {
   const [maintenanceAmount, setMaintenanceAmount] = useState('');
   const toggleDeduction = (key: string) => setDeductionSelections((s) => ({ ...s, [key]: !s[key] }));
 
-  const [isSaving, setIsSaving] = useState(false);
+  const createDriver = useCreateDriver();
 
   const agent = agents.find((a) => a.cr6cd_agentsid === selectedAgent) || null;
 
@@ -109,13 +110,20 @@ export default function NewEntry() {
     contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
-  const handleSubmit = async () => {
-    setIsSaving(true);
-    try {
-      toast.success('Driver record saved successfully!');
-    } finally {
-      setIsSaving(false);
-    }
+  const handleSubmit = () => {
+    createDriver.mutate(
+      {
+        selectedAgent, actionType, contractType, startDate, form,
+        elpRequired, hazmat,
+        transferOccAcc, transferEquipment, reactivateEquipment,
+        transferItems, reactivateItems,
+        deductionSelections, iftaNumber, maintenanceAmount,
+      },
+      {
+        onSuccess: () => toast.success('Driver record saved successfully!'),
+        onError: (err) => toast.error(`Save failed: ${err instanceof Error ? err.message : 'Unknown error'}`),
+      },
+    );
   };
 
   const animClass = animating
@@ -183,7 +191,7 @@ export default function NewEntry() {
                   transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment} transferItems={transferItems} reactivateItems={reactivateItems}
                   pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
                   maintenanceAmount={maintenanceAmount}
-                  onSubmit={handleSubmit} isSaving={isSaving}
+                  onSubmit={handleSubmit} isSaving={createDriver.isPending}
                 />
               )}
             </div>
