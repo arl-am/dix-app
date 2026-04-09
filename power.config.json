@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "appId": null,
+  "appDisplayName": "DIX - Driver Integration",
+  "region": "prod",
+  "environmentId": "1196a916-9d8e-e019-9091-81689db18808",
+  "description": " ",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "localAppUrl": "http://localhost:3000",
+  "logoPath": "Default",
+  "connectionReferences": {},
+  "databaseReferences": {
+    "default.cds": {
+      "dataSources": {
+        "allagentsdatabases": {
+          "entitySetName": "cr6cd_agentses",
+          "logicalName": "cr6cd_agents"
+        },
+        "dixdrivers": {
+          "entitySetName": "cr6cd_dix_drivers",
+          "logicalName": "cr6cd_dix_driver"
+        },
+        "dixdriverdeductions": {
+          "entitySetName": "cr6cd_dix_driverdeductions",
+          "logicalName": "cr6cd_dix_driverdeduction"
+        },
+        "dixvendors": {
+          "entitySetName": "cr6cd_dix_vendors",
+          "logicalName": "cr6cd_dix_vendor"
+        },
+        "dixunits": {
+          "entitySetName": "cr6cd_dix_units",
+          "logicalName": "cr6cd_dix_unit"
+        },
+        "dixappsettings": {
+          "entitySetName": "cr6cd_dix_appsettings",
+          "logicalName": "cr6cd_dix_appsetting"
+        },
+        "dixcancellations": {
+          "entitySetName": "cr6cd_dix_cancellations",
+          "logicalName": "cr6cd_dix_cancellation"
+        },
+        "dixdeductions": {
+          "entitySetName": "cr6cd_dix_deductions",
+          "logicalName": "cr6cd_dix_deduction"
+        },
+        "dixterminalmoves": {
+          "entitySetName": "cr6cd_dix_terminalmoves",
+          "logicalName": "cr6cd_dix_terminalmove"
+        }
+      },
+      "environmentVariableName": ""
+    }
+  }
+}
