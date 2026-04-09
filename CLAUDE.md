@@ -1,52 +1,5 @@
-# DIX — Driver Integration App
-
-## What This App Does
-DIX is an enterprise fleet management system for ARL Network. It handles
-driver onboarding (6-step wizard), cancellations, document generation,
-deduction tracking, terminal moves, and searchable records across 50+
-terminals. All connected to Dataverse.
-
-## Environment
-- Platform: Power Apps Code App (React + TypeScript + Vite)
-- Dataverse Org: https://org71748d11.crm.dynamics.com/
-- Environment ID: 1196a916-9d8e-e019-9091-81689db18808
-- Solution: DIXApp (Publisher: AndersonMarquez, Prefix: amarquez / cr6cd_)
-- Deployment: npx power-apps push
-
-## Tech Stack
-- React 19 + TypeScript (Vite)
-- Tailwind CSS
-- shadcn/ui components
-- lucide-react icons
-- react-router-dom (BrowserRouter)
-- @tanstack/react-query
-- sonner (toast notifications)
-- date-fns
-- @microsoft/power-apps (Dataverse SDK — REQUIRED for production)
-
-## Pages & Routes
-| Page             | Route          | File                          |
-|------------------|----------------|-------------------------------|
-| Dashboard        | /              | src/pages/Dashboard.tsx       |
-| Search Records   | /drivers       | src/pages/SearchRecords.tsx   |
-| New Entry        | /new-driver    | src/pages/NewEntry.tsx        |
-| New Cancellation | /cancellations | src/pages/NewCancellation.tsx |
-| Quick Forms      | /documents     | src/pages/QuickForms.tsx      |
-| Settings         | /settings      | src/pages/Settings.tsx        |
-
-## Design System
-
-### Fonts (CRITICAL)
-Power Apps CSP blocks external fonts AND base64-inlined fonts.
-The SAS-token hosting model also prevents static CSS @font-face from
-loading local font files (CSS url() cannot carry the SAS query string).
-Use ONLY this system font stack everywhere:
-```
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-  "Helvetica Neue", Arial, sans-serif;
-```
 Do NOT import Google Fonts. Do NOT use @font-face with external URLs.
-Do NOT attempt self-hosted webfonts — they cannot work in this CDN model.
+Do NOT attempt self-hosted webfonts – they cannot work in this CDN model.
 
 ### Colors
 - Primary blue: #2563EB, hover: #1D4ED8
@@ -156,7 +109,7 @@ export function useDrivers() {
 
 ## Dataverse Tables
 
-### EXISTING TABLE (do not create — read only)
+### EXISTING TABLE (do not create – read only)
 | Table             | API Collection    | Purpose                                |
 |-------------------|-------------------|----------------------------------------|
 | cr6cd_agents      | cr6cd_agentses    | Terminal config with deduction values   |
@@ -173,7 +126,7 @@ export function useDrivers() {
 | cr6cd_dix_unit          | cr6cd_dix_units             | Truck / unit data                |
 | cr6cd_dix_appsetting    | cr6cd_dix_appsettings       | App configuration                |
 
-## cr6cd_dix_driver — Main Driver Record
+## cr6cd_dix_driver – Main Driver Record
 Lookups: cr6cd_dix_agent → cr6cd_agents, cr6cd_dix_vendor → cr6cd_dix_vendor, cr6cd_dix_unit → cr6cd_dix_unit
 
 Fields:
@@ -193,7 +146,7 @@ Choice values:
 - contracttype: 1=Owner Operator, 2=Company Driver, 3=Lease
 - actiontype: 1=Add, 2=Equipment Return, 3=Contract End, 4=Medical
 
-## cr6cd_agents — Terminal Config (EXISTING TABLE)
+## cr6cd_agents – Terminal Config (EXISTING TABLE)
 This table has 50+ rows, one per terminal. Each row contains that
 terminal's deduction rates, company info, and contact emails.
 
@@ -228,12 +181,12 @@ Inventory return:
 - cr6cd_inventoryreturnaddress, cr6cd_inventoryreturncompany, cr6cd_inventoryterminal
 - cr6cd_noninventoryreturnaddress, cr6cd_noninventoryreturncompany
 
-## DEDUCTIONS — How They Work (CRITICAL)
+## DEDUCTIONS – How They Work (CRITICAL)
 
 ### Overview
 Deduction VALUES are stored in cr6cd_agents (one row per terminal).
 Deduction SELECTIONS (yes/no) are stored in cr6cd_dix_driverdeduction.
-The app always fetches live values from agents — never stores dollar amounts
+The app always fetches live values from agents – never stores dollar amounts
 on the driver record.
 
 ### Flow
@@ -246,10 +199,10 @@ on the driver record.
    query agents for current values, combine in the UI
 
 ### cr6cd_dix_driverdeduction Fields
-- cr6cd_dix_deductionkey (Text, required) — identifies the deduction type
-- cr6cd_dix_selected (Yes/No) — did the driver opt in
-- cr6cd_dix_customvalue (Currency, nullable) — only for Maintenance Fund
-- cr6cd_dix_iftanumber (Text, nullable) — only for IFTA
+- cr6cd_dix_deductionkey (Text, required) – identifies the deduction type
+- cr6cd_dix_selected (Yes/No) – did the driver opt in
+- cr6cd_dix_customvalue (Currency, nullable) – only for Maintenance Fund
+- cr6cd_dix_iftanumber (Text, nullable) – only for IFTA
 - Lookup: cr6cd_dix_deductiondriver → cr6cd_dix_driver
 
 ### Deduction Keys and Agent Field Mapping
@@ -263,7 +216,7 @@ on the driver record.
 | dashcam_deposit        | DashCam Deposit           | cr6cd_dashcamdepositvalue      | Weekly      |
 | buydown                | Buy-Down Program          | cr6cd_buydownvalue             | Weekly      |
 | ifta                   | IFTA                      | cr6cd_iftavalue                | Weekly      |
-| irp_plate_prepaid      | IRP Plate: PrePaid        | (no value — toggle only)       | Weekly      |
+| irp_plate_prepaid      | IRP Plate: PrePaid        | (no value – toggle only)       | Weekly      |
 | irp_plate_settlements  | IRP Plate: Settlements    | cr6cd_plateweeklyvalue         | Weekly      |
 | prepass_tolls_bypass    | PrePass: Tolls & Bypass  | cr6cd_prepasstollsbypass       | Weekly      |
 | prepass_bypass         | PrePass: Bypass           | cr6cd_prepassbypass            | Weekly      |
@@ -282,7 +235,7 @@ on the driver record.
 
 ### Auto-Included Items in Cost Summary
 When certain deductions are enabled, additional line items appear in the
-Cost Summary card on the right side. These are NOT separate toggles — they
+Cost Summary card on the right side. These are NOT separate toggles – they
 are derived from agent fields:
 - ELD Deposit ON → also shows "ELD Data Fee" (cr6cd_elddatafeevalue) in weekly
 - IRP Plate Settlements ON → also shows "IRP Plate Deposit" (cr6cd_platedepositvalue)
@@ -297,12 +250,12 @@ are derived from agent fields:
 ### Cost Summary Card Structure
 The right-side Cost Summary card has 3 sections + a total footer:
 
-1. **Weekly Settlement Deductions** — Security Deposit, ELD Deposit,
+1. **Weekly Settlement Deductions** – Security Deposit, ELD Deposit,
    ELD Data Fee, DashCam Deposit, Buy-Down, IFTA, IRP Plate Usage,
    IRP Plate Deposit, PrePass Tolls & Bypass, PDI Deposit (weekly portion),
    Maintenance Fund
-2. **Monthly Charges** — Occ/Acc Insurance, Bobtail Insurance, PDI (monthly)
-3. **One-Time Charges** — IRP Plate Admin Fee, RFID Tag
+2. **Monthly Charges** – Occ/Acc Insurance, Bobtail Insurance, PDI (monthly)
+3. **One-Time Charges** – IRP Plate Admin Fee, RFID Tag
 
 Footer shows:
 - Estimated Monthly Total (weekly × 4 + monthly + one-time)
@@ -310,7 +263,7 @@ Footer shows:
 - After deposits end: $X/month
 - One-time charges: $X (charged once at start)
 
-## New Entry Wizard — 6 Steps
+## New Entry Wizard – 6 Steps
 The New Entry page is a multi-step wizard inside a single card.
 Steps are shown as a horizontal progress bar with numbered circles.
 Completed steps show green checkmarks. Current step is blue and scaled up.
@@ -380,28 +333,9 @@ cannot serve your JS/CSS assets.
 The build command in package.json should be:
 "build": "tsc -b && vite build && node scripts/postbuild.cjs"
 
-## Reference Files
-All Vibe HTML reference files are in the project root (dix-*.html).
-Read the corresponding HTML file before building each page.
-
-Main pages:
-- dix-dashboard.html
-- dix-searchrecords.html
-- dix-newentry.html (or individual step files below)
-- dix-newcancellation.html
-- dix-quickforms.html
-- dix-settings.html
-
-New Entry sub-pages (steps inside the wizard):
-- dix-newentry-recorddetails.html
-- dix-newentry-deductions.html
-- dix-newentry-drivertesting.html
-- dix-newentry-transfer.html
-- dix-newentry-actions.html
-
 ## Deployment
 ```bash
-npm run build
-npx power-apps push
+pnpm build
+pac code push
 ```
 The app will appear in make.powerapps.com → Apps.
