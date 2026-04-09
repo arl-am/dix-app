@@ -40,9 +40,9 @@ export default function IrpPlateForm() {
           <h3 className="text-base font-semibold text-foreground">Driver & Terminal</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-muted-foreground">Terminal</label>
+              <label className="text-sm font-medium text-muted-foreground">Terminal <span className="text-destructive">*</span></label>
               <CustomSelect
-                options={agents.map((a) => ({ value: a.cr6cd_terminal, label: `${a.cr6cd_terminal} — ${a.cr6cd_title}` }))}
+                options={agents.map((a) => ({ value: a.cr6cd_terminal, label: a.cr6cd_title }))}
                 value={form.terminal || ''}
                 onChange={(v) => set('terminal', v)}
                 placeholder="Select terminal..."
@@ -93,7 +93,12 @@ export default function IrpPlateForm() {
 
         <div className="flex justify-end gap-3 animate-fade-in-up" style={{ animationDelay: '170ms' }}>
           <Link to="/documents" className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-9 px-4 py-2 border border-input bg-background shadow-sm transition-all duration-200 hover:bg-accent active:scale-95">Cancel</Link>
-          <button onClick={() => toast.success('IRP Plate Form PDF generated!')} className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-9 px-4 py-2 bg-[#10B981] text-white transition-all duration-200 hover:bg-[#059669] hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95">
+          <button onClick={() => {
+            if (!form.terminal) { toast.error('Please select a terminal'); return; }
+            if (!form.driverName?.trim()) { toast.error('Driver Name is required'); return; }
+            if (!form.plateNumber?.trim()) { toast.error('Plate Number is required'); return; }
+            toast.success('IRP Plate Form PDF generated!');
+          }} className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-9 px-4 py-2 bg-[#10B981] text-white transition-all duration-200 hover:bg-[#059669] hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95">
             <FileDown className="w-4 h-4" /> Generate PDF
           </button>
         </div>

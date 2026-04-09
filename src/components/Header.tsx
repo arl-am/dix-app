@@ -1,6 +1,7 @@
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import arlLogo from '../assets/arl-logo.png';
+import { assetUrl } from '../utils/assetUrl';
 
 export default function Header() {
   const { theme, toggle } = useTheme();
@@ -10,7 +11,7 @@ export default function Header() {
       <div className="flex-1" />
       <div className="flex items-center justify-center">
         <img
-          src={arlLogo}
+          src={assetUrl(arlLogo)}
           alt="ARL Network"
           className="h-7 w-auto animate-fade-in"
         />

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import dixLogo from '../assets/dix-logo.png';
+import { assetUrl } from '../utils/assetUrl';
 
 const navItems = [
   { label: 'Dashboard', path: '/', icon: LayoutGrid },
@@ -26,7 +27,7 @@ export default function Sidebar() {
     <aside className="h-screen sticky top-0 flex flex-col bg-[#1E293B] text-white flex-shrink-0 w-[260px] [&_*]:border-[#283548]">
       <div className="py-5 flex items-center justify-center px-4 border-b">
         <img
-          src={dixLogo}
+          src={assetUrl(dixLogo)}
           alt="DIX"
           className="h-16 w-auto object-contain animate-fade-in"
         />

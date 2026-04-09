@@ -41,7 +41,7 @@ export default function Step1Setup({
     <div className="min-h-[420px]">
       <div className="space-y-8">
         <div className="animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-          <h3 className="text-base font-semibold text-foreground mb-4">What type of record is this?</h3>
+          <h3 className="text-base font-semibold text-foreground mb-4">What type of record is this? <span className="text-destructive">*</span></h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-[600px]">
             {actionTypes.map((a, idx) => {
               const Icon = a.icon;
@@ -89,7 +89,7 @@ export default function Step1Setup({
         </div>
 
         <div className="animate-fade-in-up" style={{ animationDelay: '70ms' }}>
-          <h3 className="text-base font-semibold text-foreground mb-4">Select Contract Type</h3>
+          <h3 className="text-base font-semibold text-foreground mb-4">Select Contract Type <span className="text-destructive">*</span></h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {contractTypes.map((c, idx) => {
               const Icon = c.icon;
@@ -140,7 +140,7 @@ export default function Step1Setup({
                 Terminal <span className="text-destructive">*</span>
               </label>
               <CustomSelect
-                options={agents.map((a) => ({ value: a.cr6cd_agentsid, label: `${a.cr6cd_terminal} — ${a.cr6cd_title}` }))}
+                options={agents.map((a) => ({ value: a.cr6cd_agentsid, label: a.cr6cd_title }))}
                 value={selectedAgent}
                 onChange={onAgentChange}
                 placeholder="Select terminal"

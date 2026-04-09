@@ -41,8 +41,29 @@ export default function NewEntry() {
 
   const agent = agents.find((a) => a.cr6cd_agentsid === selectedAgent) || null;
 
+  const validateStep = (s: number): string | null => {
+    switch (s) {
+      case 0:
+        if (!actionType) return 'Please select an action type';
+        if (contractType === null) return 'Please select a contract type';
+        if (!selectedAgent) return 'Please select a terminal';
+        return null;
+      case 1:
+        if (!form.firstName?.trim()) return 'First Name is required';
+        if (!form.lastName?.trim()) return 'Last Name is required';
+        if (!form.email?.trim()) return 'Email is required';
+        return null;
+      default:
+        return null;
+    }
+  };
+
   const goTo = (next: number) => {
     if (animating) return;
+    if (next > step) {
+      const error = validateStep(step);
+      if (error) { toast.error(error); return; }
+    }
     setAnimating(true);
     setTimeout(() => {
       setStep(next);

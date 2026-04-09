@@ -5,7 +5,7 @@ import { useAgents } from '../hooks/useAgents';
 import { formatDate } from '../lib/utils';
 import { ACTION_TYPE_LABELS, getActionBadgeClasses } from '../lib/mockData';
 import { cn } from '../lib/utils';
-import Spinner from '../components/Spinner';
+
 
 const statCards = [
   { label: 'Entries Processed', icon: TrendingUp, color: 'bg-[#3B82F6]', shadow: 'shadow-blue-500/10' },
@@ -95,7 +95,7 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {drivers.length === 0 ? (
-                  <tr><td colSpan={6}><Spinner label="No records yet" /></td></tr>
+                  <tr><td colSpan={6}><div className="flex items-center justify-center py-12 text-sm text-muted-foreground font-medium animate-fade-in">No records yet</div></td></tr>
                 ) : (
                   drivers.slice(0, 10).map((d, idx) => (
                     <tr

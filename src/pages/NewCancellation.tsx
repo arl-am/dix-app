@@ -202,8 +202,26 @@ function CancellationWizard({ initialData, onBack }: { initialData?: Record<stri
 
   const [forfeit, setForfeit] = useState(false);
 
+  const validateStep = (s: number): string | null => {
+    switch (s) {
+      case 0:
+        if (!form.cancellationType?.trim()) return 'Please select a cancellation type';
+        if (!form.terminal?.trim()) return 'Please select a terminal';
+        if (!form.cancellationDate?.trim()) return 'Please select a cancellation date';
+        if (!form.cxlFirstName?.trim()) return 'First Name is required';
+        if (!form.cxlLastName?.trim()) return 'Last Name is required';
+        return null;
+      default:
+        return null;
+    }
+  };
+
   const goTo = (next: number) => {
     if (animating) return;
+    if (next > step) {
+      const error = validateStep(step);
+      if (error) { toast.error(error); return; }
+    }
     setAnimating(true);
     setTimeout(() => { setStep(next); setAnimating(false); }, 150);
   };

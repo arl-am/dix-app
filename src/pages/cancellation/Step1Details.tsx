@@ -9,9 +9,9 @@ interface Props {
 }
 
 export default function Step1Details({ form, onChange, agents }: Props) {
-  const field = (name: string, label: string, opts?: { type?: string; placeholder?: string; colSpan?: boolean }) => (
+  const field = (name: string, label: string, opts?: { type?: string; placeholder?: string; colSpan?: boolean; required?: boolean }) => (
     <div className={opts?.colSpan ? 'md:col-span-2 space-y-1.5' : 'space-y-1.5'}>
-      <label className="text-sm font-medium text-muted-foreground">{label}</label>
+      <label className="text-sm font-medium text-muted-foreground">{label}{opts?.required && <span className="text-destructive"> *</span>}</label>
       <input
         type={opts?.type || 'text'}
         placeholder={opts?.placeholder || `Enter ${label.toLowerCase()}`}
@@ -28,7 +28,7 @@ export default function Step1Details({ form, onChange, agents }: Props) {
         <h3 className="text-base font-semibold text-foreground flex items-center gap-2">General Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Cancellation Type</label>
+            <label className="text-sm font-medium text-muted-foreground">Cancellation Type <span className="text-destructive">*</span></label>
             <CustomSelect
               options={[
                 { value: 'Voluntary', label: 'Voluntary' },
@@ -44,16 +44,16 @@ export default function Step1Details({ form, onChange, agents }: Props) {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Terminal</label>
+            <label className="text-sm font-medium text-muted-foreground">Terminal <span className="text-destructive">*</span></label>
             <CustomSelect
-              options={agents.map((a) => ({ value: a.cr6cd_terminal, label: `${a.cr6cd_terminal} — ${a.cr6cd_title}` }))}
+              options={agents.map((a) => ({ value: a.cr6cd_terminal, label: a.cr6cd_title }))}
               value={form.terminal || ''}
               onChange={(v) => onChange('terminal', v)}
               placeholder="Select terminal..."
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Cancellation Date</label>
+            <label className="text-sm font-medium text-muted-foreground">Cancellation Date <span className="text-destructive">*</span></label>
             <DatePicker
               value={form.cancellationDate || ''}
               onChange={(v) => onChange('cancellationDate', v)}
@@ -66,8 +66,8 @@ export default function Step1Details({ form, onChange, agents }: Props) {
       <div className="border border-border rounded-xl p-5 bg-card space-y-4 animate-fade-in-up" style={{ animationDelay: '55ms' }}>
         <h3 className="text-base font-semibold text-foreground">Driver Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {field('cxlFirstName', 'First Name')}
-          {field('cxlLastName', 'Last Name')}
+          {field('cxlFirstName', 'First Name', { required: true })}
+          {field('cxlLastName', 'Last Name', { required: true })}
           {field('cxlDriverCode', 'Driver Code')}
         </div>
       </div>

@@ -16,6 +16,7 @@ interface CustomSelectProps {
   className?: string;
   icon?: ReactNode;
   triggerClassName?: string;
+  disabled?: boolean;
 }
 
 export default function CustomSelect({
@@ -26,6 +27,7 @@ export default function CustomSelect({
   className,
   icon,
   triggerClassName,
+  disabled,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -112,7 +114,8 @@ export default function CustomSelect({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => { setOpen(!open); setSearch(''); }}
+        disabled={disabled}
+        onClick={() => { if (!disabled) { setOpen(!open); setSearch(''); } }}
         onKeyDown={handleKeyDown}
         className={cn(
           'flex items-center w-full rounded-lg border border-input bg-background text-sm shadow-sm',
@@ -123,6 +126,7 @@ export default function CustomSelect({
             : 'focus:border-primary focus:ring-2 focus:ring-primary/20',
           icon ? 'pl-10' : 'pl-3',
           'pr-9 h-10',
+          disabled && 'opacity-50 cursor-not-allowed bg-muted hover:border-input',
           triggerClassName,
         )}
       >

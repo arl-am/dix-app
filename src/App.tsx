@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from './lib/theme';
@@ -21,7 +21,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <HashRouter>
           <div className="flex h-screen bg-background overflow-hidden transition-colors duration-200">
             <Sidebar />
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -43,7 +43,7 @@ export default function App() {
             </div>
           </div>
           <Toaster position="top-right" richColors />
-        </BrowserRouter>
+        </HashRouter>
       </QueryClientProvider>
     </ThemeProvider>
   );
