@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAgents } from '../hooks/useAgents';
 import { calculatePDI } from '../lib/pdiRates';
+import type { TestStatus } from './new-entry/Step3Testing';
+import type { TransferItemKey } from './new-entry/Step4Transfers';
 import StepProgress from './new-entry/StepProgress';
 import Step1Setup from './new-entry/Step1Setup';
 import Step2RecordDetails from './new-entry/Step2RecordDetails';
@@ -25,13 +27,30 @@ export default function NewEntry() {
   const [form, setForm] = useState<Record<string, string>>({});
   const handleFormChange = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
 
-  const [elpRequired, setElpRequired] = useState(false);
+  const [elpRequired, setElpRequired] = useState(true);
   const [hazmat, setHazmat] = useState(false);
-  const [homelandSecurity, setHomelandSecurity] = useState(false);
+  const [hazmatStatus, setHazmatStatus] = useState<TestStatus>('');
+  const [homelandStatus, setHomelandStatus] = useState<TestStatus>('');
+
+  const handleHazmatChange = (v: boolean) => {
+    setHazmat(v);
+    if (v) {
+      if (!hazmatStatus) setHazmatStatus('');
+      if (!homelandStatus) setHomelandStatus('');
+    } else {
+      setHazmatStatus('');
+      setHomelandStatus('');
+    }
+  };
 
   const [transferOccAcc, setTransferOccAcc] = useState(false);
   const [transferEquipment, setTransferEquipment] = useState(false);
   const [reactivateEquipment, setReactivateEquipment] = useState(false);
+  const [transferItems, setTransferItems] = useState<Record<TransferItemKey, boolean>>({
+    security_deposit: false, eld: false, dashcam: false, plate: false,
+  });
+  const handleTransferItemChange = (key: TransferItemKey, v: boolean) =>
+    setTransferItems((s) => ({ ...s, [key]: v }));
 
   const [deductionSelections, setDeductionSelections] = useState<Record<string, boolean>>({});
   const [iftaNumber, setIftaNumber] = useState('');
@@ -66,6 +85,13 @@ export default function NewEntry() {
     if (next > step) {
       const error = validateStep(step);
       if (error) { toast.error(error); return; }
+    }
+    if (step === 2 && next > 2) {
+      if (hazmat && agent?.cr6cd_hazmatrequired && !hazmatStatus) {
+        setHazmatStatus('Queued');
+        setHomelandStatus('Queued');
+        toast.info('Saving and queuing tests...');
+      }
     }
     setAnimating(true);
     setTimeout(() => {
@@ -115,9 +141,10 @@ export default function NewEntry() {
               {step === 1 && <Step2RecordDetails form={form} onChange={handleFormChange} />}
               {step === 2 && (
                 <Step3Testing
+                  agent={agent}
                   elpRequired={elpRequired} onElpChange={setElpRequired}
-                  hazmat={hazmat} onHazmatChange={setHazmat}
-                  homelandSecurity={homelandSecurity} onHomelandSecurityChange={setHomelandSecurity}
+                  hazmat={hazmat} onHazmatChange={handleHazmatChange}
+                  hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
                 />
               )}
               {step === 3 && (
@@ -125,6 +152,7 @@ export default function NewEntry() {
                   transferOccAcc={transferOccAcc} onTransferOccAccChange={setTransferOccAcc}
                   transferEquipment={transferEquipment} onTransferEquipmentChange={setTransferEquipment}
                   reactivateEquipment={reactivateEquipment} onReactivateEquipmentChange={setReactivateEquipment}
+                  transferItems={transferItems} onTransferItemChange={handleTransferItemChange}
                 />
               )}
               {step === 4 && (
@@ -144,8 +172,9 @@ export default function NewEntry() {
                 <Step6Review
                   form={form} agent={agent} actionType={actionType} contractType={contractType}
                   selections={deductionSelections}
-                  elpRequired={elpRequired} hazmat={hazmat} homelandSecurity={homelandSecurity}
-                  transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment}
+                  elpRequired={elpRequired}
+                  hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
+                  transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment} transferItems={transferItems}
                   pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
                   maintenanceAmount={maintenanceAmount}
                   onSubmit={handleSubmit} isSaving={isSaving}

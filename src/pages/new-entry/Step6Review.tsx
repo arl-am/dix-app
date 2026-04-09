@@ -1,7 +1,16 @@
 import { useState } from 'react';
-import { CircleCheck, ChevronDown, User, Building2, FileText, ClipboardList } from 'lucide-react';
+import { CircleCheck, ChevronDown, User, Building2, FileText, ClipboardList, Star, Minus, Clock, Mail, CheckCircle, XCircle } from 'lucide-react';
 import { cn, formatCurrency } from '../../lib/utils';
 import { CONTRACT_TYPE_LABELS, type Agent } from '../../lib/mockData';
+import type { TestStatus } from './Step3Testing';
+import type { TransferItemKey } from './Step4Transfers';
+
+const TRANSFER_ITEM_LABELS: Record<TransferItemKey, string> = {
+  security_deposit: 'Security Deposit',
+  eld: 'ELD',
+  dashcam: 'DashCam',
+  plate: 'Plate',
+};
 
 interface Step6Props {
   form: Record<string, string>;
@@ -10,16 +19,40 @@ interface Step6Props {
   contractType: number | null;
   selections: Record<string, boolean>;
   elpRequired: boolean;
-  hazmat: boolean;
-  homelandSecurity: boolean;
+  hazmatStatus: TestStatus;
+  homelandStatus: TestStatus;
   transferOccAcc: boolean;
   transferEquipment: boolean;
   reactivateEquipment: boolean;
+  transferItems: Record<TransferItemKey, boolean>;
   pdiMonthly: number;
   pdiWeeklyDeposit: number;
   maintenanceAmount: string;
   onSubmit: () => void;
   isSaving: boolean;
+}
+
+const STATUS_CONFIG: Record<string, { icon: React.ElementType; classes: string; label: string }> = {
+  notRequired: { icon: Star, classes: 'bg-muted/80 dark:bg-muted/50 text-muted-foreground border-border', label: 'Not Required' },
+  notSent: { icon: Minus, classes: 'bg-muted/80 dark:bg-muted/50 text-muted-foreground border-border', label: 'Not Sent Yet' },
+  Queued: { icon: Clock, classes: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20', label: 'Queued' },
+  Sent: { icon: Mail, classes: 'bg-primary/10 text-primary border-primary/20', label: 'Sent' },
+  Passed: { icon: CheckCircle, classes: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20', label: 'Passed' },
+  Failed: { icon: XCircle, classes: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20', label: 'Failed' },
+};
+
+function TestStatusBadge({ label, status, required }: { label: string; status: TestStatus; required: boolean }) {
+  const key = !required ? 'notRequired' : (!status ? 'notSent' : status);
+  const cfg = STATUS_CONFIG[key];
+  const Icon = cfg.icon;
+  return (
+    <div className="flex items-center justify-between py-2">
+      <span className="text-xs text-muted-foreground uppercase tracking-wide">{label}</span>
+      <span className={cn('inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium', cfg.classes)}>
+        <Icon className="w-3 h-3" /> {cfg.label}
+      </span>
+    </div>
+  );
 }
 
 function Section({ title, icon: Icon, children, defaultOpen = false }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
@@ -81,8 +114,9 @@ const DEDUCTION_LABELS: Record<string, string> = {
 
 export default function Step6Review({
   form, agent, actionType, contractType, selections,
-  elpRequired, hazmat, homelandSecurity,
-  transferOccAcc, transferEquipment, reactivateEquipment,
+  elpRequired,
+  hazmatStatus, homelandStatus,
+  transferOccAcc, transferEquipment, reactivateEquipment, transferItems,
   pdiMonthly, pdiWeeklyDeposit, maintenanceAmount,
   onSubmit, isSaving,
 }: Step6Props) {
@@ -139,18 +173,47 @@ export default function Step6Review({
         </Section>
 
         <Section title="Testing & Compliance" icon={ClipboardList}>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6">
-            <Field label="ELP Required" value={elpRequired ? 'Yes' : 'No'} />
-            <Field label="Hazmat" value={hazmat ? 'Yes' : 'No'} />
-            <Field label="Homeland Security" value={homelandSecurity ? 'Yes' : 'No'} />
+          <div className="space-y-1">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">ELP Required</span>
+              <span className={cn(
+                'inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium',
+                elpRequired
+                  ? 'bg-primary/10 text-primary border-primary/20'
+                  : 'bg-muted dark:bg-white/[0.06] text-muted-foreground border-border',
+              )}>
+                {elpRequired ? 'Yes' : 'No'}
+              </span>
+            </div>
+            <TestStatusBadge label="Hazmat Endorsement" status={hazmatStatus} required={agent?.cr6cd_hazmatrequired ?? false} />
+            <TestStatusBadge label="Homeland Security" status={homelandStatus} required={agent?.cr6cd_hazmatrequired ?? false} />
           </div>
         </Section>
 
         <Section title="Transfers & Reactivation" icon={FileText}>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6">
-            <Field label="Transfer Occ/Acc" value={transferOccAcc ? 'Yes' : 'No'} />
-            <Field label="Transfer Equipment" value={transferEquipment ? 'Yes' : 'No'} />
-            <Field label="Reactivate Equipment" value={reactivateEquipment ? 'Yes' : 'No'} />
+          <div className="space-y-1">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6">
+              <Field label="Transfer Occ/Acc" value={transferOccAcc ? 'Yes' : 'No'} />
+              <Field label="Transfer Equipment" value={transferEquipment ? 'Yes' : 'No'} />
+              <Field label="Reactivate Equipment" value={reactivateEquipment ? 'Yes' : 'No'} />
+            </div>
+            {(transferEquipment || reactivateEquipment) && (
+              <div className="pt-2 mt-1 border-t border-border">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">Equipment Items</span>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {(Object.entries(transferItems) as [TransferItemKey, boolean][])
+                    .filter(([, v]) => v)
+                    .map(([k]) => (
+                      <span key={k} className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary border-primary/20">
+                        {TRANSFER_ITEM_LABELS[k]}
+                      </span>
+                    ))}
+                  {Object.values(transferItems).every((v) => !v) && (
+                    <span className="text-sm text-muted-foreground">None selected</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </Section>
 

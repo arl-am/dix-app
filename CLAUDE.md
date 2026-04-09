@@ -183,6 +183,8 @@ Fields:
 - cr6cd_dix_elprequired, cr6cd_dix_hazmat, cr6cd_dix_homelandsecurity,
   cr6cd_dix_reactivateequipment, cr6cd_dix_transferequipment, cr6cd_dix_transferoccacc
 - cr6cd_dix_pdimonthly (Currency), cr6cd_dix_pdipercentage (Decimal)
+- cr6cd_dix_transfersecuritydeposit (Bool), cr6cd_dix_transfereld (Bool),
+  cr6cd_dix_transferdashcam (Bool), cr6cd_dix_transferplate (Bool)
 
 Choice values:
 - contracttype: 1=Owner Operator, 2=Company Driver, 3=Lease
