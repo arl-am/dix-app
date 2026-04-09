@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import {
   Shield, Car, Zap, CreditCard, HardDrive, Camera, TrendingDown,
   Fuel, Wrench, Container, Radio, Calendar, DollarSign, Building2,
@@ -118,30 +118,41 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
               return (
                 <div key={d.key}>
                   <div className={cn(
-                    'flex items-center justify-between py-3 px-4 rounded-lg',
-                    'transition-all duration-200 ease-out',
-                    selections[d.key] ? 'bg-primary/5 border border-primary/10 shadow-sm' : (idx % 2 === 0 ? 'bg-muted/40' : 'bg-transparent'),
+                    'flex items-center justify-between py-3 px-4 rounded-lg relative',
+                    'transition-all duration-300 ease-out',
+                    selections[d.key]
+                      ? 'bg-primary/5 border border-primary/15 border-l-[3px] border-l-primary shadow-md ring-1 ring-primary/5'
+                      : (idx % 2 === 0 ? 'bg-muted/40 border border-transparent' : 'bg-transparent border border-transparent'),
                     isDisabled && 'opacity-50',
-                    !isDisabled && 'hover:bg-muted/60',
+                    !isDisabled && 'hover:bg-muted/60 cursor-pointer',
                   )}>
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <Icon className={cn('w-5 h-5 flex-shrink-0 transition-colors duration-200', selections[d.key] ? 'text-primary' : 'text-muted-foreground')} />
+                      <div className={cn(
+                        'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
+                        'transition-all duration-300 ease-out',
+                        selections[d.key] ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
+                      )}>
+                        <Icon className="w-4 h-4" />
+                      </div>
                       <div className="min-w-0">
-                        <span className={cn('text-sm font-medium truncate transition-colors duration-200 block', selections[d.key] ? 'text-foreground' : 'text-muted-foreground')}>{d.label}</span>
+                        <span className={cn('text-sm font-medium truncate transition-colors duration-300 block', selections[d.key] ? 'text-foreground' : 'text-muted-foreground')}>{d.label}</span>
                         {d.key === 'pdi' && pdiMonthly === 0 && (
                           <span className="text-xs text-amber-500">Enter truck value in Step 2</span>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-sm font-mono text-muted-foreground w-20 text-right">
-                        {d.key === 'pdi' ? formatCurrency(pdiMonthly) : val !== null ? formatCurrency(val) : d.key === 'maintenance_fund' ? '—' : d.key === 'irp_plate_prepaid' ? 'Toggle' : '—'}
+                      <span className={cn(
+                        'text-sm font-mono w-20 text-right transition-colors duration-300',
+                        selections[d.key] ? 'text-foreground font-semibold' : 'text-muted-foreground',
+                      )}>
+                        {d.key === 'pdi' ? formatCurrency(pdiMonthly) : val !== null ? formatCurrency(val) : d.key === 'irp_plate_prepaid' ? '' : '—'}
                       </span>
                       <Toggle checked={!!selections[d.key]} onChange={() => handleToggle(d.key)} disabled={isDisabled} />
                     </div>
                   </div>
                   {d.hasConditionalInput === 'ifta' && selections['ifta'] && (
-                    <div className="px-12 pb-2">
+                    <div className="px-14 pb-2 pt-1 animate-fade-in-down">
                       <input
                         type="text"
                         placeholder="Enter IFTA Number"
@@ -152,7 +163,7 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
                     </div>
                   )}
                   {d.hasConditionalInput === 'maintenance' && selections['maintenance_fund'] && (
-                    <div className="px-12 pb-2">
+                    <div className="px-14 pb-2 pt-1 animate-fade-in-down">
                       <input
                         type="number"
                         placeholder="Enter weekly amount"
@@ -240,6 +251,10 @@ function SummarySection({ icon: Icon, iconBg, iconColor, title, items }: {
   title: string;
   items: { label: string; value: number; subtitle?: string }[];
 }) {
+  const prevCountRef = useRef(items.length);
+  const isGrowing = items.length > prevCountRef.current;
+  prevCountRef.current = items.length;
+
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
@@ -247,21 +262,28 @@ function SummarySection({ icon: Icon, iconBg, iconColor, title, items }: {
           <Icon className={cn('w-3.5 h-3.5', iconColor)} />
         </div>
         <span className="text-sm font-semibold text-foreground">{title}</span>
+        {items.length > 0 && (
+          <span className="ml-auto text-xs font-medium text-muted-foreground tabular-nums">{items.length} item{items.length !== 1 && 's'}</span>
+        )}
       </div>
-      <div className="rounded-xl border border-border/60 overflow-hidden bg-muted/30">
+      <div className="rounded-xl border border-border/60 overflow-hidden bg-muted/30 transition-all duration-300">
         {items.length === 0 ? (
-          <div className="px-4 py-4 text-center bg-card">
+          <div className="px-4 py-4 text-center bg-card animate-fade-in">
             <p className="text-sm text-muted-foreground italic">No {title.toLowerCase()} selected</p>
           </div>
         ) : (
           <div className="divide-y divide-border/40">
             {items.map((item, i) => (
-              <div key={`${item.label}-${i}`} className="flex items-center justify-between px-4 py-2.5 bg-card">
+              <div
+                key={item.label}
+                className="flex items-center justify-between px-4 py-2.5 bg-card animate-summary-item-enter"
+                style={isGrowing ? { animationDelay: `${i * 40}ms` } : undefined}
+              >
                 <div>
                   <span className="text-sm text-foreground">{item.label}</span>
                   {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
                 </div>
-                <span className="text-sm font-semibold tabular-nums">{formatCurrency(item.value)}</span>
+                <span className="text-sm font-semibold tabular-nums text-foreground">{formatCurrency(item.value)}</span>
               </div>
             ))}
           </div>

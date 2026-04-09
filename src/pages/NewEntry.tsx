@@ -131,94 +131,108 @@ export default function NewEntry() {
     : 'opacity-100 translate-y-0 scale-100';
 
   return (
-    <div className="p-6 animate-fade-in-up">
-      <div className="flex-1 flex justify-center">
-        <div className="w-full max-w-[1200px] bg-card border border-border rounded-xl shadow-sm">
-          <div className="p-8" ref={contentRef}>
-            <StepProgress current={step} />
+    <div className="h-full flex flex-col animate-fade-in-up">
+      <div className="flex-1 overflow-auto p-6 pb-4" ref={contentRef}>
+        <div className="flex justify-center">
+          <div className="w-full max-w-[1200px] bg-card border border-border rounded-xl shadow-sm">
+            <div className="p-8">
+              <StepProgress current={step} />
 
-            <div className={`transition-all duration-200 ease-out ${animClass}`}>
-              {step === 0 && (
-                <Step1Setup
-                  agents={agents}
-                  selectedAgent={selectedAgent}
-                  onAgentChange={setSelectedAgent}
-                  actionType={actionType}
-                  onActionTypeChange={setActionType}
-                  contractType={contractType}
-                  onContractTypeChange={setContractType}
-                  startDate={startDate}
-                  onStartDateChange={setStartDate}
-                />
-              )}
-              {step === 1 && <Step2RecordDetails form={form} onChange={handleFormChange} />}
-              {step === 2 && (
-                <Step3Testing
-                  agent={agent}
-                  elpRequired={elpRequired} onElpChange={setElpRequired}
-                  hazmat={hazmat} onHazmatChange={handleHazmatChange}
-                  hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
-                />
-              )}
-              {step === 3 && (
-                <Step4Transfers
-                  transferOccAcc={transferOccAcc} onTransferOccAccChange={setTransferOccAcc}
-                  transferEquipment={transferEquipment} onTransferEquipmentChange={setTransferEquipment}
-                  reactivateEquipment={reactivateEquipment} onReactivateEquipmentChange={setReactivateEquipment}
-                  transferItems={transferItems} onTransferItemChange={handleTransferItemChange}
-                  reactivateItems={reactivateItems} onReactivateItemChange={handleReactivateItemChange}
-                />
-              )}
-              {step === 4 && (
-                <Step5Deductions
-                  agent={agent}
-                  selections={deductionSelections}
-                  onToggle={toggleDeduction}
-                  iftaNumber={iftaNumber}
-                  onIftaNumberChange={setIftaNumber}
-                  maintenanceAmount={maintenanceAmount}
-                  onMaintenanceAmountChange={setMaintenanceAmount}
-                  pdiMonthly={pdi.pdiMonthly}
-                  pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
-                />
-              )}
-              {step === 5 && (
-                <Step6Review
-                  form={form} agent={agent} actionType={actionType} contractType={contractType}
-                  selections={deductionSelections}
-                  elpRequired={elpRequired}
-                  hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
-                  transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment} transferItems={transferItems} reactivateItems={reactivateItems}
-                  pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
-                  maintenanceAmount={maintenanceAmount}
-                  onSubmit={handleSubmit} isSaving={createDriver.isPending}
-                />
+              <div className={`transition-all duration-200 ease-out ${animClass}`}>
+                {step === 0 && (
+                  <Step1Setup
+                    agents={agents}
+                    selectedAgent={selectedAgent}
+                    onAgentChange={setSelectedAgent}
+                    actionType={actionType}
+                    onActionTypeChange={setActionType}
+                    contractType={contractType}
+                    onContractTypeChange={setContractType}
+                    startDate={startDate}
+                    onStartDateChange={setStartDate}
+                  />
+                )}
+                {step === 1 && <Step2RecordDetails form={form} onChange={handleFormChange} />}
+                {step === 2 && (
+                  <Step3Testing
+                    agent={agent}
+                    elpRequired={elpRequired} onElpChange={setElpRequired}
+                    hazmat={hazmat} onHazmatChange={handleHazmatChange}
+                    hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
+                  />
+                )}
+                {step === 3 && (
+                  <Step4Transfers
+                    transferOccAcc={transferOccAcc} onTransferOccAccChange={setTransferOccAcc}
+                    transferEquipment={transferEquipment} onTransferEquipmentChange={setTransferEquipment}
+                    reactivateEquipment={reactivateEquipment} onReactivateEquipmentChange={setReactivateEquipment}
+                    transferItems={transferItems} onTransferItemChange={handleTransferItemChange}
+                    reactivateItems={reactivateItems} onReactivateItemChange={handleReactivateItemChange}
+                  />
+                )}
+                {step === 4 && (
+                  <Step5Deductions
+                    agent={agent}
+                    selections={deductionSelections}
+                    onToggle={toggleDeduction}
+                    iftaNumber={iftaNumber}
+                    onIftaNumberChange={setIftaNumber}
+                    maintenanceAmount={maintenanceAmount}
+                    onMaintenanceAmountChange={setMaintenanceAmount}
+                    pdiMonthly={pdi.pdiMonthly}
+                    pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
+                  />
+                )}
+                {step === 5 && (
+                  <Step6Review
+                    form={form} agent={agent} actionType={actionType} contractType={contractType}
+                    selections={deductionSelections}
+                    elpRequired={elpRequired}
+                    hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
+                    transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment} transferItems={transferItems} reactivateItems={reactivateItems}
+                    pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
+                    maintenanceAmount={maintenanceAmount} iftaNumber={iftaNumber}
+                    onSubmit={handleSubmit} isSaving={createDriver.isPending}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="shrink-0 border-t border-border/60 bg-background/80 backdrop-blur-xl px-6 py-3">
+        <div className="flex justify-center">
+          <div className="w-full max-w-[1200px] flex items-center justify-between">
+            <div>
+              {step > 0 && (
+                <button
+                  onClick={() => goTo(step - 1)}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:-translate-x-0.5 active:scale-95 h-9 px-4 py-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Previous
+                </button>
               )}
             </div>
-
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-              <div>
-                {step > 0 && (
-                  <button
-                    onClick={() => goTo(step - 1)}
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground hover:-translate-x-0.5 active:scale-95 h-9 px-4 py-2"
-                  >
-                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                    Previous
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {step < 5 && (
-                  <button
-                    onClick={() => goTo(step + 1)}
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 text-primary-foreground h-9 px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] hover:translate-x-0.5 hover:shadow-lg hover:shadow-primary/25 active:scale-95 min-w-[120px]"
-                  >
-                    Next
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+            <div className="flex items-center gap-3">
+              {step < 5 ? (
+                <button
+                  onClick={() => goTo(step + 1)}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 text-primary-foreground h-9 px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] hover:translate-x-0.5 hover:shadow-lg hover:shadow-primary/25 active:scale-95 min-w-[120px]"
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  disabled={createDriver.isPending}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 text-primary-foreground h-9 px-6 py-2 bg-[#10B981] hover:bg-[#059669] hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 min-w-[120px]"
+                >
+                  {createDriver.isPending ? 'Saving...' : 'Submit'}
+                </button>
+              )}
             </div>
           </div>
         </div>
