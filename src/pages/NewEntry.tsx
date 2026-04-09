@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAgents } from '../hooks/useAgents';
 import { useCreateDriver } from '../hooks/useCreateDriver';
 import { calculatePDI } from '../lib/pdiRates';
+import type { Driver } from '../lib/mockData';
 import type { TestStatus } from './new-entry/Step3Testing';
 import type { TransferItemKey } from './new-entry/Step4Transfers';
 import StepProgress from './new-entry/StepProgress';
@@ -15,21 +17,46 @@ import Step6Review from './new-entry/Step6Review';
 import { toast } from 'sonner';
 
 export default function NewEntry() {
+  const location = useLocation();
+  const editDriver = (location.state as { driver?: Driver } | null)?.driver ?? null;
+
   const { data: agents = [] } = useAgents();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(editDriver ? 1 : 0);
   const [animating, setAnimating] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const [selectedAgent, setSelectedAgent] = useState('');
-  const [actionType, setActionType] = useState('');
-  const [contractType, setContractType] = useState<number | null>(null);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedAgent, setSelectedAgent] = useState(editDriver?._cr6cd_dix_agent_value ?? '');
+  const [actionType, setActionType] = useState(() => {
+    if (!editDriver) return '';
+    return editDriver.cr6cd_dix_actiontype === 100000000 ? 'new' : 'new';
+  });
+  const [contractType, setContractType] = useState<number | null>(editDriver?.cr6cd_dix_contracttype ?? null);
+  const [startDate, setStartDate] = useState(editDriver?.cr6cd_dix_onboardingdate ?? new Date().toISOString().split('T')[0]);
 
-  const [form, setForm] = useState<Record<string, string>>({});
+  const [form, setForm] = useState<Record<string, string>>(() => {
+    if (!editDriver) return {} as Record<string, string>;
+    const nameParts = (editDriver.cr6cd_dix_name || '').split(' ');
+    return {
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || '',
+      email: editDriver.cr6cd_dix_email || '',
+      phone: editDriver.cr6cd_dix_phonenumber || '',
+      ssn: editDriver.cr6cd_dix_ssn || '',
+      driverCode: editDriver.cr6cd_dix_drivercode || '',
+      licenseNumber: editDriver.cr6cd_dix_licensenumber || '',
+      licenseState: editDriver.cr6cd_dix_licensestate || '',
+      licenseExpDate: editDriver.cr6cd_dix_licenseexpdate || '',
+      streetAddress: editDriver.cr6cd_dix_streetaddress || '',
+      city: editDriver.cr6cd_dix_city || '',
+      state: editDriver.cr6cd_dix_state || '',
+      zipCode: editDriver.cr6cd_dix_zipcode || '',
+      fuelCardNumber: editDriver.cr6cd_dix_fuelcardnumber || '',
+    } as Record<string, string>;
+  });
   const handleFormChange = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
 
-  const [elpRequired, setElpRequired] = useState(true);
-  const [hazmat, setHazmat] = useState(false);
+  const [elpRequired, setElpRequired] = useState(editDriver?.cr6cd_dix_elprequired ?? true);
+  const [hazmat, setHazmat] = useState(editDriver?.cr6cd_dix_hazmat ?? false);
   const [hazmatStatus, setHazmatStatus] = useState<TestStatus>('');
   const [homelandStatus, setHomelandStatus] = useState<TestStatus>('');
 
@@ -44,9 +71,9 @@ export default function NewEntry() {
     }
   };
 
-  const [transferOccAcc, setTransferOccAcc] = useState(false);
-  const [transferEquipment, setTransferEquipment] = useState(false);
-  const [reactivateEquipment, setReactivateEquipment] = useState(false);
+  const [transferOccAcc, setTransferOccAcc] = useState(editDriver?.cr6cd_dix_transferoccacc ?? false);
+  const [transferEquipment, setTransferEquipment] = useState(editDriver?.cr6cd_dix_transferequipment ?? false);
+  const [reactivateEquipment, setReactivateEquipment] = useState(editDriver?.cr6cd_dix_reactivateequipment ?? false);
   const [transferItems, setTransferItems] = useState<Record<TransferItemKey, boolean>>({
     security_deposit: false, eld: false, dashcam: false, plate: false,
   });

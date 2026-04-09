@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, Filter, Building2, User, Truck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, Building2, User, Truck, Pencil } from 'lucide-react';
 import { useDrivers } from '../hooks/useDrivers';
 import { formatDate, cn } from '../lib/utils';
 import { ACTION_TYPE_LABELS, CONTRACT_TYPE_LABELS, getActionBadgeClasses } from '../lib/mockData';
@@ -7,6 +8,7 @@ import Spinner from '../components/Spinner';
 import CustomSelect from '../components/CustomSelect';
 
 export default function SearchRecords() {
+  const navigate = useNavigate();
   const { data: drivers = [], isLoading } = useDrivers();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -68,6 +70,7 @@ export default function SearchRecords() {
           <span className="w-28">Action</span>
           <span className="w-32">Contract Type</span>
           <span className="flex-1">Created By</span>
+          <span className="w-16 text-center">Edit</span>
         </div>
 
         {isLoading ? (
@@ -107,6 +110,18 @@ export default function SearchRecords() {
               <div className="flex-1 text-muted-foreground text-sm flex items-center justify-between">
                 <span>{d.cr6cd_dix_createdbyname}</span>
                 <span className="text-xs">{formatDate(d.createdon)}</span>
+              </div>
+              <div className="lg:w-16 flex justify-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/new-driver', { state: { driver: d } });
+                  }}
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95"
+                  title="Edit record"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))

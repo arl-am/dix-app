@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import {
   Shield, Car, Zap, CreditCard, HardDrive, Camera, TrendingDown,
   Fuel, Wrench, Container, Radio, Calendar, DollarSign, Building2, Check,
@@ -209,51 +209,35 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
           <div className="p-5 space-y-6">
             <SummarySection
               icon={Calendar}
-              iconBg="bg-sky-100"
-              iconColor="text-sky-600"
+              iconBg="bg-sky-500/10 dark:bg-sky-500/15"
+              iconColor="text-sky-600 dark:text-sky-400"
               title="Weekly Settlement Deductions"
               items={summary.weekly}
             />
             <SummarySection
               icon={DollarSign}
-              iconBg="bg-violet-100"
-              iconColor="text-violet-600"
+              iconBg="bg-violet-500/10 dark:bg-violet-500/15"
+              iconColor="text-violet-600 dark:text-violet-400"
               title="Monthly Charges"
               items={summary.monthly}
             />
             {summary.onetime.length > 0 && (
               <SummarySection
                 icon={CreditCard}
-                iconBg="bg-amber-100"
-                iconColor="text-amber-600"
+                iconBg="bg-amber-500/10 dark:bg-amber-500/15"
+                iconColor="text-amber-600 dark:text-amber-400"
                 title="One-Time Charges"
                 items={summary.onetime}
               />
             )}
           </div>
 
-          <div className="px-6 py-5 bg-gradient-to-r from-slate-800 to-slate-700">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-slate-300">Estimated Monthly Total</span>
-              <span className="text-2xl font-bold text-white tabular-nums">{formatCurrency(estimatedMonthly)}</span>
-            </div>
-            <div className="space-y-1 mt-3 pt-3 border-t border-slate-600">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">Weekly settlements:</span>
-                <span className="text-xs font-medium text-slate-300 tabular-nums">{formatCurrency(weeklyTotal)}/week</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">After deposits end:</span>
-                <span className="text-xs font-medium text-slate-300 tabular-nums">{formatCurrency(monthlyTotal)}/month</span>
-              </div>
-              {onetimeTotal > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-400">One-time charges:</span>
-                  <span className="text-xs font-medium text-slate-300 tabular-nums">{formatCurrency(onetimeTotal)}</span>
-                </div>
-              )}
-            </div>
-          </div>
+          <SummaryFooter
+            estimatedMonthly={estimatedMonthly}
+            weeklyTotal={weeklyTotal}
+            monthlyTotal={monthlyTotal}
+            onetimeTotal={onetimeTotal}
+          />
         </div>
       </div>
     </div>
@@ -267,9 +251,37 @@ function SummarySection({ icon: Icon, iconBg, iconColor, title, items }: {
   title: string;
   items: { label: string; value: number; subtitle?: string }[];
 }) {
+  const prevLabelsRef = useRef<Set<string>>(new Set());
+  const [newLabels, setNewLabels] = useState<Set<string>>(new Set());
+  const [countChanged, setCountChanged] = useState(false);
   const prevCountRef = useRef(items.length);
-  const isGrowing = items.length > prevCountRef.current;
-  prevCountRef.current = items.length;
+
+  useEffect(() => {
+    const prevLabels = prevLabelsRef.current;
+    const currentLabels = new Set(items.map((i) => i.label));
+    const added = new Set<string>();
+    currentLabels.forEach((label) => {
+      if (!prevLabels.has(label)) added.add(label);
+    });
+
+    if (added.size > 0) {
+      setNewLabels(added);
+      const t = setTimeout(() => setNewLabels(new Set()), 600);
+      return () => clearTimeout(t);
+    }
+    if (items.length !== prevCountRef.current) {
+      setCountChanged(true);
+      const t = setTimeout(() => setCountChanged(false), 400);
+      return () => clearTimeout(t);
+    }
+    prevLabelsRef.current = currentLabels;
+    prevCountRef.current = items.length;
+  }, [items]);
+
+  useEffect(() => {
+    prevLabelsRef.current = new Set(items.map((i) => i.label));
+    prevCountRef.current = items.length;
+  });
 
   return (
     <div>
@@ -279,29 +291,102 @@ function SummarySection({ icon: Icon, iconBg, iconColor, title, items }: {
         </div>
         <span className="text-sm font-semibold text-foreground">{title}</span>
         {items.length > 0 && (
-          <span className="ml-auto text-xs font-medium text-muted-foreground tabular-nums">{items.length} item{items.length !== 1 && 's'}</span>
+          <span
+            className={cn(
+              'ml-auto text-xs font-medium tabular-nums px-1.5 py-0.5 rounded-full transition-all duration-300',
+              countChanged
+                ? 'bg-primary/10 text-primary scale-110'
+                : 'text-muted-foreground',
+            )}
+          >
+            {items.length} item{items.length !== 1 && 's'}
+          </span>
         )}
       </div>
-      <div className="rounded-xl border border-border/60 overflow-hidden bg-muted/30 transition-all duration-300">
+      <div
+        className="rounded-xl border border-border/60 overflow-hidden bg-muted/30"
+        style={{
+          transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        }}
+      >
         {items.length === 0 ? (
           <div className="px-4 py-4 text-center bg-card animate-fade-in">
             <p className="text-sm text-muted-foreground italic">No {title.toLowerCase()} selected</p>
           </div>
         ) : (
           <div className="divide-y divide-border/40">
-            {items.map((item, i) => (
-              <div
-                key={item.label}
-                className="flex items-center justify-between px-4 py-2.5 bg-card animate-summary-item-enter"
-                style={isGrowing ? { animationDelay: `${i * 40}ms` } : undefined}
-              >
-                <div>
-                  <span className="text-sm text-foreground">{item.label}</span>
-                  {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
+            {items.map((item) => {
+              const isNew = newLabels.has(item.label);
+              return (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between px-4 py-2.5 bg-card"
+                  style={isNew ? {
+                    animation: 'item-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both, item-highlight 0.8s ease-out both',
+                  } : undefined}
+                >
+                  <div>
+                    <span className="text-sm text-foreground">{item.label}</span>
+                    {item.subtitle && <p className="text-xs text-muted-foreground">{item.subtitle}</p>}
+                  </div>
+                  <span
+                    className="text-sm font-semibold tabular-nums text-foreground"
+                    style={isNew ? { animation: 'value-bump 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both' } : undefined}
+                  >
+                    {formatCurrency(item.value)}
+                  </span>
                 </div>
-                <span className="text-sm font-semibold tabular-nums text-foreground">{formatCurrency(item.value)}</span>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SummaryFooter({ estimatedMonthly, weeklyTotal, monthlyTotal, onetimeTotal }: {
+  estimatedMonthly: number;
+  weeklyTotal: number;
+  monthlyTotal: number;
+  onetimeTotal: number;
+}) {
+  const prevTotalRef = useRef(estimatedMonthly);
+  const [bumping, setBumping] = useState(false);
+
+  useEffect(() => {
+    if (prevTotalRef.current !== estimatedMonthly) {
+      setBumping(true);
+      const t = setTimeout(() => setBumping(false), 500);
+      prevTotalRef.current = estimatedMonthly;
+      return () => clearTimeout(t);
+    }
+  }, [estimatedMonthly]);
+
+  return (
+    <div className="px-6 py-5 bg-gradient-to-r from-slate-800 to-slate-700">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-slate-300">Estimated Monthly Total</span>
+        <span
+          className={cn('text-2xl font-bold text-white tabular-nums transition-transform duration-300')}
+          style={bumping ? { animation: 'value-bump 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both' } : undefined}
+        >
+          {formatCurrency(estimatedMonthly)}
+        </span>
+      </div>
+      <div className="space-y-1 mt-3 pt-3 border-t border-slate-600">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-slate-400">Weekly settlements:</span>
+          <span className="text-xs font-medium text-slate-300 tabular-nums transition-all duration-300">{formatCurrency(weeklyTotal)}/week</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-slate-400">After deposits end:</span>
+          <span className="text-xs font-medium text-slate-300 tabular-nums transition-all duration-300">{formatCurrency(monthlyTotal)}/month</span>
+        </div>
+        {onetimeTotal > 0 && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-400">One-time charges:</span>
+            <span className="text-xs font-medium text-slate-300 tabular-nums transition-all duration-300">{formatCurrency(onetimeTotal)}</span>
           </div>
         )}
       </div>
