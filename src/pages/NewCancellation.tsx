@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Home, Download, Search, Plus, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Home, Search, Plus, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAgents } from '../hooks/useAgents';
 import { useCancellations } from '../hooks/useCancellations';
 import { toast } from 'sonner';
@@ -9,7 +9,6 @@ import CustomSelect from '../components/CustomSelect';
 import CancelStepProgress from './cancellation/CancelStepProgress';
 import Step1Details from './cancellation/Step1Details';
 import Step2Equipment from './cancellation/Step2Equipment';
-import Step3TruckBoxes from './cancellation/Step3TruckBoxes';
 import Step4FinalRelease from './cancellation/Step4FinalRelease';
 import Step5Actions from './cancellation/Step5Actions';
 import type { Cancellation } from '../lib/mockData';
@@ -196,10 +195,6 @@ function CancellationWizard({ initialData, onBack }: { initialData?: Record<stri
   const [plateOption, setPlateOption] = useState('No Fleet');
   const [transferEquipment, setTransferEquipment] = useState(false);
 
-  const [boxContents, setBoxContents] = useState<Record<string, boolean>>({});
-  const toggleBox = (item: string) => setBoxContents((b) => ({ ...b, [item]: !b[item] }));
-  const [sameAsDriver, setSameAsDriver] = useState(false);
-
   const [forfeit, setForfeit] = useState(false);
 
   const validateStep = (s: number): string | null => {
@@ -256,9 +251,8 @@ function CancellationWizard({ initialData, onBack }: { initialData?: Record<stri
             <div className={`transition-all duration-200 ease-out ${animClass}`}>
               {step === 0 && <Step1Details form={form} onChange={handleChange} agents={agents} />}
               {step === 1 && <Step2Equipment equipment={equipment} onToggle={toggleEquipment} plateOption={plateOption} onPlateChange={setPlateOption} transferEquipment={transferEquipment} onTransferChange={setTransferEquipment} form={form} />}
-              {step === 2 && <Step3TruckBoxes form={form} onChange={handleChange} boxContents={boxContents} onBoxToggle={toggleBox} sameAsDriver={sameAsDriver} onSameAsDriverChange={setSameAsDriver} />}
-              {step === 3 && <Step4FinalRelease form={form} onChange={handleChange} forfeit={forfeit} onForfeitChange={setForfeit} />}
-              {step === 4 && <Step5Actions form={form} equipment={equipment} />}
+              {step === 2 && <Step4FinalRelease form={form} onChange={handleChange} forfeit={forfeit} onForfeitChange={setForfeit} />}
+              {step === 3 && <Step5Actions form={form} equipment={equipment} />}
             </div>
 
             <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
@@ -268,7 +262,7 @@ function CancellationWizard({ initialData, onBack }: { initialData?: Record<stri
                     <ArrowLeft className="w-4 h-4" /> Back
                   </button>
                 )}
-                {step === 3 && (
+                {step === 2 && (
                   <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 border border-input bg-background shadow-sm hover:bg-accent active:scale-95 h-9 px-4 py-2">
                     <Home className="w-4 h-4" /> Home
                   </button>
@@ -281,11 +275,6 @@ function CancellationWizard({ initialData, onBack }: { initialData?: Record<stri
                   </button>
                 )}
                 {step === 2 && (
-                  <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 border border-input bg-background shadow-sm hover:bg-accent active:scale-95 h-9 px-4 py-2">
-                    <Download className="w-4 h-4" /> Download
-                  </button>
-                )}
-                {step === 3 && (
                   <>
                     <button className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-9 px-4 py-2 bg-[#2563EB] text-white transition-all duration-200 hover:bg-[#1D4ED8] hover:shadow-lg hover:shadow-primary/25 active:scale-95">
                       Generate Final Release PDF
@@ -305,7 +294,7 @@ function CancellationWizard({ initialData, onBack }: { initialData?: Record<stri
                     </button>
                   </>
                 )}
-                {step < 4 && (
+                {step < 3 && (
                   <button onClick={() => goTo(step + 1)} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 text-primary-foreground h-9 px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] hover:translate-x-0.5 hover:shadow-lg hover:shadow-primary/25 active:scale-95 min-w-[120px]">
                     {NEXT_LABELS[step]} <ArrowRight className="w-4 h-4" />
                   </button>

@@ -1,5 +1,6 @@
 import { CirclePlus, ArrowRightLeft, Users, UserRound, Briefcase, Truck, Car, Package, Container, Building2, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useTheme } from '../../hooks/useTheme';
 import CustomSelect from '../../components/CustomSelect';
 import DatePicker from '../../components/DatePicker';
 import type { Agent } from '../../lib/mockData';
@@ -11,7 +12,7 @@ const actionTypes = [
 
 const contractTypes = [
   { key: 100000000, label: 'Owner Operator', icon: Users },
-  { key: 100000001, label: 'Company Driver', icon: UserRound },
+  { key: 100000001, label: 'Driver Only', icon: UserRound },
   { key: 100000002, label: 'Driver for IBE', icon: Briefcase },
   { key: 100000003, label: 'Driver & Unit', icon: Truck },
   { key: 100000004, label: 'Truck Only', icon: Car },
@@ -37,6 +38,8 @@ export default function Step1Setup({
   contractType, onContractTypeChange,
   startDate, onStartDateChange,
 }: Step1Props) {
+  const { theme } = useTheme();
+  const iconBg = theme === 'dark' ? 'rgba(255,255,255,0.08)' : '#EEF2F7';
   return (
     <div className="min-h-[420px]">
       <div className="space-y-8">
@@ -74,9 +77,9 @@ export default function Step1Setup({
                       'w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-all duration-200',
                       isSelected
                         ? 'scale-110'
-                        : 'bg-muted dark:bg-white/[0.08] text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary/70 group-hover:scale-105',
+                        : 'text-muted-foreground group-hover:scale-105',
                     )}
-                    style={isSelected ? { backgroundColor: `${a.color}1a`, color: a.color } : {}}
+                    style={{ backgroundColor: isSelected ? `${a.color}1a` : iconBg, color: isSelected ? a.color : undefined }}
                   >
                     <Icon className="w-7 h-7" />
                   </div>
@@ -114,12 +117,15 @@ export default function Step1Setup({
                       <Check className="w-3 h-3 text-white" />
                     </div>
                   )}
-                  <div className={cn(
-                    'w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-all duration-200',
-                    isSelected
-                      ? 'bg-primary/10 text-primary scale-110'
-                      : 'bg-muted dark:bg-white/[0.08] text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary/70 group-hover:scale-105',
-                  )}>
+                  <div
+                    className={cn(
+                      'w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-all duration-200',
+                      isSelected
+                        ? 'text-primary scale-110'
+                        : 'text-muted-foreground group-hover:scale-105',
+                    )}
+                    style={{ backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.1)' : iconBg }}
+                  >
                     <Icon className="w-5 h-5" />
                   </div>
                   <p className={cn(

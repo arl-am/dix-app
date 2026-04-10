@@ -4,7 +4,6 @@ import { cn } from '../../lib/utils';
 const STEPS = [
   'Cancellation Details',
   'Equipment & Returns',
-  'Truck Box Forms',
   'Final Release',
   'Review & Actions',
 ];

@@ -55,7 +55,7 @@ export default function CustomSelect({
 
   useEffect(() => {
     if (!open) return;
-    updatePos();
+    requestAnimationFrame(() => requestAnimationFrame(updatePos));
     window.addEventListener('scroll', updatePos, true);
     window.addEventListener('resize', updatePos);
     return () => {
@@ -125,7 +125,7 @@ export default function CustomSelect({
             ? 'border-primary ring-2 ring-primary/20 shadow-md'
             : 'focus:border-primary focus:ring-2 focus:ring-primary/20',
           icon ? 'pl-10' : 'pl-3',
-          'pr-9 h-10',
+          'pr-9 h-9',
           disabled && 'opacity-50 cursor-not-allowed bg-muted hover:border-input',
           triggerClassName,
         )}

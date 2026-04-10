@@ -202,7 +202,7 @@ export default function Step3Testing({ agent, elpRequired, onElpChange, hazmat, 
         <div className="animate-fade-in-up" style={{ animationDelay: '240ms' }}>
           <div className="rounded-xl border border-border/60 bg-card shadow-sm overflow-hidden">
             <div className="px-5 py-4 flex items-center gap-4">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/15 flex-shrink-0">
                 <Info className="w-4.5 h-4.5 text-primary" />
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -236,7 +236,7 @@ export default function Step3Testing({ agent, elpRequired, onElpChange, hazmat, 
             )}
           >
             <div className="px-6 py-5 flex items-center gap-3 border-b border-border">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-orange-500/10 flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-orange-500/15 flex-shrink-0">
                 <AlertTriangle className="w-5 h-5 text-orange-500" />
               </div>
               <div>

@@ -105,7 +105,7 @@ export default function Step4Transfers({
         <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up transition-all duration-200 hover:shadow-md">
           <div className="p-6">
             <div className="flex items-start gap-4 mb-5">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-500/10 flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-500/15 flex-shrink-0">
                 <ArrowRightLeft className="w-6 h-6 text-emerald-500" />
               </div>
               <div>
@@ -158,7 +158,7 @@ export default function Step4Transfers({
         <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up transition-all duration-200 hover:shadow-md" style={{ animationDelay: '70ms' }}>
           <div className="p-6">
             <div className="flex items-start gap-4 mb-5">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-500/10 flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-500/15 flex-shrink-0">
                 <RefreshCw className="w-6 h-6 text-purple-500" />
               </div>
               <div>
@@ -196,7 +196,7 @@ export default function Step4Transfers({
         <div className="animate-fade-in-up" style={{ animationDelay: '140ms' }}>
           <div className="rounded-xl border border-border/60 bg-card shadow-sm overflow-hidden">
             <div className="px-5 py-4 flex items-center gap-4">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/15 flex-shrink-0">
                 <Info className="w-4.5 h-4.5 text-primary" />
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">

@@ -123,6 +123,13 @@
   }
 }
 
+.main-content {
+  background-color: #F3F4F6;
+}
+.dark .main-content {
+  background-color: var(--bg);
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);

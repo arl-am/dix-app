@@ -425,7 +425,7 @@ export const ACTION_TYPE_LABELS: Record<number, string> = {
 
 export const CONTRACT_TYPE_LABELS: Record<number, string> = {
   100000000: 'Owner Operator',
-  100000001: 'Company Driver',
+  100000001: 'Driver Only',
   100000002: 'Lease',
   100000003: 'Driver & Unit',
   100000004: 'Truck Only',

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
-import { ChevronDown, UserRound, Building2, Truck, ShieldCheck, Info } from 'lucide-react';
+import { ChevronDown, UserRound, Building2, Truck, ShieldCheck, Info, Eye, EyeOff } from 'lucide-react';
 import { cn, formatCurrency } from '../../lib/utils';
 import { US_STATES } from '../../lib/mockData';
 import { calculatePDI } from '../../lib/pdiRates';
@@ -18,6 +18,8 @@ export default function Step2RecordDetails({ form, onChange }: Step2Props) {
   const [truckOpen, setTruckOpen] = useState(true);
   const [lienholderOpen, setLienholderOpen] = useState(false);
   const [sameAsDriver, setSameAsDriver] = useState(false);
+  const [revealedFields, setRevealedFields] = useState<Record<string, boolean>>({});
+  const toggleReveal = (field: string) => setRevealedFields((s) => ({ ...s, [field]: !s[field] }));
 
   const pdi = useMemo(() => calculatePDI(parseFloat(form.truckValue || '0')), [form.truckValue]);
 
@@ -38,29 +40,47 @@ export default function Step2RecordDetails({ form, onChange }: Step2Props) {
   const currentYear = new Date().getFullYear();
   const YEARS = Array.from({ length: currentYear - 1989 }, (_, i) => String(currentYear - i));
 
-  const input = (field: string, label: string, opts?: { type?: string; placeholder?: string; required?: boolean; colSpan?: number; numbersOnly?: boolean; disabled?: boolean }) => (
-    <div className={cn(opts?.colSpan === 2 ? 'md:col-span-2 space-y-2' : 'space-y-2')}>
-      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-        {label} {opts?.required && <span className="text-destructive">*</span>}
-      </label>
-      <input
-        type={opts?.type || 'text'}
-        inputMode={opts?.numbersOnly ? 'numeric' : undefined}
-        placeholder={opts?.placeholder || `Enter ${label.toLowerCase()}`}
-        value={form[field] || ''}
-        disabled={opts?.disabled}
-        onChange={(e) => {
-          const v = e.target.value;
-          if (opts?.numbersOnly && v && !/^\d*$/.test(v)) return;
-          onChange(field, v);
-        }}
-        className={cn(
-          'w-full h-10 rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-md placeholder:text-muted-foreground hover:border-muted-foreground/40',
-          opts?.disabled && 'opacity-50 cursor-not-allowed bg-muted',
-        )}
-      />
-    </div>
-  );
+  const input = (field: string, label: string, opts?: { type?: string; placeholder?: string; required?: boolean; colSpan?: number; numbersOnly?: boolean; disabled?: boolean }) => {
+    const isPassword = opts?.type === 'password';
+    const revealed = revealedFields[field];
+    const resolvedType = isPassword ? (revealed ? 'text' : 'password') : (opts?.type || 'text');
+
+    return (
+      <div className={cn(opts?.colSpan === 2 ? 'md:col-span-2 space-y-2' : 'space-y-2')}>
+        <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          {label} {opts?.required && <span className="text-destructive">*</span>}
+        </label>
+        <div className="relative">
+          <input
+            type={resolvedType}
+            inputMode={opts?.numbersOnly ? 'numeric' : undefined}
+            placeholder={opts?.placeholder || `Enter ${label.toLowerCase()}`}
+            value={form[field] || ''}
+            disabled={opts?.disabled}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (opts?.numbersOnly && v && !/^\d*$/.test(v)) return;
+              onChange(field, v);
+            }}
+            className={cn(
+              'w-full h-10 rounded-lg border border-input bg-background px-3 py-1 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-md placeholder:text-muted-foreground hover:border-muted-foreground/40',
+              isPassword && 'pr-10',
+              opts?.disabled && 'opacity-50 cursor-not-allowed bg-muted',
+            )}
+          />
+          {isPassword && (
+            <button
+              type="button"
+              onClick={() => toggleReveal(field)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200"
+            >
+              {revealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const section = (
     title: string,
@@ -86,7 +106,7 @@ export default function Step2RecordDetails({ form, onChange }: Step2Props) {
         <div className="flex items-center gap-3">
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-            style={{ backgroundColor: `${color}15`, color }}
+            style={{ backgroundColor: `${color}18`, color }}
           >
             {icon}
           </div>
