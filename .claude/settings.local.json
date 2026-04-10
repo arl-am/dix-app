@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm build:*)",
+      "Bash(pac code:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(npx power-apps:*)",
+      "Bash(pnpm rebuild:*)",
+      "Bash(npm rebuild:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep -l \"transfersecuritydeposit\" /c/Users/AndersonMarquez/Documents/\"VS Code Projects\"/dix-app/dist/assets/*.js)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(node -e \"require\\('date-fns'\\)\")",
+      "Bash(curl:*)"
+    ]
+  }
+}
