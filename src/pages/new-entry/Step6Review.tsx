@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { User, Building2, FileText, Shield, Star, Minus, Clock, Mail, CheckCircle, XCircle, Download, FileSignature, BadgeCheck, Truck, ClipboardList, Send, X, ChevronDown, Check, ListChecks, FileSpreadsheet, PackageOpen } from 'lucide-react';
+import { User, Building2, FileText, Shield, Star, Minus, Clock, Mail, CheckCircle, XCircle, Download, FileSignature, BadgeCheck, Truck, ClipboardList, Send, X, ChevronDown, Check, ListChecks, FileSpreadsheet, PackageOpen, TrainFront, CreditCard, Anchor } from 'lucide-react';
 import { cn, formatCurrency } from '../../lib/utils';
 import { CONTRACT_TYPE_LABELS, US_STATES, type Agent } from '../../lib/mockData';
 import { generateAgentConfirmation } from '../../lib/generateAgentConfirmation';
@@ -10,6 +10,7 @@ import { generateWelcomeLetter, type WelcomeLetterData } from '../../lib/generat
 import { generateRecruitingChecklist } from '../../lib/generateRecruitingChecklist';
 import { generateIrpLease, type IrpLeaseModalData } from '../../lib/generateIrpLease';
 import { generateTruckBoxForms, type TruckBoxFormData, type BoxItems } from '../../lib/generateTruckBox';
+import { generateCNRegistration } from '../../lib/generateCNRegistration';
 import CustomSelect from '../../components/CustomSelect';
 import Toggle from '../../components/Toggle';
 import { toast } from 'sonner';
@@ -69,6 +70,13 @@ const RECRUITING_DOCUMENTS = [
 
 const EQUIPMENT_DOCUMENTS = [
   { id: 'truck_box', name: 'Truck Box Forms', icon: PackageOpen },
+];
+
+const PORTS_RAILS_DOCUMENTS = [
+  { id: 'cn_registration', name: 'CN Registration', icon: TrainFront },
+  { id: 'cp_letter', name: 'CP Letter', icon: Mail },
+  { id: 'fastpass_id', name: 'FastPass ID', icon: CreditCard },
+  { id: 'sealink_entry', name: 'SeaLink Entry', icon: Anchor },
 ];
 
 const DEDUCTION_LABELS: Record<string, string> = {
@@ -771,7 +779,7 @@ function DocumentCard({ name, icon: Icon, downloaded, onClick }: { name: string;
 }
 
 function CollapsibleSection({ title, count, defaultOpen, children }: { title: string; count: number; defaultOpen?: boolean; children: React.ReactNode }) {
-  const [open, setOpen] = useState(defaultOpen ?? true);
+  const [open, setOpen] = useState(defaultOpen ?? false);
   return (
     <div className="rounded-xl border border-border/80 bg-card overflow-hidden transition-all duration-200 hover:shadow-sm">
       <button
@@ -850,6 +858,22 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
         onOpenIrpModal();
       } else if (docId === 'truck_box') {
         onOpenTruckBoxModal();
+      } else if (docId === 'cn_registration') {
+        generateCNRegistration({
+          date: new Date().toLocaleDateString('en-US'),
+          driverName: `${form.firstName || ''} ${form.lastName || ''}`.trim(),
+          division: agent?.cr6cd_divisionformal || agent?.cr6cd_division || '',
+          scac: agent?.cr6cd_scac || '',
+          cnDivision: agent?.cr6cd_division || '',
+        });
+        markDownloaded(docId);
+        toast.success('CN Registration downloaded');
+      } else if (docId === 'cp_letter') {
+        toast.info('CP Letter – coming soon');
+      } else if (docId === 'fastpass_id') {
+        toast.info('FastPass ID – coming soon');
+      } else if (docId === 'sealink_entry') {
+        toast.info('SeaLink Entry – coming soon');
       }
     } catch (err) {
       toast.error(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -868,7 +892,7 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
         </div>
       </div>
 
-      <CollapsibleSection title="Start-up Documents" count={STARTUP_DOCUMENTS.length} defaultOpen>
+      <CollapsibleSection title="Start-up Documents" count={STARTUP_DOCUMENTS.length}>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {STARTUP_DOCUMENTS.map((doc) => (
             <DocumentCard
@@ -899,6 +923,20 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
       <CollapsibleSection title="Equipment" count={EQUIPMENT_DOCUMENTS.length}>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {EQUIPMENT_DOCUMENTS.map((doc) => (
+            <DocumentCard
+              key={doc.id}
+              name={doc.name}
+              icon={doc.icon}
+              downloaded={!!downloaded[doc.id]}
+              onClick={() => handleClick(doc.id)}
+            />
+          ))}
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Ports & Rails" count={PORTS_RAILS_DOCUMENTS.length}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {PORTS_RAILS_DOCUMENTS.map((doc) => (
             <DocumentCard
               key={doc.id}
               name={doc.name}
