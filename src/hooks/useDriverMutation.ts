@@ -198,6 +198,18 @@ async function saveTransfers(input: SaveTransfersInput): Promise<void> {
   if (!result.success) throw new Error('Failed to save transfer fields');
 
   const { Cr6cd_dix_driverdeductionsService } = await import('../generated');
+
+  const existing = await Cr6cd_dix_driverdeductionsService.getAll({
+    filter: `_cr6cd_dix_deductiondriver_value eq '${input.driverId}'`,
+    select: ['cr6cd_dix_driverdeductionid', 'cr6cd_dix_deductionkey'],
+  });
+  const oldTransferRecs = (existing.data || []).filter((r: any) =>
+    r.cr6cd_dix_deductionkey?.startsWith('transfer_') || r.cr6cd_dix_deductionkey?.startsWith('reactivate_')
+  );
+  for (const rec of oldTransferRecs) {
+    await Cr6cd_dix_driverdeductionsService.delete((rec as any).cr6cd_dix_driverdeductionid);
+  }
+
   const subKeys = [
     ...Object.entries(input.transferItems).filter(([, v]) => v).map(([k]) => `transfer_${k}`),
     ...Object.entries(input.reactivateItems).filter(([, v]) => v).map(([k]) => `reactivate_${k}`),
@@ -234,6 +246,17 @@ async function saveDeductions(input: SaveDeductionsInput): Promise<void> {
   }
 
   const { Cr6cd_dix_driverdeductionsService } = await import('../generated');
+
+  const existing = await Cr6cd_dix_driverdeductionsService.getAll({
+    filter: `_cr6cd_dix_deductiondriver_value eq '${input.driverId}'`,
+    select: ['cr6cd_dix_driverdeductionid', 'cr6cd_dix_deductionkey'],
+  });
+  const oldDeductionRecs = (existing.data || []).filter((r: any) =>
+    !r.cr6cd_dix_deductionkey?.startsWith('transfer_') && !r.cr6cd_dix_deductionkey?.startsWith('reactivate_')
+  );
+  for (const rec of oldDeductionRecs) {
+    await Cr6cd_dix_driverdeductionsService.delete((rec as any).cr6cd_dix_driverdeductionid);
+  }
 
   for (const key of selected) {
     const record: Record<string, unknown> = {

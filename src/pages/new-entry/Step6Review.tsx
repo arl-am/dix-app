@@ -16,6 +16,9 @@ import { generateSeaLinkEntry } from '../../lib/generateSeaLinkEntry';
 import CustomSelect from '../../components/CustomSelect';
 import Toggle from '../../components/Toggle';
 import { toast } from 'sonner';
+import mondayLogo from '../../assets/monday-logo.png';
+import frontLogo from '../../assets/front-logo.png';
+import { assetUrl } from '../../utils/assetUrl';
 import type { TestStatus } from './Step3Testing';
 import type { TransferItemKey } from './Step4Transfers';
 
@@ -150,6 +153,72 @@ export default function Step6Review({
       toast.error(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIrpGenerating(false);
+    }
+  };
+
+  const [showFastPassModal, setShowFastPassModal] = useState(false);
+  const [fastPassClosing, setFastPassClosing] = useState(false);
+  const [fastPassGenerating, setFastPassGenerating] = useState(false);
+  const [fastPassData, setFastPassData] = useState({ driverName: '', licenseNumber: '', licenseState: '', licenseExpDate: '' });
+
+  const openFastPassModal = () => {
+    setFastPassData({
+      driverName: `${form.firstName || ''} ${form.lastName || ''}`.trim(),
+      licenseNumber: form.licenseNumber || '',
+      licenseState: form.licenseState || '',
+      licenseExpDate: form.licenseExpDate || '',
+    });
+    setShowFastPassModal(true);
+  };
+
+  const closeFastPassModal = () => {
+    setFastPassClosing(true);
+    setTimeout(() => { setShowFastPassModal(false); setFastPassClosing(false); }, 200);
+  };
+
+  const handleFastPassGenerate = async () => {
+    if (!fastPassData.driverName.trim()) { toast.error('Driver Name is required'); return; }
+    if (!fastPassData.licenseNumber.trim()) { toast.error('License Number is required'); return; }
+    if (!fastPassData.licenseState.trim()) { toast.error('License State is required'); return; }
+    if (!fastPassData.licenseExpDate.trim()) { toast.error('License Expiration Date is required'); return; }
+    if (!driverId) { toast.error('Driver record not saved yet'); return; }
+    setFastPassGenerating(true);
+    const toastId = toast.loading('Sending FastPass ID email...');
+    try {
+      const isLocal = window.location.hostname === 'localhost';
+      if (isLocal) {
+        await new Promise((r) => setTimeout(r, 3000));
+      } else {
+        const { Cr6cd_dix_driversService } = await import('../../generated');
+        await Cr6cd_dix_driversService.update(driverId, {
+          cr6cd_fastpassrequested: true,
+        } as any);
+        const POLL_INTERVAL = 3000;
+        const TIMEOUT = 45000;
+        const start = Date.now();
+        let completed = false;
+        while (Date.now() - start < TIMEOUT) {
+          await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+          const record = await Cr6cd_dix_driversService.get(driverId, {
+            select: ['cr6cd_fastpassrequested'],
+          });
+          if (record.success && !(record.data as any)?.cr6cd_fastpassrequested) {
+            completed = true;
+            break;
+          }
+        }
+        if (!completed) {
+          toast.warning('FastPass ID is taking longer than expected. Check Power Automate for status.', { id: toastId });
+          setFastPassGenerating(false);
+          return;
+        }
+      }
+      toast.success('FastPass ID email draft created', { id: toastId });
+      closeFastPassModal();
+    } catch (err) {
+      toast.error(`FastPass ID failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
+    } finally {
+      setFastPassGenerating(false);
     }
   };
 
@@ -553,6 +622,97 @@ export default function Step6Review({
         </div>
       </div>
     , document.body)}
+    {showFastPassModal && createPortal(
+      <div className={cn(
+        'fixed inset-0 z-50 flex items-center justify-center transition-all duration-200',
+        fastPassClosing ? 'opacity-0' : 'opacity-100',
+      )}>
+        <div
+          className={cn('absolute inset-0 transition-all duration-200', fastPassClosing ? 'bg-transparent' : 'bg-black/40 backdrop-blur-sm')}
+          onClick={!fastPassGenerating ? closeFastPassModal : undefined}
+        />
+        <div className={cn(
+          'relative w-full max-w-md mx-4 bg-card border border-border/80 rounded-2xl shadow-2xl overflow-hidden transition-all duration-200',
+          fastPassClosing ? 'opacity-0 scale-95 translate-y-3' : 'opacity-100 scale-100 translate-y-0 animate-fade-in-up',
+        )}>
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-gradient-to-r from-sky-500/5 to-transparent">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-sky-500/10 flex items-center justify-center">
+                <CreditCard className="w-4.5 h-4.5 text-sky-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-foreground">FastPass ID</h3>
+                <p className="text-[11px] text-muted-foreground">Verify driver info before sending</p>
+              </div>
+            </div>
+            <button onClick={closeFastPassModal} disabled={fastPassGenerating} className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200 hover:rotate-90 disabled:opacity-50">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Driver Name <span className="text-destructive">*</span></label>
+              <input
+                type="text"
+                value={fastPassData.driverName}
+                onChange={(e) => setFastPassData((d) => ({ ...d, driverName: e.target.value }))}
+                placeholder="Enter driver name"
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">License Number <span className="text-destructive">*</span></label>
+              <input
+                type="text"
+                value={fastPassData.licenseNumber}
+                onChange={(e) => setFastPassData((d) => ({ ...d, licenseNumber: e.target.value }))}
+                placeholder="Enter license number"
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">License State <span className="text-destructive">*</span></label>
+                <CustomSelect
+                  options={US_STATES.map((s) => ({ value: s, label: s }))}
+                  value={fastPassData.licenseState}
+                  onChange={(v) => setFastPassData((d) => ({ ...d, licenseState: v }))}
+                  placeholder="Select state..."
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">License Exp Date <span className="text-destructive">*</span></label>
+                <input
+                  type="date"
+                  value={fastPassData.licenseExpDate}
+                  onChange={(e) => setFastPassData((d) => ({ ...d, licenseExpDate: e.target.value }))}
+                  className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-3">
+            <button
+              onClick={closeFastPassModal}
+              disabled={fastPassGenerating}
+              className="inline-flex items-center justify-center rounded-lg text-sm font-medium border border-input bg-background shadow-sm hover:bg-accent h-9 px-4 transition-all duration-200 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleFastPassGenerate}
+              disabled={fastPassGenerating}
+              className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium text-white h-9 px-5 bg-[#2563EB] hover:bg-[#1D4ED8] shadow-sm hover:shadow-lg hover:shadow-primary/25 active:scale-95 transition-all duration-200 disabled:opacity-50"
+            >
+              <Send className="w-3.5 h-3.5" />
+              {fastPassGenerating ? 'Sending...' : 'Generate Email'}
+            </button>
+          </div>
+        </div>
+      </div>
+    , document.body)}
     <div className="w-full max-w-[1100px] mx-auto space-y-4">
       <div className="flex flex-wrap items-center gap-2 animate-fade-in-up" style={{ animationDelay: '40ms' }}>
         <SummaryChip icon={User} label={`${form.firstName || ''} ${form.lastName || ''}`.trim() || '—'} />
@@ -664,6 +824,8 @@ export default function Step6Review({
       <DocumentSections
         form={form}
         agent={agent}
+        actionType={actionType}
+        contractType={contractType}
         selections={selections}
         transferEquipment={transferEquipment}
         reactivateEquipment={reactivateEquipment}
@@ -676,6 +838,8 @@ export default function Step6Review({
         onOpenWelcomeModal={() => setShowWelcomeModal(true)}
         onOpenIrpModal={openIrpModal}
         onOpenTruckBoxModal={openTruckBoxModal}
+        onOpenFastPassModal={openFastPassModal}
+        cableType={truckBoxData.cableType}
       />
 
     </div>
@@ -792,7 +956,7 @@ function DocumentCard({ name, icon: Icon, downloaded, loading, actionIcon, onCli
         <Icon className="w-5 h-5" />
       </div>
       <span className={cn(
-        'text-[11px] font-medium text-center leading-tight min-h-[2rem] flex items-center transition-colors duration-500',
+        'text-xs font-medium text-center leading-tight min-h-[2rem] flex items-center transition-colors duration-500',
         loading ? 'text-primary' : downloaded ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
       )}>{loading ? 'Sending...' : name}</span>
     </button>
@@ -809,7 +973,7 @@ function CollapsibleSection({ title, count, defaultOpen, children }: { title: st
       >
         <div className="flex items-center gap-2.5">
           <span className="text-sm font-semibold text-foreground">{title}</span>
-          <span className="text-[10px] font-medium text-muted-foreground bg-muted/80 rounded-full px-2 py-0.5">{count}</span>
+          <span className="text-[11px] font-medium text-muted-foreground bg-muted/80 rounded-full px-2 py-0.5">{count}</span>
         </div>
         <div className={cn(
           'w-6 h-6 rounded-full flex items-center justify-center bg-muted/60 group-hover:bg-muted transition-all duration-300',
@@ -832,9 +996,11 @@ function CollapsibleSection({ title, count, defaultOpen, children }: { title: st
   );
 }
 
-function DocumentSections({ form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber, maintenanceAmount, driverId, onOpenWelcomeModal, onOpenIrpModal, onOpenTruckBoxModal }: {
+function DocumentSections({ form, agent, actionType, contractType, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber, maintenanceAmount, driverId, onOpenWelcomeModal, onOpenIrpModal, onOpenTruckBoxModal, onOpenFastPassModal, cableType }: {
   form: Record<string, string>;
   agent: Agent | null;
+  actionType: string;
+  contractType: number | null;
   selections: Record<string, boolean>;
   transferEquipment: boolean;
   reactivateEquipment: boolean;
@@ -847,6 +1013,8 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
   onOpenWelcomeModal: () => void;
   onOpenIrpModal: () => void;
   onOpenTruckBoxModal: () => void;
+  onOpenFastPassModal: () => void;
+  cableType: string;
 }) {
   const [downloaded, setDownloaded] = useState<Record<string, boolean>>({});
   const [loadingDoc, setLoadingDoc] = useState<string | null>(null);
@@ -910,26 +1078,178 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
           return;
         }
         setLoadingDoc('cp_registration');
+        const toastId = toast.loading('Sending CP Registration email...');
         try {
           const isLocal = window.location.hostname === 'localhost';
           if (isLocal) {
-            await new Promise((r) => setTimeout(r, 1500));
+            await new Promise((r) => setTimeout(r, 3000));
           } else {
             const { Cr6cd_dix_driversService } = await import('../../generated');
             await Cr6cd_dix_driversService.update(driverId, {
               cr6cd_cpregistrationrequested: true,
             } as any);
+            const POLL_INTERVAL = 3000;
+            const TIMEOUT = 45000;
+            const start = Date.now();
+            let completed = false;
+            while (Date.now() - start < TIMEOUT) {
+              await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+              const record = await Cr6cd_dix_driversService.get(driverId, {
+                select: ['cr6cd_cpregistrationrequested'],
+              });
+              if (record.success && !(record.data as any)?.cr6cd_cpregistrationrequested) {
+                completed = true;
+                break;
+              }
+            }
+            if (!completed) {
+              toast.warning('CP Registration is taking longer than expected. Check Power Automate for status.', { id: toastId });
+              setLoadingDoc(null);
+              return;
+            }
           }
           markDownloaded(docId);
-          toast.success('CP Registration email sent');
+          toast.success('CP Registration email draft created', { id: toastId });
         } catch (err) {
+          toast.error(`CP Registration failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
           setLoadingDoc(null);
           throw err;
         }
         setLoadingDoc(null);
         return;
       } else if (docId === 'fastpass_id') {
-        toast.info('FastPass ID \u2013 coming soon');
+        onOpenFastPassModal();
+      } else if (docId === 'addmove_board') {
+        const fmt = (v: number | undefined) => v != null ? `$${Number(v).toFixed(2)}` : '';
+        const deductions: string[] = [];
+        if (selections.bobtail && agent?.cr6cd_bobtailvalue)
+          deductions.push(`Bobtail (${fmt(agent.cr6cd_bobtailvalue)})/Month`);
+        if (selections.pdi)
+          deductions.push('Physical Damage Insurance & PDI Deposit');
+        if (selections.occacc && agent?.cr6cd_occaccmonthly)
+          deductions.push(`Occupational Accident (${fmt(agent.cr6cd_occaccmonthly)})/Month`);
+        if (selections.ifta && agent?.cr6cd_iftavalue)
+          deductions.push(`Road and Fuel (${fmt(agent.cr6cd_iftavalue)})/Week`);
+        if (selections.irp_plate_prepaid)
+          deductions.push('License Plate (Paid in Full)');
+        if (selections.irp_plate_settlements) {
+          deductions.push(`License Plate (${fmt(agent?.cr6cd_plateweeklyvalue)})/Week`);
+          deductions.push(`Plate Deposit (${fmt(agent?.cr6cd_platedepositvalue)})/Week`);
+        }
+        if (selections.security_deposit)
+          deductions.push(`Security Deposit (${fmt(agent?.cr6cd_securitydepositweeklyvalue)})/Week`);
+        if (selections.eld_deposit && agent?.cr6cd_elddepositvalue)
+          deductions.push(`ELD Deposit (${fmt(agent.cr6cd_elddepositvalue)})/Week`);
+        if (selections.eld_deposit && agent?.cr6cd_elddatafeevalue)
+          deductions.push(`ELD Data Fee (${fmt(agent.cr6cd_elddatafeevalue)})/Week`);
+        if (selections.dashcam_deposit)
+          deductions.push(`Dashcam Deposit (${fmt(agent?.cr6cd_dashcamdepositvalue)})/Week`);
+        if (selections.buydown)
+          deductions.push(`Buydown (${fmt(agent?.cr6cd_buydownvalue)})/Week`);
+        if (selections.prepass_tolls_bypass)
+          deductions.push(`Prepass Tolls & Bypass (${fmt(agent?.cr6cd_prepasstollsbypass)})`);
+        if (selections.prepass_bypass)
+          deductions.push(`Prepass Bypass (${fmt(agent?.cr6cd_prepassbypass)})`);
+        if (selections.maintenance_fund)
+          deductions.push('Maintenance Fund');
+        if (selections.rfid && agent?.cr6cd_rfidvalue)
+          deductions.push(`RFID (${fmt(agent.cr6cd_rfidvalue)})`);
+        if (selections.chassis_usage && agent?.cr6cd_trailerusagevalue) {
+          deductions.push(`Chassis Usage Value (${fmt(agent.cr6cd_trailerusagevalue)})`);
+          if (agent?.cr6cd_trailerusageadminfee)
+            deductions.push(`Chassis Usage Admin Fee (${fmt(agent.cr6cd_trailerusageadminfee)})`);
+        }
+        if (selections.irp_plate_settlements && agent?.cr6cd_plateadminfee)
+          deductions.push(`Plate Admin Fee (${fmt(agent.cr6cd_plateadminfee)})`);
+
+        const deductionsStr = deductions.length > 0
+          ? '[' + deductions.map((d) => '"' + d + '"').join(', ') + ']'
+          : '["N/A"]';
+
+        const actionLabel = actionType === 'new' ? 'Add' : actionType === 'move' ? 'Move' : actionType || '';
+        const contractLabel = contractType != null ? (CONTRACT_TYPE_LABELS[contractType] || '') : '';
+
+        const mc = agent?.cr6cd_motorcarrier || '';
+        const motorCarrier = mc === 'ARL' ? 'ARL' : mc === 'ACT' ? 'ACT' : mc === 'Partners' ? 'Partners EXP' : mc;
+
+        const equipReq = transferEquipment
+          ? 'Equipment Transfer'
+          : (selections.eld_deposit && selections.dashcam_deposit)
+            ? 'ELD / CAM'
+            : selections.eld_deposit
+              ? 'ELD Only (Executive Exception)'
+              : 'N/A';
+
+        const plate = selections.irp_plate_settlements ? 'Yes' : 'No';
+        const prepass = (selections.prepass_tolls_bypass || selections.prepass_bypass) ? 'Yes' : 'No';
+
+        const cableMap: Record<string, string> = { '6 Pin': '6', '9 Pin': '9', 'Volvo 13': 'VOLVO 2013-2018', 'Mack 13': 'MACK 2013-2018', 'OBD2': 'OBD II' };
+        const cableVal = cableMap[cableType || ''] || '';
+
+        const driverName = `${form.firstName || ''} ${form.lastName || ''}`.trim();
+        const url = 'https://forms.monday.com/forms/f442fdd3e4f696b3cc62fdfc08d16f48'
+          + '?DriverName=' + encodeURIComponent(driverName)
+          + '&DriverPhone=' + encodeURIComponent(form.phone || '')
+          + '&VendorCode=' + encodeURIComponent(form.vendorCode || '')
+          + '&Terminal=' + encodeURIComponent(agent?.cr6cd_terminal || '')
+          + '&ActionType=' + encodeURIComponent(actionLabel)
+          + '&AddType=' + encodeURIComponent(contractLabel)
+          + '&UnitNumber=' + encodeURIComponent(form.unitNumber || '')
+          + '&Plate=' + encodeURIComponent(plate)
+          + '&PrePass=' + encodeURIComponent(prepass)
+          + '&MotorCarrier=' + encodeURIComponent(motorCarrier)
+          + '&CableType=' + encodeURIComponent(cableVal)
+          + '&Username=' + encodeURIComponent(form.driverCode || '')
+          + '&EquipmentRequested=' + encodeURIComponent(equipReq)
+          + '&Deductions=' + encodeURIComponent(deductionsStr);
+
+        window.open(url, '_blank');
+        markDownloaded(docId);
+      } else if (docId === 'addmove_email') {
+        if (!driverId) {
+          toast.error('Driver record not saved yet');
+          return;
+        }
+        setLoadingDoc('addmove_email');
+        const toastId = toast.loading('Sending Add/Move email...');
+        try {
+          const isLocal = window.location.hostname === 'localhost';
+          if (isLocal) {
+            await new Promise((r) => setTimeout(r, 3000));
+          } else {
+            const { Cr6cd_dix_driversService } = await import('../../generated');
+            await Cr6cd_dix_driversService.update(driverId, {
+              cr6cd_addmoverequested: true,
+            } as any);
+            const POLL_INTERVAL = 3000;
+            const TIMEOUT = 45000;
+            const start = Date.now();
+            let completed = false;
+            while (Date.now() - start < TIMEOUT) {
+              await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+              const record = await Cr6cd_dix_driversService.get(driverId, {
+                select: ['cr6cd_addmoverequested'],
+              });
+              if (record.success && !(record.data as any)?.cr6cd_addmoverequested) {
+                completed = true;
+                break;
+              }
+            }
+            if (!completed) {
+              toast.warning('Add/Move email is taking longer than expected. Check Power Automate for status.', { id: toastId });
+              setLoadingDoc(null);
+              return;
+            }
+          }
+          markDownloaded(docId);
+          toast.success('Add/Move email draft created', { id: toastId });
+        } catch (err) {
+          toast.error(`Add/Move email failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
+          setLoadingDoc(null);
+          throw err;
+        }
+        setLoadingDoc(null);
+        return;
       } else if (docId === 'sealink_entry') {
         await generateSeaLinkEntry({
           firstName: form.firstName || '',
@@ -1033,7 +1353,7 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
               <TrainFront className="w-5 h-5" />
             </div>
             <span className={cn(
-              'text-[11px] font-medium text-center leading-tight',
+              'text-xs font-medium text-center leading-tight',
               downloaded['cp_letter'] && downloaded['cp_registration'] ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
             )}>CP Registration</span>
             <div className="flex gap-1.5 w-full mt-0.5">
@@ -1041,7 +1361,7 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
                 onClick={() => handleClick('cp_letter')}
                 disabled={loadingDoc === 'cp_letter'}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-medium transition-all duration-200',
+                  'flex-1 flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all duration-200',
                   downloaded['cp_letter']
                     ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
                     : 'bg-muted/60 text-muted-foreground border border-border/60 hover:bg-primary/10 hover:text-primary hover:border-primary/20',
@@ -1054,7 +1374,7 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
                 onClick={() => handleClick('cp_registration')}
                 disabled={loadingDoc === 'cp_registration'}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-medium transition-all duration-200',
+                  'flex-1 flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all duration-200',
                   loadingDoc === 'cp_registration'
                     ? 'bg-primary/10 text-primary border border-primary/20 cursor-wait'
                     : downloaded['cp_registration']
@@ -1076,6 +1396,62 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
               </button>
             </div>
           </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Orientation" count={2}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <button
+            onClick={() => handleClick('addmove_board')}
+            className={cn(
+              'relative flex flex-col items-center gap-2 rounded-xl border p-4 pt-5 text-left',
+              'transition-all duration-200 ease-out group',
+              downloaded['addmove_board']
+                ? 'border-emerald-500/30 bg-emerald-500/5 shadow-sm shadow-emerald-500/10'
+                : 'border-border/80 bg-card hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-md active:scale-[0.97]',
+            )}
+          >
+            <div className={cn(
+              'w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 overflow-hidden',
+              downloaded['addmove_board']
+                ? 'bg-emerald-500/10'
+                : 'bg-[#EEF2F7] group-hover:scale-110',
+            )}>
+              <img src={assetUrl(mondayLogo)} alt="Monday" className="w-6 h-6 object-contain" />
+            </div>
+            <span className={cn(
+              'text-xs font-medium text-center leading-tight',
+              downloaded['addmove_board'] ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
+            )}>Add/Move Board</span>
+          </button>
+          <button
+            onClick={() => handleClick('addmove_email')}
+            disabled={loadingDoc === 'addmove_email'}
+            className={cn(
+              'relative flex flex-col items-center gap-2 rounded-xl border p-4 pt-5 text-left',
+              'transition-all duration-200 ease-out group',
+              loadingDoc === 'addmove_email'
+                ? 'border-primary/30 bg-primary/5 cursor-wait'
+                : downloaded['addmove_email']
+                  ? 'border-emerald-500/30 bg-emerald-500/5 shadow-sm shadow-emerald-500/10'
+                  : 'border-border/80 bg-card hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-md active:scale-[0.97]',
+            )}
+          >
+            <div className={cn(
+              'w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 overflow-hidden',
+              loadingDoc === 'addmove_email'
+                ? 'bg-primary/10 animate-pulse'
+                : downloaded['addmove_email']
+                  ? 'bg-emerald-500/10'
+                  : 'bg-[#EEF2F7] group-hover:scale-110',
+            )}>
+              <img src={assetUrl(frontLogo)} alt="Front" className="w-6 h-6 object-contain" />
+            </div>
+            <span className={cn(
+              'text-xs font-medium text-center leading-tight',
+              loadingDoc === 'addmove_email' ? 'text-primary' : downloaded['addmove_email'] ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
+            )}>{loadingDoc === 'addmove_email' ? 'Sending...' : 'Add/Move Email'}</span>
+          </button>
         </div>
       </CollapsibleSection>
     </div>

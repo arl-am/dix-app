@@ -129,20 +129,24 @@ export function generateAgentConfirmation(data: AgentConfirmationData): void {
   doc.text('Deductions:', margin, yPos);
   yPos += 7;
 
-  const checkboxSize = 3;
-  const textOffsetX = 5;
+  const checkboxSize = 4;
+  const textOffsetX = 6;
   const lineSpacing = 7;
   const subLineIndent = 10;
 
   function drawDeductionLine(text: string, checked: boolean, indentText?: string[]): void {
     const checkboxY = yPos - checkboxSize + 0.5;
-    doc.setDrawColor(...hexToRgb(navyColor));
-    doc.setLineWidth(0.3);
     if (checked) {
-      doc.setFillColor(...hexToRgb(navyColor));
-      doc.rect(margin, checkboxY, checkboxSize, checkboxSize, 'F');
+      doc.setFillColor(...hexToRgb('#3B82F6'));
+      doc.roundedRect(margin, checkboxY, checkboxSize, checkboxSize, 0.5, 0.5, 'F');
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.4);
+      doc.line(margin + 0.8, checkboxY + 2.2, margin + 1.6, checkboxY + 3);
+      doc.line(margin + 1.6, checkboxY + 3, margin + 3.2, checkboxY + 1.2);
     } else {
-      doc.rect(margin, checkboxY, checkboxSize, checkboxSize);
+      doc.setDrawColor(148, 163, 184);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(margin, checkboxY, checkboxSize, checkboxSize, 0.5, 0.5, 'S');
     }
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);

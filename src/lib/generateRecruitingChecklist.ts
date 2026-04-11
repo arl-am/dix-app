@@ -2,6 +2,8 @@ import { jsPDF } from 'jspdf';
 import autoTable, { type RowInput, type CellDef } from 'jspdf-autotable';
 import { format } from 'date-fns';
 import type { Agent } from './mockData';
+import arlHeaderLogo from '../assets/arl-header-logo.png';
+import { assetUrl } from '../utils/assetUrl';
 
 const navyColor = '#1E293B';
 const blueAccent = '#3B82F6';
@@ -113,7 +115,7 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
       img.crossOrigin = 'anonymous';
       img.onload = () => { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const ctx = c.getContext('2d'); if (ctx) { ctx.drawImage(img, 0, 0); resolve(c.toDataURL('image/png')); } else reject(new Error('no ctx')); };
       img.onerror = () => reject(new Error('load failed'));
-      img.src = 'https://i.imgur.com/0Epg823.png';
+      img.src = assetUrl(arlHeaderLogo);
     });
     const lw = 38.1, lh = lw * 0.4;
     doc.addImage(logoBase64, 'PNG', (pageWidth - lw) / 2, yPos, lw, lh);
