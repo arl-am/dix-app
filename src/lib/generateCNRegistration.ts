@@ -1,4 +1,6 @@
 import { jsPDF } from 'jspdf';
+import cnLogoPng from '../assets/cn-logo.png';
+import { assetUrl } from '../utils/assetUrl';
 
 export interface CNRegistrationData {
   date: string;
@@ -8,9 +10,23 @@ export interface CNRegistrationData {
   cnDivision: string;
 }
 
-const CN_LOGO_B64 = 'data:image/png;base64,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';
+function loadImage(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d');
+      if (ctx) { ctx.drawImage(img, 0, 0); resolve(c.toDataURL('image/png')); }
+      else reject(new Error('no ctx'));
+    };
+    img.onerror = () => reject(new Error('load failed'));
+    img.src = url;
+  });
+}
 
-export function generateCNRegistration(data: CNRegistrationData): void {
+export async function generateCNRegistration(data: CNRegistrationData): Promise<void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
 
   const marginLeft = 25;
@@ -22,11 +38,13 @@ export function generateCNRegistration(data: CNRegistrationData): void {
   let y = 15;
 
   // ========== HEADER ==========
-  doc.addImage(CN_LOGO_B64, 'PNG', marginLeft, y, 30, 18);
+  let cnLogoBase64: string | null = null;
+  try { cnLogoBase64 = await loadImage(assetUrl(cnLogoPng)); } catch { /* skip */ }
+  if (cnLogoBase64) doc.addImage(cnLogoBase64, 'PNG', marginLeft, y, 40, 15);
 
   // Terminal name top-right
   doc.setFont('Times', 'normal');
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
   const terminalName = data.cnDivision === 'MEM' ? 'MEMPHIS INTERMODAL TERMINAL' : 'CHICAGO INTERMODAL TERMINAL';
   doc.text(terminalName, pageWidth - marginRight, y + 8, { align: 'right' });
@@ -35,7 +53,7 @@ export function generateCNRegistration(data: CNRegistrationData): void {
 
   // Centered bold title with underline
   doc.setFont('Times', 'bold');
-  doc.setFontSize(14);
+  doc.setFontSize(15);
   doc.text('DRIVER REGISTRATION & UPDATE FORM', centerX, y, { align: 'center' });
   const titleWidth = doc.getTextWidth('DRIVER REGISTRATION & UPDATE FORM');
   doc.setLineWidth(0.3);
@@ -46,7 +64,7 @@ export function generateCNRegistration(data: CNRegistrationData): void {
 
   // Date row
   doc.setFont('Times', 'bold');
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.text('Date:', marginLeft, y);
   const dateLabelWidth = doc.getTextWidth('Date:');
   doc.setFont('Times', 'normal');
@@ -71,11 +89,11 @@ export function generateCNRegistration(data: CNRegistrationData): void {
 
   // 3-column info row with underlined headers
   const col1X = marginLeft;
-  const col2X = marginLeft + 70;
-  const col3X = marginLeft + 100;
+  const col2X = marginLeft + 80;
+  const col3X = marginLeft + 105;
 
   doc.setFont('Times', 'bold');
-  doc.setFontSize(10);
+  doc.setFontSize(11);
 
   const header1 = "Name of Driver's Cartage Company";
   const header2 = 'SCAC';
@@ -96,8 +114,9 @@ export function generateCNRegistration(data: CNRegistrationData): void {
 
   y += 6;
 
-  // Data row
+  // Data row — smaller font to avoid overlap with long company names
   doc.setFont('Times', 'normal');
+  doc.setFontSize(9);
   doc.text(data.division, col1X, y);
   doc.text(data.scac, col2X, y);
   doc.text('800-245-4722 processing@miasafety.com', col3X, y);
@@ -106,7 +125,7 @@ export function generateCNRegistration(data: CNRegistrationData): void {
 
   // Yellow warning bar
   const warningText = "ANY TIME YOU SWITCH CARTAGE COMPANIES DRIVERS' ARE EXPECTED TO UPDATE THEIR CARTAGE COMPANIES SCAC.";
-  doc.setFontSize(10);
+  doc.setFontSize(11);
   const warningLines = doc.splitTextToSize(warningText, contentWidth);
   const warningHeight = warningLines.length * 4 + 3;
 
@@ -123,11 +142,16 @@ export function generateCNRegistration(data: CNRegistrationData): void {
 
   // Consent heading
   doc.setFont('Times', 'bold');
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
-  doc.text('Please read this Notice and Consent to Collection and Use of Biometric Information ("Consent") carefully.', marginLeft, y);
+  const consentHeading = 'Please read this Notice and Consent to Collection and Use of Biometric Information (\u201CConsent\u201D) carefully.';
+  const consentLines = doc.splitTextToSize(consentHeading, contentWidth);
+  consentLines.forEach((line: string) => {
+    doc.text(line, marginLeft, y);
+    y += 5;
+  });
 
-  y += 8;
+  y += 4;
 
   // ========== PARAGRAPH PRINTING FUNCTION ==========
   const pageHeight = 279.4;
@@ -144,9 +168,9 @@ export function generateCNRegistration(data: CNRegistrationData): void {
       lineHeight?: number;
     }
   ): void {
-    const fontSize = config?.fontSize ?? 10.5;
+    const fontSize = config?.fontSize ?? 11;
     const lineHeight = config?.lineHeight ?? 4.5;
-    const afterSpacing = 4.5;
+    const afterSpacing = 3.5;
 
     let fontStyle = 'normal';
     if (config?.bold && config?.italic) {
@@ -224,7 +248,7 @@ export function generateCNRegistration(data: CNRegistrationData): void {
   pp(`By signing below, I agree to this Arbitration Agreement and waive my right to a jury trial.`);
 
   // Signature block
-  y += 10;
+  y += 4;
 
   const signatureHeight = 10;
   if (y + signatureHeight > pageHeight - bottomMargin) {
@@ -244,7 +268,7 @@ export function generateCNRegistration(data: CNRegistrationData): void {
   const dateLineEnd = pageWidth - marginRight;
 
   doc.setFont('Times', 'bold');
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
 
   doc.text("Driver's Signature:", signatureLabelX, y);

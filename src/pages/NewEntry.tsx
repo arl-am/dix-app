@@ -387,6 +387,7 @@ export default function NewEntry() {
                     transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment} transferItems={transferItems} reactivateItems={reactivateItems}
                     pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
                     maintenanceAmount={maintenanceAmount} iftaNumber={iftaNumber}
+                    driverId={driverId}
                   />
                 )}
               </div>

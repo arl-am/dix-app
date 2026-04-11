@@ -11,6 +11,8 @@ import { generateRecruitingChecklist } from '../../lib/generateRecruitingCheckli
 import { generateIrpLease, type IrpLeaseModalData } from '../../lib/generateIrpLease';
 import { generateTruckBoxForms, type TruckBoxFormData, type BoxItems } from '../../lib/generateTruckBox';
 import { generateCNRegistration } from '../../lib/generateCNRegistration';
+import { generateCPLetter } from '../../lib/generateCPLetter';
+import { generateSeaLinkEntry } from '../../lib/generateSeaLinkEntry';
 import CustomSelect from '../../components/CustomSelect';
 import Toggle from '../../components/Toggle';
 import { toast } from 'sonner';
@@ -42,6 +44,7 @@ interface Step6Props {
   pdiWeeklyDeposit: number;
   maintenanceAmount: string;
   iftaNumber: string;
+  driverId?: string;
 }
 
 const STATUS_CONFIG: Record<string, { icon: React.ElementType; classes: string; label: string }> = {
@@ -74,7 +77,6 @@ const EQUIPMENT_DOCUMENTS = [
 
 const PORTS_RAILS_DOCUMENTS = [
   { id: 'cn_registration', name: 'CN Registration', icon: TrainFront },
-  { id: 'cp_letter', name: 'CP Letter', icon: Mail },
   { id: 'fastpass_id', name: 'FastPass ID', icon: CreditCard },
   { id: 'sealink_entry', name: 'SeaLink Entry', icon: Anchor },
 ];
@@ -92,7 +94,7 @@ export default function Step6Review({
   form, agent, actionType, contractType, selections,
   elpRequired, hazmatStatus, homelandStatus,
   transferOccAcc, transferEquipment, reactivateEquipment, transferItems, reactivateItems,
-  pdiMonthly, pdiWeeklyDeposit, maintenanceAmount, iftaNumber,
+  pdiMonthly, pdiWeeklyDeposit, maintenanceAmount, iftaNumber, driverId,
 }: Step6Props) {
   const selectedDeductions = Object.entries(selections).filter(([, v]) => v).map(([k]) => k);
   const transferItemsList = (Object.entries(transferItems) as [TransferItemKey, boolean][]).filter(([, v]) => v).map(([k]) => k);
@@ -670,6 +672,7 @@ export default function Step6Review({
         pdiMonthly={pdiMonthly}
         iftaNumber={iftaNumber}
         maintenanceAmount={maintenanceAmount}
+        driverId={driverId}
         onOpenWelcomeModal={() => setShowWelcomeModal(true)}
         onOpenIrpModal={openIrpModal}
         onOpenTruckBoxModal={openTruckBoxModal}
@@ -742,38 +745,56 @@ function TestBadge({ status, required }: { status: TestStatus; required: boolean
   );
 }
 
-function DocumentCard({ name, icon: Icon, downloaded, onClick }: { name: string; icon: React.ElementType; downloaded: boolean; onClick: () => void }) {
+function DocumentCard({ name, icon: Icon, downloaded, loading, actionIcon, onClick }: { name: string; icon: React.ElementType; downloaded: boolean; loading?: boolean; actionIcon?: 'download' | 'send'; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
+      disabled={loading}
       className={cn(
         'group relative flex flex-col items-center gap-2 rounded-xl border p-4 pt-5 text-left',
         'transition-all duration-500 ease-out',
-        downloaded
-          ? 'border-emerald-500/30 bg-emerald-500/5 shadow-sm shadow-emerald-500/10'
-          : 'border-border/80 bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 active:scale-[0.97]',
+        loading
+          ? 'border-primary/30 bg-primary/5 cursor-wait'
+          : downloaded
+            ? 'border-emerald-500/30 bg-emerald-500/5 shadow-sm shadow-emerald-500/10'
+            : 'border-border/80 bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 active:scale-[0.97]',
       )}
     >
       <div className={cn(
         'absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500',
-        downloaded
-          ? 'bg-emerald-500 text-white scale-100 rotate-0'
-          : 'bg-muted/60 text-muted-foreground scale-90 group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-100',
+        loading
+          ? 'bg-primary/20 text-primary'
+          : downloaded
+            ? 'bg-emerald-500 text-white scale-100 rotate-0'
+            : 'bg-muted/60 text-muted-foreground scale-90 group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-100',
       )}>
-        {downloaded ? <Check className="w-3.5 h-3.5" /> : <Download className="w-3 h-3 transition-transform duration-300 group-hover:translate-y-0.5" />}
+        {loading ? (
+          <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        ) : downloaded ? (
+          <Check className="w-3.5 h-3.5" />
+        ) : actionIcon === 'send' ? (
+          <Send className="w-3 h-3 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        ) : (
+          <Download className="w-3 h-3 transition-transform duration-300 group-hover:translate-y-0.5" />
+        )}
       </div>
       <div className={cn(
         'w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500',
-        downloaded
-          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-          : 'text-primary group-hover:scale-110',
-      )} style={!downloaded ? { backgroundColor: '#EEF2F7' } : undefined}>
+        loading
+          ? 'bg-primary/10 text-primary animate-pulse'
+          : downloaded
+            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+            : 'text-primary group-hover:scale-110',
+      )} style={!downloaded && !loading ? { backgroundColor: '#EEF2F7' } : undefined}>
         <Icon className="w-5 h-5" />
       </div>
       <span className={cn(
         'text-[11px] font-medium text-center leading-tight min-h-[2rem] flex items-center transition-colors duration-500',
-        downloaded ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
-      )}>{name}</span>
+        loading ? 'text-primary' : downloaded ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
+      )}>{loading ? 'Sending...' : name}</span>
     </button>
   );
 }
@@ -811,7 +832,7 @@ function CollapsibleSection({ title, count, defaultOpen, children }: { title: st
   );
 }
 
-function DocumentSections({ form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber, maintenanceAmount, onOpenWelcomeModal, onOpenIrpModal, onOpenTruckBoxModal }: {
+function DocumentSections({ form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber, maintenanceAmount, driverId, onOpenWelcomeModal, onOpenIrpModal, onOpenTruckBoxModal }: {
   form: Record<string, string>;
   agent: Agent | null;
   selections: Record<string, boolean>;
@@ -822,11 +843,13 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
   pdiMonthly: number;
   iftaNumber: string;
   maintenanceAmount: string;
+  driverId?: string;
   onOpenWelcomeModal: () => void;
   onOpenIrpModal: () => void;
   onOpenTruckBoxModal: () => void;
 }) {
   const [downloaded, setDownloaded] = useState<Record<string, boolean>>({});
+  const [loadingDoc, setLoadingDoc] = useState<string | null>(null);
 
   const markDownloaded = (id: string) => {
     setDownloaded((s) => ({ ...s, [id]: true }));
@@ -859,7 +882,7 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
       } else if (docId === 'truck_box') {
         onOpenTruckBoxModal();
       } else if (docId === 'cn_registration') {
-        generateCNRegistration({
+        await generateCNRegistration({
           date: new Date().toLocaleDateString('en-US'),
           driverName: `${form.firstName || ''} ${form.lastName || ''}`.trim(),
           division: agent?.cr6cd_divisionformal || agent?.cr6cd_division || '',
@@ -869,11 +892,59 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
         markDownloaded(docId);
         toast.success('CN Registration downloaded');
       } else if (docId === 'cp_letter') {
-        toast.info('CP Letter – coming soon');
+        await generateCPLetter({
+          date: new Date().toLocaleDateString('en-US'),
+          driverName: `${form.firstName || ''} ${form.lastName || ''}`.trim(),
+          licenseNumber: form.licenseNumber || '',
+          cdlState: form.licenseState || '',
+          startDate: form.onboardingDate || new Date().toLocaleDateString('en-US'),
+          division: agent?.cr6cd_divisionformal || agent?.cr6cd_division || '',
+          scac: agent?.cr6cd_scac || '',
+          sentBy: form.createdByName || 'Anderson Marquez',
+        });
+        markDownloaded(docId);
+        toast.success('CP Letter downloaded');
+      } else if (docId === 'cp_registration') {
+        if (!driverId) {
+          toast.error('Driver record not saved yet');
+          return;
+        }
+        setLoadingDoc('cp_registration');
+        try {
+          const isLocal = window.location.hostname === 'localhost';
+          if (isLocal) {
+            await new Promise((r) => setTimeout(r, 1500));
+          } else {
+            const { Cr6cd_dix_driversService } = await import('../../generated');
+            await Cr6cd_dix_driversService.update(driverId, {
+              cr6cd_cpregistrationrequested: true,
+            } as any);
+          }
+          markDownloaded(docId);
+          toast.success('CP Registration email sent');
+        } catch (err) {
+          setLoadingDoc(null);
+          throw err;
+        }
+        setLoadingDoc(null);
+        return;
       } else if (docId === 'fastpass_id') {
-        toast.info('FastPass ID – coming soon');
+        toast.info('FastPass ID \u2013 coming soon');
       } else if (docId === 'sealink_entry') {
-        toast.info('SeaLink Entry – coming soon');
+        await generateSeaLinkEntry({
+          firstName: form.firstName || '',
+          lastName: form.lastName || '',
+          licenseNumber: form.licenseNumber || '',
+          licenseState: form.licenseState || '',
+          licenseExpDate: form.licenseExpDate || '',
+          phoneNumber: form.phoneNumber || '',
+          email: form.email || '',
+          division: agent?.cr6cd_divisionformal || agent?.cr6cd_division || '',
+          scac: agent?.cr6cd_scac || '',
+          startDate: form.onboardingDate || new Date().toLocaleDateString('en-US'),
+        });
+        markDownloaded(docId);
+        toast.success('SeaLink Entry Form downloaded');
       }
     } catch (err) {
       toast.error(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -934,7 +1005,7 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Ports & Rails" count={PORTS_RAILS_DOCUMENTS.length}>
+      <CollapsibleSection title="Ports & Rails" count={PORTS_RAILS_DOCUMENTS.length + 1}>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {PORTS_RAILS_DOCUMENTS.map((doc) => (
             <DocumentCard
@@ -942,9 +1013,69 @@ function DocumentSections({ form, agent, selections, transferEquipment, reactiva
               name={doc.name}
               icon={doc.icon}
               downloaded={!!downloaded[doc.id]}
+              loading={loadingDoc === doc.id}
               onClick={() => handleClick(doc.id)}
             />
           ))}
+          <div className={cn(
+            'relative flex flex-col items-center gap-2 rounded-xl border p-4 pt-5',
+            'transition-all duration-500 ease-out',
+            downloaded['cp_letter'] && downloaded['cp_registration']
+              ? 'border-emerald-500/30 bg-emerald-500/5 shadow-sm shadow-emerald-500/10'
+              : 'border-border/80 bg-card',
+          )}>
+            <div className={cn(
+              'w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500',
+              downloaded['cp_letter'] && downloaded['cp_registration']
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : 'text-primary',
+            )} style={!(downloaded['cp_letter'] && downloaded['cp_registration']) ? { backgroundColor: '#EEF2F7' } : undefined}>
+              <TrainFront className="w-5 h-5" />
+            </div>
+            <span className={cn(
+              'text-[11px] font-medium text-center leading-tight',
+              downloaded['cp_letter'] && downloaded['cp_registration'] ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
+            )}>CP Registration</span>
+            <div className="flex gap-1.5 w-full mt-0.5">
+              <button
+                onClick={() => handleClick('cp_letter')}
+                disabled={loadingDoc === 'cp_letter'}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-medium transition-all duration-200',
+                  downloaded['cp_letter']
+                    ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                    : 'bg-muted/60 text-muted-foreground border border-border/60 hover:bg-primary/10 hover:text-primary hover:border-primary/20',
+                )}
+              >
+                {downloaded['cp_letter'] ? <Check className="w-3 h-3" /> : <Download className="w-3 h-3" />}
+                PDF
+              </button>
+              <button
+                onClick={() => handleClick('cp_registration')}
+                disabled={loadingDoc === 'cp_registration'}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-medium transition-all duration-200',
+                  loadingDoc === 'cp_registration'
+                    ? 'bg-primary/10 text-primary border border-primary/20 cursor-wait'
+                    : downloaded['cp_registration']
+                      ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                      : 'bg-muted/60 text-muted-foreground border border-border/60 hover:bg-primary/10 hover:text-primary hover:border-primary/20',
+                )}
+              >
+                {loadingDoc === 'cp_registration' ? (
+                  <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : downloaded['cp_registration'] ? (
+                  <Check className="w-3 h-3" />
+                ) : (
+                  <Send className="w-3 h-3" />
+                )}
+                Email
+              </button>
+            </div>
+          </div>
         </div>
       </CollapsibleSection>
     </div>
