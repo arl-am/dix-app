@@ -11,7 +11,14 @@
       "Bash(grep -l \"transfersecuritydeposit\" /c/Users/AndersonMarquez/Documents/\"VS Code Projects\"/dix-app/dist/assets/*.js)",
       "Bash(echo \"exit: $?\")",
       "Bash(node -e \"require\\('date-fns'\\)\")",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(wc -l '/c/Users/AndersonMarquez/Documents/VS Code Projects/dix-app/src/pages/cancellation/'*.tsx)",
+      "Bash(wc -l '/c/Users/AndersonMarquez/Documents/VS Code Projects/dix-app/src/pages/quickforms/'*.tsx)",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); console.log\\('TrainFront:', !!l.TrainFront\\); console.log\\('Ship:', !!l.Ship\\); console.log\\('CreditCard:', !!l.CreditCard\\); console.log\\('Anchor:', !!l.Anchor\\); console.log\\('Mail:', !!l.Mail\\);\")",
+      "Bash(ls \"/c/Users/AndersonMarquez/Documents/VS Code Projects/dix-app/src/lib/\"generate*.ts)",
+      "Bash(node -e ':*)",
+      "Bash(xxd essentials.txt)",
+      "Bash(echo -n 'iVBORw0KGgoAAAANSUhEUgAAAfQAAAC8CAMAAAC5dKwNAAAC61BMVEUAAADXKBvcKBrbKh3aKRzaKRzaKRzbKRzaKhzaKRzaKRy/QADZJhrbKhvaKRvbKR3aKRzaKRzaKRzaKRzaKRzaKRzaKRzaKRzZKRzaKR3aKBzbKx7/AADZKhzZJhzbKRvaKBvaKRvjHBzYKxvaKRvZKRzaKRzaKRzaKRzZKhzcJxvVKyvbKB3aKRzmMxrbKhvZKRzbKhzRLhfZKBzaKRzbKRvZKRzaKR3cLBraKBzaKRzMMzPZKBvbKRzaKB3cKxzbKRzZKRzaKB3dIiLaKRzaKBvaKRzZKRzbKBraKRzYJx3ZKRzaKRzXKCDbKBz/AADaKhzaKRzaKhvZKR3ZJhraKRzZKBzaKRzaKBzfKyDZKBzaKRzaKBzYJx/aKRzbKhraKRvaKRvaKRzZKR3aKR3/AADbLB3aKhzbKRzbJBjbKRzZKBvaKRvaKBzbKR3aKRzbKxvZKRzbJCTaKRzaKBzcKR3ZKh3aKRzWKRnVKxzbJCTaKRzaKRvaKh3aKR3XKBvbKBzbKRzaKRzbKBvZKR3aKRzaKBzhLR7aKRzfICDZKR3aKRzaKRvbKhzbKRvaKBzaKR3aKRzaKRzaKRzaKRzbKhvaLBnaKRzaKBzcLhfaKRzbKB3aKRzWKR/ZKR3YJx3aKBzaKh3aKRzaKhzaKRzeLCHYJxTaKRzbKh7ZKhzZKRvVKxXaKhvaKRzbKRvaKB3bKRvaKR3cKB7aKRzaKRzZKx3ZKxvaKRzaKRzaKBzaKRzaKhzYJxrfMCDbKRzaKRzbKh3aKhzbJBvcKxzbKBzaKRzbKR3aKhvaKRzaJh7ZKRzaKR7aKRvaKRvdKxraKRzZKRvaKRzbKBzaKhzZKhzZKx7bKhvaKhzaKR3ZKhzaKR3aKRzaKR3aKh3ZKB3dKRzaKRzaKBzZKhvZKhvaKBvbKRzaKxvZKR3aKRvbKB3bKRzbKhzaKR3aKRzbKh3bKBzaKBzaKhzYJxrYJxzaKRrXKBzZKB3aKRz///9Mg28c')"
     ]
   }
 }
