@@ -14,6 +14,7 @@ interface Step3Props {
   agent: Agent | null;
   elpRequired: boolean;
   onElpChange: (v: boolean) => void;
+  elpStatus: TestStatus;
   hazmat: boolean;
   onHazmatChange: (v: boolean) => void;
   hazmatStatus: TestStatus;
@@ -64,7 +65,7 @@ function StatusBadge({ status, required }: { status: TestStatus; required: boole
   );
 }
 
-export default function Step3Testing({ agent, elpRequired, onElpChange, hazmat, onHazmatChange, hazmatStatus, homelandStatus }: Step3Props) {
+export default function Step3Testing({ agent, elpRequired, onElpChange, elpStatus, hazmat, onHazmatChange, hazmatStatus, homelandStatus }: Step3Props) {
   const [showElpConfirm, setShowElpConfirm] = useState(false);
   const [modalClosing, setModalClosing] = useState(false);
 
@@ -166,10 +167,12 @@ export default function Step3Testing({ agent, elpRequired, onElpChange, hazmat, 
         {testCard(
           ClipboardCheck,
           'English Proficiency Test (ELP)',
-          'An English proficiency assessment will be emailed to the driver when this record is saved.',
+          elpStatus === 'Sent'
+            ? 'The ELP test has already been sent to this driver.'
+            : 'An English proficiency assessment will be emailed to the driver when you proceed to the next step.',
           elpRequired,
-          handleElpToggle,
-          <StatusBadge status={elpRequired ? '' : ''} required={true} />,
+          elpStatus === 'Sent' ? null : handleElpToggle,
+          <StatusBadge status={elpStatus} required={true} />,
           0,
         )}
 

@@ -65,6 +65,8 @@ export interface Driver {
   cr6cd_dix_reactivateequipment: boolean;
   cr6cd_dix_transferequipment: boolean;
   cr6cd_dix_transferoccacc: boolean;
+  cr6cd_elptestrequested: boolean;
+  cr6cd_elptestsenderemail: string;
   _cr6cd_dix_agent_value: string;
   _cr6cd_dix_vendor_value: string;
   _cr6cd_dix_unit_value: string;
@@ -322,6 +324,8 @@ export const MOCK_DRIVERS: Driver[] = [
     cr6cd_dix_reactivateequipment: false,
     cr6cd_dix_transferequipment: false,
     cr6cd_dix_transferoccacc: false,
+    cr6cd_elptestrequested: false,
+    cr6cd_elptestsenderemail: '',
     _cr6cd_dix_agent_value: 'a1b2c3d4-0001-0001-0001-000000000001',
     _cr6cd_dix_vendor_value: '',
     _cr6cd_dix_unit_value: '',

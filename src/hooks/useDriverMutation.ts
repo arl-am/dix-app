@@ -149,6 +149,7 @@ export interface SaveTestingInput {
   driverId: string;
   elpRequired: boolean;
   hazmat: boolean;
+  triggerElpTest: boolean;
 }
 
 async function saveTesting(input: SaveTestingInput): Promise<void> {
@@ -157,6 +158,9 @@ async function saveTesting(input: SaveTestingInput): Promise<void> {
     cr6cd_dix_hazmat: input.hazmat,
     cr6cd_dix_homelandsecurity: input.hazmat,
   };
+  if (input.triggerElpTest) {
+    payload.cr6cd_elptestrequested = true;
+  }
 
   if (isLocal) {
     console.log('[mock] saveTesting →', input.driverId, payload);

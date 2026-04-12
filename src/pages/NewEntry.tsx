@@ -160,6 +160,8 @@ export default function NewEntry() {
   const handleFormChange = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
 
   const [elpRequired, setElpRequired] = useState(editDriver?.cr6cd_dix_elprequired ?? true);
+  const [elpTestSent, setElpTestSent] = useState(!!editDriver?.cr6cd_elptestsenderemail);
+  const [elpStatus, setElpStatus] = useState<TestStatus>(editDriver?.cr6cd_elptestsenderemail ? 'Sent' : '');
   const [hazmat, setHazmat] = useState(editDriver?.cr6cd_dix_hazmat ?? false);
   const [hazmatStatus, setHazmatStatus] = useState<TestStatus>('');
   const [homelandStatus, setHomelandStatus] = useState<TestStatus>('');
@@ -266,11 +268,46 @@ export default function NewEntry() {
         setHazmatStatus('Queued');
         setHomelandStatus('Queued');
       }
+      const shouldTriggerElp = elpRequired && !elpTestSent;
       saveTestingMut.mutate(
-        { driverId, elpRequired, hazmat },
+        { driverId, elpRequired, hazmat, triggerElpTest: shouldTriggerElp },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
             toast.success('Testing & compliance saved');
+            if (shouldTriggerElp) {
+              const toastId = toast.loading('Sending ELP test email...');
+              try {
+                if (!isLocal) {
+                  const { Cr6cd_dix_driversService } = await import('../generated');
+                  const POLL_INTERVAL = 3000;
+                  const TIMEOUT = 45000;
+                  const start = Date.now();
+                  let completed = false;
+                  while (Date.now() - start < TIMEOUT) {
+                    await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+                    const record = await Cr6cd_dix_driversService.get(driverId, {
+                      select: ['cr6cd_elptestrequested'],
+                    });
+                    if (record.success && !(record.data as any)?.cr6cd_elptestrequested) {
+                      completed = true;
+                      break;
+                    }
+                  }
+                  if (!completed) {
+                    toast.warning('ELP test is taking longer than expected. Check Power Automate for status.', { id: toastId });
+                    animateStep(next);
+                    return;
+                  }
+                } else {
+                  await new Promise((r) => setTimeout(r, 2000));
+                }
+                toast.success('ELP test email sent', { id: toastId });
+                setElpTestSent(true);
+                setElpStatus('Sent');
+              } catch (err) {
+                toast.error(`ELP test failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
+              }
+            }
             animateStep(next);
           },
           onError: (err) => toast.error(`Save failed: ${err instanceof Error ? err.message : 'Unknown error'}`),
@@ -352,6 +389,7 @@ export default function NewEntry() {
                   <Step3Testing
                     agent={agent}
                     elpRequired={elpRequired} onElpChange={setElpRequired}
+                    elpStatus={elpStatus}
                     hazmat={hazmat} onHazmatChange={handleHazmatChange}
                     hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
                   />
@@ -422,6 +460,8 @@ export default function NewEntry() {
                     setStartDate(new Date().toISOString().split('T')[0]);
                     setForm({});
                     setElpRequired(true);
+                    setElpTestSent(false);
+                    setElpStatus('');
                     setHazmat(false);
                     setHazmatStatus('');
                     setHomelandStatus('');
