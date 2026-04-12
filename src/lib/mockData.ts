@@ -300,7 +300,7 @@ export const MOCK_DRIVERS: Driver[] = [
     cr6cd_dix_driverid: 'd1-0001',
     cr6cd_dix_name: 'David Bell',
     cr6cd_dix_drivercode: 'DB10001',
-    cr6cd_dix_contracttype: 100000000,
+    cr6cd_dix_contracttype: 1,
     cr6cd_dix_actiontype: 100000000,
     cr6cd_dix_createdbyname: 'Anderson Marquez',
     cr6cd_dix_email: 'dbell@example.com',
@@ -424,13 +424,13 @@ export const ACTION_TYPE_LABELS: Record<number, string> = {
 };
 
 export const CONTRACT_TYPE_LABELS: Record<number, string> = {
-  100000000: 'Owner Operator',
-  100000001: 'Driver Only',
-  100000002: 'Lease',
-  100000003: 'Driver & Unit',
-  100000004: 'Truck Only',
-  100000005: 'Rental Only',
-  100000006: 'Trailer Only',
+  1: 'Owner Operator',
+  2: 'Driver Only',
+  3: 'Driver for IBE',
+  4: 'Driver & Unit',
+  5: 'Truck Only',
+  6: 'Rental Only',
+  7: 'Trailer Only',
 };
 
 export const US_STATES = [

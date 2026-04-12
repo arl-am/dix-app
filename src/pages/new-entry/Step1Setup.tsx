@@ -11,13 +11,13 @@ const actionTypes = [
 ];
 
 const contractTypes = [
-  { key: 100000000, label: 'Owner Operator', icon: Users },
-  { key: 100000001, label: 'Driver Only', icon: UserRound },
-  { key: 100000002, label: 'Driver for IBE', icon: Briefcase },
-  { key: 100000003, label: 'Driver & Unit', icon: Truck },
-  { key: 100000004, label: 'Truck Only', icon: Car },
-  { key: 100000005, label: 'Rental Only', icon: Package },
-  { key: 100000006, label: 'Trailer Only', icon: Container },
+  { key: 1, label: 'Owner Operator', icon: Users },
+  { key: 2, label: 'Driver Only', icon: UserRound },
+  { key: 3, label: 'Driver for IBE', icon: Briefcase },
+  { key: 4, label: 'Driver & Unit', icon: Truck },
+  { key: 5, label: 'Truck Only', icon: Car },
+  { key: 6, label: 'Rental Only', icon: Package },
+  { key: 7, label: 'Trailer Only', icon: Container },
 ];
 
 interface Step1Props {
