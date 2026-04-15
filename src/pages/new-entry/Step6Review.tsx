@@ -1040,7 +1040,53 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
       } else if (docId === 'welcome_letter') {
         onOpenWelcomeModal();
       } else if (docId === 'lease_agreement') {
-        toast.info('Lease Agreement will be connected via Power Automate.');
+        if (!driverId) {
+          toast.error('Driver record not saved yet');
+          return;
+        }
+        setLoadingDoc('lease_agreement');
+        const toastId = toast.loading('Generating Lease Agreement...');
+        try {
+          const isLocal = window.location.hostname === 'localhost';
+          if (isLocal) {
+            await new Promise((r) => setTimeout(r, 3000));
+            window.open('about:blank', '_blank');
+          } else {
+            const { Cr6cd_dix_driversService } = await import('../../generated');
+            await Cr6cd_dix_driversService.update(driverId, {
+              cr6cd_leaseagreementrequested: true,
+            } as any);
+            const POLL_INTERVAL = 3000;
+            const TIMEOUT = 45000;
+            const start = Date.now();
+            let completed = false;
+            while (Date.now() - start < TIMEOUT) {
+              await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+              const record = await Cr6cd_dix_driversService.get(driverId, {
+                select: ['cr6cd_leaseagreementrequested', 'cr6cd_leaseagreementurl'],
+              });
+              if (record.success && !(record.data as any)?.cr6cd_leaseagreementrequested) {
+                completed = true;
+                const url = (record.data as any)?.cr6cd_leaseagreementurl;
+                if (url) window.open(url, '_blank');
+                break;
+              }
+            }
+            if (!completed) {
+              toast.warning('Lease Agreement is taking longer than expected. Check Power Automate for status.', { id: toastId });
+              setLoadingDoc(null);
+              return;
+            }
+          }
+          markDownloaded(docId);
+          toast.success('Lease Agreement generated', { id: toastId });
+        } catch (err) {
+          toast.error(`Lease Agreement failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
+          setLoadingDoc(null);
+          throw err;
+        }
+        setLoadingDoc(null);
+        return;
       } else if (docId === 'deductions_checklist') {
         await generateRecruitingChecklist({ form, agent, selections, transferItems, reactivateItems, pdiMonthly, iftaNumber, maintenanceAmount });
         markDownloaded(docId);

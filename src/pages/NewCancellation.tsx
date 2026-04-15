@@ -23,7 +23,7 @@ const CXL_BADGE: Record<string, string> = {
 type SortField = 'terminal' | 'driverName' | 'driverCode' | 'unitNumber' | 'cr6cd_dix_requestdate' | 'cr6cd_dix_reason';
 
 // ─────────────────────── LISTING VIEW ───────────────────────
-function CancellationListing({ onNew, onEdit }: { onNew: () => void; onEdit: (c: Cancellation) => void }) {
+function CancellationListing({ onNew: _onNew, onEdit }: { onNew: () => void; onEdit: (c: Cancellation) => void }) {
   const { data: cancellations = [], isLoading } = useCancellations();
   const [search, setSearch] = useState('');
   const [terminalFilter, setTerminalFilter] = useState('all');
@@ -95,10 +95,12 @@ function CancellationListing({ onNew, onEdit }: { onNew: () => void; onEdit: (c:
             className="w-[160px]"
           />
           <button
-            onClick={onNew}
-            className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-4 py-2 bg-[#2563EB] text-white transition-all duration-200 hover:bg-[#1D4ED8] hover:shadow-lg hover:shadow-primary/25 active:scale-95"
+            disabled
+            className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-4 py-2 bg-muted text-muted-foreground cursor-not-allowed opacity-60"
+            title="Coming Soon"
           >
             <Plus className="w-4 h-4" /> New Cancellation
+            <span className="text-[10px] font-semibold uppercase tracking-wider bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded">Soon</span>
           </button>
         </div>
       </div>
