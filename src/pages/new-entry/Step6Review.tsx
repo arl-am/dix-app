@@ -909,7 +909,7 @@ function TestBadge({ status, required }: { status: TestStatus; required: boolean
   );
 }
 
-function DocumentCard({ name, icon: Icon, downloaded, loading, actionIcon, onClick }: { name: string; icon: React.ElementType; downloaded: boolean; loading?: boolean; actionIcon?: 'download' | 'send'; onClick: () => void }) {
+function DocumentCard({ name, icon: Icon, downloaded, loading, loadingLabel, actionIcon, onClick }: { name: string; icon: React.ElementType; downloaded: boolean; loading?: boolean; loadingLabel?: string; actionIcon?: 'download' | 'send'; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -958,7 +958,7 @@ function DocumentCard({ name, icon: Icon, downloaded, loading, actionIcon, onCli
       <span className={cn(
         'text-xs font-medium text-center leading-tight min-h-[2rem] flex items-center transition-colors duration-500',
         loading ? 'text-primary' : downloaded ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
-      )}>{loading ? 'Sending...' : name}</span>
+      )}>{loading ? (loadingLabel || 'Sending...') : name}</span>
     </button>
   );
 }
@@ -1056,12 +1056,11 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
             await Cr6cd_dix_driversService.update(driverId, {
               cr6cd_leaseagreementrequested: true,
             } as any);
-            const POLL_INTERVAL = 3000;
+            const POLL_INTERVAL = 1500;
             const TIMEOUT = 45000;
             const start = Date.now();
             let completed = false;
             while (Date.now() - start < TIMEOUT) {
-              await new Promise((r) => setTimeout(r, POLL_INTERVAL));
               const record = await Cr6cd_dix_driversService.get(driverId, {
                 select: ['cr6cd_leaseagreementrequested', 'cr6cd_leaseagreementpdf'],
               });
@@ -1085,6 +1084,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
                 }
                 break;
               }
+              await new Promise((r) => setTimeout(r, POLL_INTERVAL));
             }
             if (!completed) {
               toast.warning('Lease Agreement is taking longer than expected. Check Power Automate for status.', { id: toastId });
@@ -1351,6 +1351,8 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
               name={doc.name}
               icon={doc.icon}
               downloaded={!!downloaded[doc.id]}
+              loading={loadingDoc === doc.id}
+              loadingLabel={doc.id === 'lease_agreement' ? 'Creating...' : undefined}
               onClick={() => handleClick(doc.id)}
             />
           ))}
