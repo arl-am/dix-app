@@ -4,7 +4,7 @@ import { ArrowLeft, FileDown, FilePenLine } from 'lucide-react';
 import { useAgents } from '../../hooks/useAgents';
 import { toast } from 'sonner';
 import CustomSelect from '../../components/CustomSelect';
-import DatePicker from '../../components/DatePicker';
+import { generateIntentOfLease } from '../../lib/generateIntentOfLease';
 
 export default function IntentOfLease() {
   const { data: agents = [] } = useAgents();
@@ -49,46 +49,19 @@ export default function IntentOfLease() {
               />
             </div>
             {field('driverName', 'Driver Name')}
-            {field('driverCode', 'Driver Code')}
+            {field('businessName', 'Business Name')}
           </div>
         </div>
 
         <div className="bg-card border border-border rounded-xl shadow-sm p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: '110ms' }}>
-          <h3 className="text-base font-semibold text-foreground">Vendor Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {field('businessName', 'Business Name')}
-            {field('vendorCode', 'Vendor Code')}
-            {field('einNumber', 'EIN Number', { placeholder: 'XX-XXXXXXX' })}
-            {field('vendorAddress', 'Street Address')}
-            {field('vendorCity', 'City')}
-            {field('vendorState', 'State')}
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl shadow-sm p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: '140ms' }}>
           <h3 className="text-base font-semibold text-foreground">Truck Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {field('unitNumber', 'Unit Number')}
-            {field('year', 'Year')}
             {field('make', 'Make')}
             {field('model', 'Model')}
-            {field('vin', 'VIN', { placeholder: '17-character VIN' })}
-            {field('color', 'Color')}
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl shadow-sm p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: '170ms' }}>
-          <h3 className="text-base font-semibold text-foreground">Lease Terms</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-muted-foreground">Lease Start Date</label>
-              <DatePicker value={form.leaseStartDate || ''} onChange={(v) => set('leaseStartDate', v)} placeholder="Select start date" />
+            {field('year', 'Year')}
+            <div className="md:col-span-3">
+              {field('vin', 'VIN', { placeholder: '17-character VIN' })}
             </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-muted-foreground">Lease End Date</label>
-              <DatePicker value={form.leaseEndDate || ''} onChange={(v) => set('leaseEndDate', v)} placeholder="Select end date" />
-            </div>
-            {field('truckValue', 'Truck Value ($)', { type: 'number', placeholder: '0.00' })}
           </div>
         </div>
 
@@ -97,6 +70,8 @@ export default function IntentOfLease() {
           <button onClick={() => {
             if (!form.terminal) { toast.error('Please select a terminal'); return; }
             if (!form.driverName?.trim()) { toast.error('Driver Name is required'); return; }
+            const agent = agents.find((a) => a.cr6cd_terminal === form.terminal) || null;
+            generateIntentOfLease({ form, agent, processingSpecialistName: 'Anderson Marquez' });
             toast.success('Intent of Lease PDF generated!');
           }} className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-9 px-4 py-2 bg-[#7C3AED] text-white transition-all duration-200 hover:bg-[#6D28D9] hover:shadow-lg hover:shadow-purple-500/25 active:scale-95">
             <FileDown className="w-4 h-4" /> Generate PDF
