@@ -1063,12 +1063,26 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
             while (Date.now() - start < TIMEOUT) {
               await new Promise((r) => setTimeout(r, POLL_INTERVAL));
               const record = await Cr6cd_dix_driversService.get(driverId, {
-                select: ['cr6cd_leaseagreementrequested', 'cr6cd_leaseagreementurl'],
+                select: ['cr6cd_leaseagreementrequested', 'cr6cd_leaseagreementpdf'],
               });
               if (record.success && !(record.data as any)?.cr6cd_leaseagreementrequested) {
                 completed = true;
-                const url = (record.data as any)?.cr6cd_leaseagreementurl;
-                if (url) window.open(url, '_blank');
+                const base64 = (record.data as any)?.cr6cd_leaseagreementpdf;
+                if (base64) {
+                  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+                  const blob = new Blob([bytes], { type: 'application/pdf' });
+                  const blobUrl = URL.createObjectURL(blob);
+                  const driverName = `${form.firstName || ''} ${form.lastName || ''}`.trim() || 'Driver';
+                  const fileName = `${driverName}_Lease_Agreement.pdf`.replace(/\s+/g, '_');
+                  const a = document.createElement('a');
+                  a.href = blobUrl;
+                  a.download = fileName;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(blobUrl);
+                  Cr6cd_dix_driversService.update(driverId, { cr6cd_leaseagreementpdf: null } as any).catch(() => {});
+                }
                 break;
               }
             }

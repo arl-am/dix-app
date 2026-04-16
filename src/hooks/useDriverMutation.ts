@@ -237,6 +237,8 @@ export interface SaveDeductionsInput {
   deductionSelections: Record<string, boolean>;
   iftaNumber: string;
   maintenanceAmount: string;
+  pdiMonthly: number;
+  pdiPercentage: number;
 }
 
 async function saveDeductions(input: SaveDeductionsInput): Promise<void> {
@@ -277,6 +279,12 @@ async function saveDeductions(input: SaveDeductionsInput): Promise<void> {
     }
     await Cr6cd_dix_driverdeductionsService.create(record as any);
   }
+
+  const { Cr6cd_dix_driversService } = await import('../generated');
+  await Cr6cd_dix_driversService.update(input.driverId, {
+    cr6cd_pdimonthly: input.pdiMonthly,
+    cr6cd_pdipercentage: input.pdiPercentage,
+  } as any);
 }
 
 export function useSaveDeductions() {

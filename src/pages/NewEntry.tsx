@@ -336,7 +336,7 @@ export default function NewEntry() {
       const hasDeductions = Object.values(deductionSelections).some(Boolean);
       if (hasDeductions) {
         saveDeductionsMut.mutate(
-          { driverId, deductionSelections, iftaNumber, maintenanceAmount },
+          { driverId, deductionSelections, iftaNumber, maintenanceAmount, pdiMonthly: pdi.pdiMonthly, pdiPercentage: pdi.pdiPercentage },
           {
             onSuccess: () => {
                 toast.success('Deductions saved');
