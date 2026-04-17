@@ -15,6 +15,7 @@ import { generateCPLetter } from '../../lib/generateCPLetter';
 import { generateSeaLinkEntry } from '../../lib/generateSeaLinkEntry';
 import CustomSelect from '../../components/CustomSelect';
 import Toggle from '../../components/Toggle';
+import { useTheme } from '../../hooks/useTheme';
 import { toast } from 'sonner';
 import mondayLogo from '../../assets/monday-logo.png';
 import frontLogo from '../../assets/front-logo.png';
@@ -910,6 +911,8 @@ function TestBadge({ status, required }: { status: TestStatus; required: boolean
 }
 
 function DocumentCard({ name, icon: Icon, downloaded, loading, loadingLabel, actionIcon, onClick }: { name: string; icon: React.ElementType; downloaded: boolean; loading?: boolean; loadingLabel?: string; actionIcon?: 'download' | 'send'; onClick: () => void }) {
+  const { theme } = useTheme();
+  const iconBg = theme === 'dark' ? 'rgba(255,255,255,0.08)' : '#EEF2F7';
   return (
     <button
       onClick={onClick}
@@ -952,7 +955,7 @@ function DocumentCard({ name, icon: Icon, downloaded, loading, loadingLabel, act
           : downloaded
             ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
             : 'text-primary group-hover:scale-110',
-      )} style={!downloaded && !loading ? { backgroundColor: '#EEF2F7' } : undefined}>
+      )} style={!downloaded && !loading ? { backgroundColor: iconBg } : undefined}>
         <Icon className="w-5 h-5" />
       </div>
       <span className={cn(

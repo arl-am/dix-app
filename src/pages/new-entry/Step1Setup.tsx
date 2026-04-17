@@ -1,8 +1,9 @@
-import { CirclePlus, ArrowRightLeft, Users, UserRound, Briefcase, Truck, Car, Package, Container, Building2, Check } from 'lucide-react';
+import { CirclePlus, ArrowRightLeft, Users, UserRound, Briefcase, Truck, Car, Package, Container, Building2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTheme } from '../../hooks/useTheme';
 import CustomSelect from '../../components/CustomSelect';
 import DatePicker from '../../components/DatePicker';
+import AnimatedCheck from '../../components/AnimatedCheck';
 import type { Agent } from '../../lib/mockData';
 
 const actionTypes = [
@@ -68,9 +69,7 @@ export default function Step1Setup({
                   }}
                 >
                   {isSelected && (
-                    <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center animate-pop" style={{ backgroundColor: a.color }}>
-                      <Check className="w-3.5 h-3.5 text-white" />
-                    </div>
+                    <AnimatedCheck color={a.color} size={24} className="absolute top-3 right-3" />
                   )}
                   <div
                     className={cn(
@@ -113,9 +112,7 @@ export default function Step1Setup({
                   style={{ animationDelay: `${idx * 40}ms` }}
                 >
                   {isSelected && (
-                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center animate-pop">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
+                    <AnimatedCheck color="#2563EB" size={20} className="absolute top-2 right-2" />
                   )}
                   <div
                     className={cn(

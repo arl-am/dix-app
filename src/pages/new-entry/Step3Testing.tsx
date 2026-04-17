@@ -19,6 +19,7 @@ interface Step3Props {
   onHazmatChange: (v: boolean) => void;
   hazmatStatus: TestStatus;
   homelandStatus: TestStatus;
+  hazmatTestSent: boolean;
 }
 
 const STATUS_CONFIG: Record<string, { icon: React.ElementType; classes: string; label: string }> = {
@@ -65,7 +66,7 @@ function StatusBadge({ status, required }: { status: TestStatus; required: boole
   );
 }
 
-export default function Step3Testing({ agent, elpRequired, onElpChange, elpStatus, hazmat, onHazmatChange, hazmatStatus, homelandStatus }: Step3Props) {
+export default function Step3Testing({ agent, elpRequired, onElpChange, elpStatus, hazmat, onHazmatChange, hazmatStatus, homelandStatus, hazmatTestSent }: Step3Props) {
   const [showElpConfirm, setShowElpConfirm] = useState(false);
   const [modalClosing, setModalClosing] = useState(false);
 
@@ -179,9 +180,11 @@ export default function Step3Testing({ agent, elpRequired, onElpChange, elpStatu
         {!hazmatRequired ? disabledCard(Shield, 'Hazmat Endorsement Test', 80) : testCard(
           Shield,
           'Hazmat Endorsement Test',
-          'Hazmat and Homeland Security tests will be sent to the driver\'s email when this record is saved.',
+          hazmatTestSent
+            ? 'The Hazmat and Homeland Security tests have already been sent to this driver.'
+            : 'Hazmat and Homeland Security tests will be sent to the driver\'s email when this record is saved.',
           hazmat,
-          onHazmatChange,
+          hazmatTestSent ? null : onHazmatChange,
           <StatusBadge status={hazmatStatus} required={true} />,
           80,
         )}

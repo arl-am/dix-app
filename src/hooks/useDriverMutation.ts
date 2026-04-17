@@ -150,6 +150,7 @@ export interface SaveTestingInput {
   elpRequired: boolean;
   hazmat: boolean;
   triggerElpTest: boolean;
+  triggerHazmatTest: boolean;
 }
 
 async function saveTesting(input: SaveTestingInput): Promise<void> {
@@ -160,6 +161,9 @@ async function saveTesting(input: SaveTestingInput): Promise<void> {
   };
   if (input.triggerElpTest) {
     payload.cr6cd_elptestrequested = true;
+  }
+  if (input.triggerHazmatTest) {
+    payload.cr6cd_hazmattestrequested = true;
   }
 
   if (isLocal) {
@@ -173,7 +177,11 @@ async function saveTesting(input: SaveTestingInput): Promise<void> {
 }
 
 export function useSaveTesting() {
-  return useMutation({ mutationFn: saveTesting });
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: saveTesting,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['drivers'] }),
+  });
 }
 
 export interface SaveTransfersInput {

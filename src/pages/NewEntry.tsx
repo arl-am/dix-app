@@ -159,12 +159,20 @@ export default function NewEntry() {
   });
   const handleFormChange = (field: string, value: string) => setForm((f) => ({ ...f, [field]: value }));
 
+  const deriveTestStatus = (statusCode: number | null | undefined, senderEmail: string | null | undefined): TestStatus => {
+    if (statusCode === 1) return 'Passed';
+    if (statusCode === 2) return 'Failed';
+    if (senderEmail) return 'Sent';
+    return '';
+  };
+
   const [elpRequired, setElpRequired] = useState(editDriver?.cr6cd_dix_elprequired ?? true);
   const [elpTestSent, setElpTestSent] = useState(!!editDriver?.cr6cd_elptestsenderemail);
   const [elpStatus, setElpStatus] = useState<TestStatus>(editDriver?.cr6cd_elptestsenderemail ? 'Sent' : '');
   const [hazmat, setHazmat] = useState(editDriver?.cr6cd_dix_hazmat ?? false);
-  const [hazmatStatus, setHazmatStatus] = useState<TestStatus>('');
-  const [homelandStatus, setHomelandStatus] = useState<TestStatus>('');
+  const [hazmatTestSent, setHazmatTestSent] = useState(!!editDriver?.cr6cd_hazmattestsenderemail);
+  const [hazmatStatus, setHazmatStatus] = useState<TestStatus>(deriveTestStatus(editDriver?.cr6cd_hazmatteststatus, editDriver?.cr6cd_hazmattestsenderemail));
+  const [homelandStatus, setHomelandStatus] = useState<TestStatus>(deriveTestStatus(editDriver?.cr6cd_homelandteststatus, editDriver?.cr6cd_hazmattestsenderemail));
 
   const handleHazmatChange = (v: boolean) => {
     setHazmat(v);
@@ -201,7 +209,9 @@ export default function NewEntry() {
   const saveTransfersMut = useSaveTransfers();
   const saveDeductionsMut = useSaveDeductions();
 
-  const isSaving = saveDetailsMut.isPending || saveTestingMut.isPending || saveTransfersMut.isPending || saveDeductionsMut.isPending;
+  const [isSendingTest, setIsSendingTest] = useState(false);
+
+  const isSaving = saveDetailsMut.isPending || saveTestingMut.isPending || saveTransfersMut.isPending || saveDeductionsMut.isPending || isSendingTest;
 
   const agent = agents.find((a) => a.cr6cd_agentsid === selectedAgent) || null;
   const pdi = useMemo(() => calculatePDI(parseFloat(form.truckValue || '0')), [form.truckValue]);
@@ -264,16 +274,19 @@ export default function NewEntry() {
 
     if (step === 2 && next === 3) {
       if (!driverId) { toast.error('Driver record not created yet'); return; }
-      if (hazmat && agent?.cr6cd_hazmatrequired && !hazmatStatus) {
+      const shouldTriggerElp = elpRequired && !elpTestSent;
+      const shouldTriggerHazmat = hazmat && (agent?.cr6cd_hazmatrequired ?? false) && !hazmatTestSent;
+      if (shouldTriggerHazmat) {
         setHazmatStatus('Queued');
         setHomelandStatus('Queued');
       }
-      const shouldTriggerElp = elpRequired && !elpTestSent;
       saveTestingMut.mutate(
-        { driverId, elpRequired, hazmat, triggerElpTest: shouldTriggerElp },
+        { driverId, elpRequired, hazmat, triggerElpTest: shouldTriggerElp, triggerHazmatTest: shouldTriggerHazmat },
         {
           onSuccess: async () => {
             toast.success('Testing & compliance saved');
+            const needsPolling = shouldTriggerElp || shouldTriggerHazmat;
+            if (needsPolling) setIsSendingTest(true);
             if (shouldTriggerElp) {
               const toastId = toast.loading('Sending ELP test email...');
               try {
@@ -295,19 +308,60 @@ export default function NewEntry() {
                   }
                   if (!completed) {
                     toast.warning('ELP test is taking longer than expected. Check Power Automate for status.', { id: toastId });
-                    animateStep(next);
-                    return;
+                  } else {
+                    toast.success('ELP test email sent', { id: toastId });
+                    setElpTestSent(true);
+                    setElpStatus('Sent');
                   }
                 } else {
                   await new Promise((r) => setTimeout(r, 2000));
+                  toast.success('ELP test email sent', { id: toastId });
+                  setElpTestSent(true);
+                  setElpStatus('Sent');
                 }
-                toast.success('ELP test email sent', { id: toastId });
-                setElpTestSent(true);
-                setElpStatus('Sent');
               } catch (err) {
                 toast.error(`ELP test failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
               }
             }
+            if (shouldTriggerHazmat) {
+              const toastId = toast.loading('Sending Hazmat & Homeland test emails...');
+              try {
+                if (!isLocal) {
+                  const { Cr6cd_dix_driversService } = await import('../generated');
+                  const POLL_INTERVAL = 3000;
+                  const TIMEOUT = 45000;
+                  const start = Date.now();
+                  let completed = false;
+                  while (Date.now() - start < TIMEOUT) {
+                    await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+                    const record = await Cr6cd_dix_driversService.get(driverId, {
+                      select: ['cr6cd_hazmattestrequested'],
+                    });
+                    if (record.success && !(record.data as any)?.cr6cd_hazmattestrequested) {
+                      completed = true;
+                      break;
+                    }
+                  }
+                  if (!completed) {
+                    toast.warning('Hazmat test is taking longer than expected. Check Power Automate for status.', { id: toastId });
+                  } else {
+                    toast.success('Hazmat & Homeland test emails sent', { id: toastId });
+                    setHazmatTestSent(true);
+                    setHazmatStatus('Sent');
+                    setHomelandStatus('Sent');
+                  }
+                } else {
+                  await new Promise((r) => setTimeout(r, 2000));
+                  toast.success('Hazmat & Homeland test emails sent', { id: toastId });
+                  setHazmatTestSent(true);
+                  setHazmatStatus('Sent');
+                  setHomelandStatus('Sent');
+                }
+              } catch (err) {
+                toast.error(`Hazmat test failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
+              }
+            }
+            if (needsPolling) setIsSendingTest(false);
             animateStep(next);
           },
           onError: (err) => toast.error(`Save failed: ${err instanceof Error ? err.message : 'Unknown error'}`),
@@ -392,6 +446,7 @@ export default function NewEntry() {
                     elpStatus={elpStatus}
                     hazmat={hazmat} onHazmatChange={handleHazmatChange}
                     hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
+                    hazmatTestSent={hazmatTestSent}
                   />
                 )}
                 {step === 3 && (
@@ -489,7 +544,7 @@ export default function NewEntry() {
                   disabled={isSaving}
                   className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 text-primary-foreground h-9 px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] hover:translate-x-0.5 hover:shadow-lg hover:shadow-primary/25 active:scale-95 min-w-[120px] disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  {isSaving ? 'Saving...' : 'Next'}
+                  {isSendingTest ? 'Sending tests...' : isSaving ? 'Saving...' : 'Next'}
                   {!isSaving && <ArrowRight className="w-4 h-4" />}
                 </button>
               ) : (
