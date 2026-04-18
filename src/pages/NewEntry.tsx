@@ -168,7 +168,7 @@ export default function NewEntry() {
 
   const [elpRequired, setElpRequired] = useState(editDriver?.cr6cd_dix_elprequired ?? true);
   const [elpTestSent, setElpTestSent] = useState(!!editDriver?.cr6cd_elptestsenderemail);
-  const [elpStatus, setElpStatus] = useState<TestStatus>(editDriver?.cr6cd_elptestsenderemail ? 'Sent' : '');
+  const [elpStatus, setElpStatus] = useState<TestStatus>(deriveTestStatus(editDriver?.cr6cd_elpteststatus, editDriver?.cr6cd_elptestsenderemail));
   const [hazmat, setHazmat] = useState(editDriver?.cr6cd_dix_hazmat ?? false);
   const [hazmatTestSent, setHazmatTestSent] = useState(!!editDriver?.cr6cd_hazmattestsenderemail);
   const [hazmatStatus, setHazmatStatus] = useState<TestStatus>(deriveTestStatus(editDriver?.cr6cd_hazmatteststatus, editDriver?.cr6cd_hazmattestsenderemail));
@@ -476,6 +476,7 @@ export default function NewEntry() {
                     form={form} agent={agent} actionType={actionType} contractType={contractType}
                     selections={deductionSelections}
                     elpRequired={elpRequired}
+                    elpStatus={elpStatus}
                     hazmatStatus={hazmatStatus} homelandStatus={homelandStatus}
                     transferOccAcc={transferOccAcc} transferEquipment={transferEquipment} reactivateEquipment={reactivateEquipment} transferItems={transferItems} reactivateItems={reactivateItems}
                     pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}

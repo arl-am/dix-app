@@ -37,6 +37,7 @@ interface Step6Props {
   contractType: number | null;
   selections: Record<string, boolean>;
   elpRequired: boolean;
+  elpStatus: TestStatus;
   hazmatStatus: TestStatus;
   homelandStatus: TestStatus;
   transferOccAcc: boolean;
@@ -96,7 +97,7 @@ const DEDUCTION_LABELS: Record<string, string> = {
 
 export default function Step6Review({
   form, agent, actionType, contractType, selections,
-  elpRequired, hazmatStatus, homelandStatus,
+  elpRequired, elpStatus, hazmatStatus, homelandStatus,
   transferOccAcc, transferEquipment, reactivateEquipment, transferItems, reactivateItems,
   pdiMonthly, pdiWeeklyDeposit, maintenanceAmount, iftaNumber, driverId,
 }: Step6Props) {
@@ -741,8 +742,8 @@ export default function Step6Review({
 
         <SectionCard title="Testing & Compliance" accent="amber" delay={120}>
           <div className="space-y-2.5">
-            <StatusRow label="ELP Required">
-              <YesNoPill value={elpRequired} />
+            <StatusRow label="English Proficiency (ELP)">
+              <TestBadge status={elpStatus} required={elpRequired} />
             </StatusRow>
             <StatusRow label="Hazmat Endorsement">
               <TestBadge status={hazmatStatus} required={agent?.cr6cd_hazmatrequired ?? false} />

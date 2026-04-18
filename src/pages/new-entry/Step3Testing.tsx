@@ -168,11 +168,15 @@ export default function Step3Testing({ agent, elpRequired, onElpChange, elpStatu
         {testCard(
           ClipboardCheck,
           'English Proficiency Test (ELP)',
-          elpStatus === 'Sent'
-            ? 'The ELP test has already been sent to this driver.'
-            : 'An English proficiency assessment will be emailed to the driver when you proceed to the next step.',
+          elpStatus === 'Passed'
+            ? 'The driver has already passed the ELP test.'
+            : elpStatus === 'Failed'
+              ? 'The driver has already failed the ELP test.'
+              : elpStatus === 'Sent'
+                ? 'The ELP test has already been sent to this driver.'
+                : 'An English proficiency assessment will be emailed to the driver when you proceed to the next step.',
           elpRequired,
-          elpStatus === 'Sent' ? null : handleElpToggle,
+          elpStatus ? null : handleElpToggle,
           <StatusBadge status={elpStatus} required={true} />,
           0,
         )}

@@ -67,6 +67,9 @@ export interface Driver {
   cr6cd_dix_transferoccacc: boolean;
   cr6cd_elptestrequested: boolean;
   cr6cd_elptestsenderemail: string;
+  cr6cd_elpteststatus: number | null;
+  cr6cd_elptestscore: number | null;
+  cr6cd_elptestdatecompleted: string | null;
   cr6cd_hazmattestrequested: boolean;
   cr6cd_hazmattestsenderemail: string;
   cr6cd_hazmattestscore: number | null;
@@ -334,6 +337,9 @@ export const MOCK_DRIVERS: Driver[] = [
     cr6cd_dix_transferoccacc: false,
     cr6cd_elptestrequested: false,
     cr6cd_elptestsenderemail: '',
+    cr6cd_elpteststatus: null,
+    cr6cd_elptestscore: null,
+    cr6cd_elptestdatecompleted: null,
     cr6cd_hazmattestrequested: false,
     cr6cd_hazmattestsenderemail: '',
     cr6cd_hazmattestscore: null,

@@ -17,6 +17,7 @@ async function fetchDrivers(): Promise<Driver[]> {
       'cr6cd_dix_elprequired', 'cr6cd_dix_hazmat', 'cr6cd_dix_homelandsecurity',
       'cr6cd_dix_transferoccacc', 'cr6cd_dix_transferequipment', 'cr6cd_dix_reactivateequipment',
       'cr6cd_elptestrequested', 'cr6cd_elptestsenderemail',
+      'cr6cd_elpteststatus', 'cr6cd_elptestscore', 'cr6cd_elptestdatecompleted',
       'cr6cd_hazmattestrequested', 'cr6cd_hazmattestsenderemail',
       'cr6cd_hazmatteststatus', 'cr6cd_hazmattestscore', 'cr6cd_hazmattestdatecompleted',
       'cr6cd_homelandteststatus', 'cr6cd_homelandtestscore', 'cr6cd_homelandtestdatecompleted',
