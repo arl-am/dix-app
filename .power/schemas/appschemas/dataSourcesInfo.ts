@@ -47,6 +47,20 @@ export const dataSourcesInfo = {
     "dataSourceType": "Dataverse",
     "apis": {}
   },
+  "cr6cd_dixpresences": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "cr6cd_dixpresenceid",
+    "dataSourceType": "Dataverse",
+    "apis": {}
+  },
+  "cr6cd_dixriderpermits": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "cr6cd_dixriderpermitid",
+    "dataSourceType": "Dataverse",
+    "apis": {}
+  },
   "cr6cd_dix_terminalmoves": {
     "tableId": "",
     "version": "",

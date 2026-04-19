@@ -400,11 +400,6 @@ export default function SearchRecords() {
         </div>
       )}
 
-      <div className="mb-6 animate-fade-in">
-        <h1 className="text-2xl font-semibold text-foreground">Search Records</h1>
-        <p className="text-muted-foreground mt-1">Search and manage all records</p>
-      </div>
-
       <div className="bg-card border border-border rounded-xl shadow-sm p-4 mb-6 animate-fade-in-up transition-all duration-200 hover:shadow-md" style={{ animationDelay: '55ms' }}>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1 group">

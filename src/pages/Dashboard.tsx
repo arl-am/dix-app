@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { TrendingUp, CircleX, Clock, FileText, ChevronRight } from 'lucide-react';
+import { TrendingUp, CircleX, ChevronRight } from 'lucide-react';
 import { useDrivers } from '../hooks/useDrivers';
 import { useAgents } from '../hooks/useAgents';
 import { formatDate } from '../lib/utils';
@@ -10,8 +10,6 @@ import { cn } from '../lib/utils';
 const statCards = [
   { label: 'Entries Processed', icon: TrendingUp, color: 'bg-[#3B82F6]', shadow: 'shadow-blue-500/10' },
   { label: 'Cancellations Processed', icon: CircleX, color: 'bg-destructive', shadow: 'shadow-red-500/10' },
-  { label: 'Pending Actions', icon: Clock, color: 'bg-[#F59E0B]', shadow: 'shadow-amber-500/10' },
-  { label: 'Documents Generated', icon: FileText, color: 'bg-[#10B981]', shadow: 'shadow-emerald-500/10' },
 ];
 
 export default function Dashboard() {
@@ -22,7 +20,7 @@ export default function Dashboard() {
   const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 18 ? 'Good afternoon' : 'Good evening';
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-  const counts = [drivers.length, 0, 0, 0];
+  const counts = [drivers.length, 0];
 
   const terminalCounts: Record<string, number> = {};
   for (const d of drivers) {

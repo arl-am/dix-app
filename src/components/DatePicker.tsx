@@ -15,6 +15,7 @@ interface DatePickerProps {
   placeholder?: string;
   className?: string;
   triggerClassName?: string;
+  disabled?: boolean;
 }
 
 function daysInMonth(year: number, month: number) {
@@ -36,6 +37,7 @@ export default function DatePicker({
   placeholder = 'Pick a date',
   className,
   triggerClassName,
+  disabled,
 }: DatePickerProps) {
   const today = new Date();
   const parsed = value ? parseDate(value) : null;
@@ -139,11 +141,13 @@ export default function DatePicker({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen(!open)}
+        disabled={disabled}
+        onClick={() => { if (!disabled) setOpen(!open); }}
         className={cn(
           'flex items-center w-full rounded-lg border border-input bg-background text-sm shadow-sm',
           'outline-none transition-all duration-200 cursor-pointer',
           'hover:border-muted-foreground/40',
+          disabled && 'opacity-50 cursor-not-allowed bg-muted/40 hover:border-input',
           open
             ? 'border-primary ring-2 ring-primary/20 shadow-md'
             : 'focus:border-primary focus:ring-2 focus:ring-primary/20',

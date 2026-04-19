@@ -48,6 +48,14 @@
         "dixterminalmoves": {
           "entitySetName": "cr6cd_dix_terminalmoves",
           "logicalName": "cr6cd_dix_terminalmove"
+        },
+        "dixriderpermits": {
+          "entitySetName": "cr6cd_dixriderpermits",
+          "logicalName": "cr6cd_dixriderpermit"
+        },
+        "dixpresences": {
+          "entitySetName": "cr6cd_dixpresences",
+          "logicalName": "cr6cd_dixpresence"
         }
       },
       "environmentVariableName": ""

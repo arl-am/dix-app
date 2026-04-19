@@ -14,6 +14,8 @@ export * as Cr6cd_dix_driversModel from './models/Cr6cd_dix_driversModel';
 export * as Cr6cd_dix_terminalmovesModel from './models/Cr6cd_dix_terminalmovesModel';
 export * as Cr6cd_dix_unitsModel from './models/Cr6cd_dix_unitsModel';
 export * as Cr6cd_dix_vendorsModel from './models/Cr6cd_dix_vendorsModel';
+export * as Cr6cd_dixpresencesModel from './models/Cr6cd_dixpresencesModel';
+export * as Cr6cd_dixriderpermitsModel from './models/Cr6cd_dixriderpermitsModel';
 
 // Services
 export * from './services/Cr6cd_agentsesService';
@@ -25,3 +27,5 @@ export * from './services/Cr6cd_dix_driversService';
 export * from './services/Cr6cd_dix_terminalmovesService';
 export * from './services/Cr6cd_dix_unitsService';
 export * from './services/Cr6cd_dix_vendorsService';
+export * from './services/Cr6cd_dixpresencesService';
+export * from './services/Cr6cd_dixriderpermitsService';

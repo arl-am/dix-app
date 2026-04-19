@@ -5,7 +5,6 @@ import {
   CirclePlus,
   CircleX,
   FileText,
-  Settings,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import dixLogo from '../assets/dix-logo.png';
@@ -17,7 +16,6 @@ const navItems = [
   { label: 'New Entry', path: '/new-driver', icon: CirclePlus },
   { label: 'New Cancellation', path: '/cancellations', icon: CircleX, disabled: true },
   { label: 'Quick Forms', path: '/documents', icon: FileText },
-  { label: 'Settings', path: '/settings', icon: Settings },
 ];
 
 export default function Sidebar() {

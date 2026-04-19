@@ -2,6 +2,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import arlLogo from '../assets/arl-logo.png';
 import { assetUrl } from '../utils/assetUrl';
+import ActiveUsers from './ActiveUsers';
 
 export default function Header() {
   const { theme, toggle } = useTheme();
@@ -17,6 +18,7 @@ export default function Header() {
         />
       </div>
       <div className="flex-1 flex justify-end items-center gap-3">
+        <ActiveUsers />
         <button
           onClick={toggle}
           className="size-9 flex items-center justify-center rounded-lg border border-input bg-card text-muted-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:text-foreground active:scale-90"
