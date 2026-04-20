@@ -335,7 +335,7 @@ function ViewModal({ driver, onClose }: { driver: Driver; onClose: () => void })
             <SectionHeader icon={FileText} label="Record Info" color="bg-primary/10 text-primary" />
             <div className="grid grid-cols-4 gap-x-4">
               <Field label="Terminal" value={driver.cr6cd_dix_agentname} />
-              <Field label="Unit" value={driver.cr6cd_dix_unitname} />
+              <Field label="Unit" value={driver.unitNumber} />
               <Field label="Onboarding Date" value={formatDate(driver.cr6cd_dix_onboardingdate)} />
               <Field label="Created" value={formatDate(driver.createdon)} />
             </div>
@@ -355,25 +355,56 @@ function ViewModal({ driver, onClose }: { driver: Driver; onClose: () => void })
   );
 }
 
+type SearchField = 'name' | 'drivercode' | 'unit' | 'vin';
+
+const SEARCH_FIELD_OPTIONS: { value: SearchField; label: string }[] = [
+  { value: 'name', label: 'Driver Name' },
+  { value: 'drivercode', label: 'Driver Code' },
+  { value: 'unit', label: 'Unit' },
+  { value: 'vin', label: 'VIN' },
+];
+
+function displayDriverName(d: Driver): string {
+  const n = (d.cr6cd_dix_name || '').trim();
+  if (!n || n.toLowerCase() === 'unnamed') return '';
+  return n;
+}
+
 export default function SearchRecords() {
   const navigate = useNavigate();
   const { data: drivers = [], isLoading } = useDrivers();
   const deleteDriver = useDeleteDriver();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchField, setSearchField] = useState<SearchField>('name');
+  const [terminalFilter, setTerminalFilter] = useState('all');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [viewDriver, setViewDriver] = useState<Driver | null>(null);
 
+  const terminalOptions = (() => {
+    const unique = new Set<string>();
+    for (const d of drivers) {
+      const t = (d.cr6cd_dix_agentname || '').trim();
+      if (t) unique.add(t);
+    }
+    return [
+      { value: 'all', label: 'All Terminals' },
+      ...Array.from(unique).sort((a, b) => a.localeCompare(b)).map((t) => ({ value: t, label: t })),
+    ];
+  })();
+
   const filtered = drivers.filter((d) => {
-    const q = search.toLowerCase();
-    const matchesSearch =
-      !q ||
-      d.cr6cd_dix_name.toLowerCase().includes(q) ||
-      (d.cr6cd_dix_drivercode || '').toLowerCase().includes(q) ||
-      (d.cr6cd_dix_agentname || '').toLowerCase().includes(q) ||
-      (d.cr6cd_dix_unitname || '').toLowerCase().includes(q);
-    const matchesStatus = statusFilter === 'all' || (statusFilter === 'active' && d.cr6cd_dix_isactive) || (statusFilter === 'inactive' && !d.cr6cd_dix_isactive);
-    return matchesSearch && matchesStatus;
+    const q = search.trim().toLowerCase();
+    const matchesSearch = (() => {
+      if (!q) return true;
+      switch (searchField) {
+        case 'name':       return displayDriverName(d).toLowerCase().includes(q);
+        case 'drivercode': return (d.cr6cd_dix_drivercode || '').toLowerCase().includes(q);
+        case 'unit':       return (d.unitNumber || '').toLowerCase().includes(q);
+        case 'vin':        return (d.vin || '').toLowerCase().includes(q);
+      }
+    })();
+    const matchesTerminal = terminalFilter === 'all' || (d.cr6cd_dix_agentname || '') === terminalFilter;
+    return matchesSearch && matchesTerminal;
   });
 
   const handleDelete = (id: string, name: string) => {
@@ -425,12 +456,22 @@ export default function SearchRecords() {
       )}
 
       <div className="bg-card border border-border rounded-xl shadow-sm p-4 mb-6 animate-fade-in-up transition-all duration-200 hover:shadow-md" style={{ animationDelay: '55ms' }}>
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Search by:</span>
+            <CustomSelect
+              options={SEARCH_FIELD_OPTIONS}
+              value={searchField}
+              onChange={(v) => setSearchField(v as SearchField)}
+              className="w-[150px]"
+              triggerClassName="h-9"
+            />
+          </div>
           <div className="relative flex-1 group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors duration-200 group-focus-within:text-primary" />
             <input
               type="text"
-              placeholder="Search by name, driver code, terminal, or unit..."
+              placeholder={`Search by ${SEARCH_FIELD_OPTIONS.find((o) => o.value === searchField)?.label.toLowerCase() || ''}...`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-sm pl-10 h-9 outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-md placeholder:text-muted-foreground hover:border-muted-foreground/40"
@@ -439,14 +480,10 @@ export default function SearchRecords() {
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
             <CustomSelect
-              options={[
-                { value: 'all', label: 'All Status' },
-                { value: 'active', label: 'Active' },
-                { value: 'inactive', label: 'Inactive' },
-              ]}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              className="w-[140px]"
+              options={terminalOptions}
+              value={terminalFilter}
+              onChange={setTerminalFilter}
+              className="w-[180px]"
               triggerClassName="h-9"
             />
           </div>
@@ -473,7 +510,7 @@ export default function SearchRecords() {
           filtered.map((d) => (
             <div
               key={d.cr6cd_dix_driverid}
-              className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 px-6 py-4 cursor-pointer border-b border-border last:border-b-0 transition-all duration-200 hover:bg-primary/5 active:bg-primary/10"
+              className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 px-6 py-4 border-b border-border last:border-b-0 transition-all duration-200 hover:bg-primary/5"
             >
               <div className="lg:w-28">
                 <span className="lg:hidden text-xs text-muted-foreground">Terminal: </span>
@@ -481,7 +518,7 @@ export default function SearchRecords() {
               </div>
               <div className="lg:w-40">
                 <span className="lg:hidden text-xs text-muted-foreground">Name: </span>
-                <span className="font-medium text-foreground">{d.cr6cd_dix_name}</span>
+                <span className="font-medium text-foreground">{displayDriverName(d) || '—'}</span>
               </div>
               <div className="lg:w-24">
                 <span className="lg:hidden text-xs text-muted-foreground">Code: </span>
@@ -489,7 +526,7 @@ export default function SearchRecords() {
               </div>
               <div className="lg:w-24">
                 <span className="lg:hidden text-xs text-muted-foreground">Unit: </span>
-                <span className="text-muted-foreground">{d.cr6cd_dix_unitname || '—'}</span>
+                <span className="text-muted-foreground">{d.unitNumber || '—'}</span>
               </div>
               <div className="lg:w-28">
                 <span className={cn('inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium transition-transform duration-200 hover:scale-105', getActionBadgeClasses(d.cr6cd_dix_actiontype))}>

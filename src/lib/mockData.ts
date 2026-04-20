@@ -86,6 +86,8 @@ export interface Driver {
   cr6cd_dix_contracttypename?: string;
   cr6cd_dix_agentname?: string;
   cr6cd_dix_unitname?: string;
+  unitNumber?: string;
+  vin?: string;
 }
 
 export interface Cancellation {
@@ -444,7 +446,7 @@ export const MOCK_CANCELLATIONS: Cancellation[] = [
 
 export const ACTION_TYPE_LABELS: Record<number, string> = {
   100000000: 'Add',
-  100000001: 'Equipment Return',
+  100000001: 'Move',
   100000002: 'Contract End',
   100000003: 'Medical',
 };
