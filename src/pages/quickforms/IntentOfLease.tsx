@@ -5,9 +5,11 @@ import { useAgents } from '../../hooks/useAgents';
 import { toast } from 'sonner';
 import CustomSelect from '../../components/CustomSelect';
 import { generateIntentOfLease } from '../../lib/generateIntentOfLease';
+import { usePresenceContext } from '../../hooks/usePresence';
 
 export default function IntentOfLease() {
   const { data: agents = [] } = useAgents();
+  const { currentUser } = usePresenceContext();
   const [form, setForm] = useState<Record<string, string>>({});
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -71,7 +73,7 @@ export default function IntentOfLease() {
             if (!form.terminal) { toast.error('Please select a terminal'); return; }
             if (!form.driverName?.trim()) { toast.error('Driver Name is required'); return; }
             const agent = agents.find((a) => a.cr6cd_terminal === form.terminal) || null;
-            generateIntentOfLease({ form, agent, processingSpecialistName: 'Anderson Marquez' });
+            generateIntentOfLease({ form, agent, processingSpecialistName: currentUser?.userName || '' });
             toast.success('Intent of Lease PDF generated!');
           }} className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-9 px-4 py-2 bg-[#7C3AED] text-white transition-all duration-200 hover:bg-[#6D28D9] hover:shadow-lg hover:shadow-purple-500/25 active:scale-95">
             <FileDown className="w-4 h-4" /> Generate PDF

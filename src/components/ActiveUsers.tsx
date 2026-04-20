@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { usePresence, deriveInitials, type ActiveUser } from '../hooks/usePresence';
+import { usePresenceContext, deriveInitials, type ActiveUser } from '../hooks/usePresence';
 import { cn } from '../lib/utils';
+import { colorForUser } from '../lib/userColor';
 import { Users } from 'lucide-react';
 
 const MAX_VISIBLE = 3;
@@ -16,7 +17,7 @@ function relativeTime(iso: string): string {
 }
 
 export default function ActiveUsers() {
-  const { activeUsers, currentUser } = usePresence();
+  const { activeUsers, currentUser } = usePresenceContext();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -104,13 +105,15 @@ export default function ActiveUsers() {
 
 function Avatar({ user, withBorder = true, size = 'sm' }: { user: ActiveUser; withBorder?: boolean; size?: 'sm' | 'md' }) {
   const dim = size === 'md' ? 'w-9 h-9 text-sm' : 'w-7 h-7 text-[11px]';
+  const palette = colorForUser(user.userId || user.userName);
   return (
     <div
       className={cn(
-        'rounded-full bg-[#3B82F6] flex items-center justify-center font-semibold text-white shadow-md shadow-blue-500/20 flex-shrink-0',
+        'rounded-full flex items-center justify-center font-semibold text-white shadow-md flex-shrink-0',
         dim,
         withBorder && 'border-2 border-card',
       )}
+      style={{ backgroundColor: palette.bg, boxShadow: `0 4px 6px -1px ${palette.shadow}` }}
       title={user.userName}
     >
       {deriveInitials(user.userName)}

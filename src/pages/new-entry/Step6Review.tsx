@@ -16,6 +16,7 @@ import { generateSeaLinkEntry } from '../../lib/generateSeaLinkEntry';
 import CustomSelect from '../../components/CustomSelect';
 import Toggle from '../../components/Toggle';
 import { useTheme } from '../../hooks/useTheme';
+import { usePresenceContext } from '../../hooks/usePresence';
 import { toast } from 'sonner';
 import mondayLogo from '../../assets/monday-logo.png';
 import frontLogo from '../../assets/front-logo.png';
@@ -101,6 +102,8 @@ export default function Step6Review({
   transferOccAcc, transferEquipment, reactivateEquipment, transferItems, reactivateItems,
   pdiMonthly, pdiWeeklyDeposit, maintenanceAmount, iftaNumber, driverId,
 }: Step6Props) {
+  const { currentUser } = usePresenceContext();
+  const currentUserName = currentUser?.userName || '';
   const selectedDeductions = Object.entries(selections).filter(([, v]) => v).map(([k]) => k);
   const transferItemsList = (Object.entries(transferItems) as [TransferItemKey, boolean][]).filter(([, v]) => v).map(([k]) => k);
   const reactivateItemsList = (Object.entries(reactivateItems) as [TransferItemKey, boolean][]).filter(([, v]) => v).map(([k]) => k);
@@ -230,9 +233,9 @@ export default function Step6Review({
   const defaultOnItems: BoxItems = { bols: true, logBook: true, insuranceCard: true, greenRegulationBook: true, zipTies: true, doorStrap: true, doorSigns: true, iftaStickers: true, fuelCard: false, rfidTag: false, prePass: false, hazmatBooks: false, eld: false, dashCam: false, mdLiquor: false };
   const [truckBoxData, setTruckBoxData] = useState<TruckBoxFormData>({
     terminal: '', date: new Date().toISOString().split('T')[0], sendingTo: '', receiverName: '',
-    street: '', city: '', state: '', zipCode: '', receiverPhone: '', sentBy: 'Anderson Marquez',
+    street: '', city: '', state: '', zipCode: '', receiverPhone: '', sentBy: '',
     deliveryType: 'Priority Overnight (By 10:00 AM)', billingInfo: 'ARL Transport LLC', unitNumber: '', boxItems: { ...defaultOnItems },
-    truckColor: '', motorCarrierName: '', cableType: '', recruiterName: 'Anderson Marquez',
+    truckColor: '', motorCarrierName: '', cableType: '', recruiterName: '',
   });
 
   const openTruckBoxModal = () => {
@@ -244,6 +247,8 @@ export default function Step6Review({
       truckColor: form.color || '',
       motorCarrierName: agent?.cr6cd_motorcarrier || '',
       receiverName: `${form.firstName || ''} ${form.lastName || ''}`.trim(),
+      sentBy: currentUserName,
+      recruiterName: currentUserName,
       street: '', city: '', state: '', zipCode: '',
       boxItems: { ...defaultOnItems },
     }));
@@ -1020,6 +1025,8 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
   onOpenFastPassModal: () => void;
   cableType: string;
 }) {
+  const { currentUser } = usePresenceContext();
+  const currentUserName = currentUser?.userName || '';
   const [downloaded, setDownloaded] = useState<Record<string, boolean>>({});
   const [loadingDoc, setLoadingDoc] = useState<string | null>(null);
 
@@ -1132,7 +1139,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
           startDate: form.onboardingDate || new Date().toLocaleDateString('en-US'),
           division: agent?.cr6cd_divisionformal || agent?.cr6cd_division || '',
           scac: agent?.cr6cd_scac || '',
-          sentBy: form.createdByName || 'Anderson Marquez',
+          sentBy: currentUserName,
         });
         markDownloaded(docId);
         toast.success('CP Letter downloaded');

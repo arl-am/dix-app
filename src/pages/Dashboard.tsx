@@ -3,8 +3,9 @@ import { TrendingUp, CircleX, ChevronRight } from 'lucide-react';
 import { useDrivers } from '../hooks/useDrivers';
 import { useAgents } from '../hooks/useAgents';
 import { formatDate } from '../lib/utils';
-import { ACTION_TYPE_LABELS, getActionBadgeClasses } from '../lib/mockData';
+import { ACTION_TYPE_LABELS, CONTRACT_TYPE_LABELS, getActionBadgeClasses } from '../lib/mockData';
 import { cn } from '../lib/utils';
+import { usePresenceContext } from '../hooks/usePresence';
 
 
 const statCards = [
@@ -15,6 +16,8 @@ const statCards = [
 export default function Dashboard() {
   const { data: drivers = [] } = useDrivers();
   const { data: agents = [] } = useAgents();
+  const { currentUser } = usePresenceContext();
+  const firstName = currentUser?.userName?.split(/\s+/)[0] || '';
 
   const now = new Date();
   const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 18 ? 'Good afternoon' : 'Good evening';
@@ -33,7 +36,7 @@ export default function Dashboard() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6 animate-fade-in">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">{greeting}, Anderson</h1>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">{greeting}{firstName ? `, ${firstName}` : ''}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{dateStr}</p>
         </div>
       </div>
@@ -86,7 +89,7 @@ export default function Dashboard() {
                   <th className="h-10 px-4 text-left font-semibold text-foreground">Driver Name</th>
                   <th className="h-10 px-4 text-left font-semibold text-foreground">Terminal</th>
                   <th className="h-10 px-4 text-left font-semibold text-foreground">Type</th>
-                  <th className="h-10 px-4 text-left font-semibold text-foreground">Contract</th>
+                  <th className="h-10 px-4 text-left font-semibold text-foreground">Contract Type</th>
                   <th className="h-10 px-4 text-left font-semibold text-foreground">Created</th>
                   <th className="h-10 px-4 text-left font-semibold text-foreground">Created By</th>
                 </tr>
@@ -110,7 +113,7 @@ export default function Dashboard() {
                           {ACTION_TYPE_LABELS[d.cr6cd_dix_actiontype] || '—'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{d.cr6cd_dix_contracttypename || d.cr6cd_dix_licensenumber || '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{CONTRACT_TYPE_LABELS[d.cr6cd_dix_contracttype] || '—'}</td>
                       <td className="px-4 py-3 text-muted-foreground">{formatDate(d.createdon)}</td>
                       <td className="px-4 py-3 text-muted-foreground">{d.cr6cd_dix_createdbyname}</td>
                     </tr>

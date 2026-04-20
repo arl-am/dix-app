@@ -8,6 +8,7 @@ import { formatDate, cn, isLocal } from '../lib/utils';
 import { ACTION_TYPE_LABELS, CONTRACT_TYPE_LABELS, getActionBadgeClasses, type Driver } from '../lib/mockData';
 import Spinner from '../components/Spinner';
 import CustomSelect from '../components/CustomSelect';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { toast } from 'sonner';
 
 function YesNo({ value }: { value: boolean | undefined }) {
@@ -64,35 +65,54 @@ function ViewModal({ driver, onClose }: { driver: Driver; onClose: () => void })
     queryKey: ['view-vendor', driver._cr6cd_dix_vendor_value],
     queryFn: async () => {
       if (!driver._cr6cd_dix_vendor_value || isLocal) return null;
-      const { Cr6cd_dix_vendorsService } = await import('../generated');
-      const r = await Cr6cd_dix_vendorsService.get(driver._cr6cd_dix_vendor_value);
-      return r.data as Record<string, any> | null;
+      try {
+        const { Cr6cd_dix_vendorsService } = await import('../generated');
+        const r = await Cr6cd_dix_vendorsService.get(driver._cr6cd_dix_vendor_value);
+        return (r.data as Record<string, any> | null) ?? null;
+      } catch (err) {
+        console.warn('[view-vendor] fetch failed', err);
+        return null;
+      }
     },
     enabled: !!driver._cr6cd_dix_vendor_value,
+    retry: false,
   });
 
   const { data: unitData, isLoading: unitLoading } = useQuery({
     queryKey: ['view-unit', driver._cr6cd_dix_unit_value],
     queryFn: async () => {
       if (!driver._cr6cd_dix_unit_value || isLocal) return null;
-      const { Cr6cd_dix_unitsService } = await import('../generated');
-      const r = await Cr6cd_dix_unitsService.get(driver._cr6cd_dix_unit_value);
-      return r.data as Record<string, any> | null;
+      try {
+        const { Cr6cd_dix_unitsService } = await import('../generated');
+        const r = await Cr6cd_dix_unitsService.get(driver._cr6cd_dix_unit_value);
+        return (r.data as Record<string, any> | null) ?? null;
+      } catch (err) {
+        console.warn('[view-unit] fetch failed', err);
+        return null;
+      }
     },
     enabled: !!driver._cr6cd_dix_unit_value,
+    retry: false,
   });
 
   const { data: deductionData, isLoading: deductionsLoading } = useQuery({
     queryKey: ['view-deductions', driver.cr6cd_dix_driverid],
     queryFn: async () => {
-      if (isLocal) return [];
-      const { Cr6cd_dix_driverdeductionsService } = await import('../generated');
-      const r = await Cr6cd_dix_driverdeductionsService.getAll({
-        filter: `_cr6cd_dix_deductiondriver_value eq '${driver.cr6cd_dix_driverid}'`,
-        select: ['cr6cd_dix_deductionkey', 'cr6cd_dix_selected', 'cr6cd_dix_iftanumber', 'cr6cd_dix_customvalue'],
-      });
-      return (r.data || []) as Record<string, any>[];
+      if (isLocal || !driver.cr6cd_dix_driverid) return [];
+      try {
+        const { Cr6cd_dix_driverdeductionsService } = await import('../generated');
+        const r = await Cr6cd_dix_driverdeductionsService.getAll({
+          filter: `_cr6cd_dix_deductiondriver_value eq '${driver.cr6cd_dix_driverid}'`,
+          select: ['cr6cd_dix_deductionkey', 'cr6cd_dix_selected', 'cr6cd_dix_iftanumber', 'cr6cd_dix_customvalue'],
+        });
+        return (r.data || []) as Record<string, any>[];
+      } catch (err) {
+        console.warn('[view-deductions] fetch failed', err);
+        return [] as Record<string, any>[];
+      }
     },
+    enabled: !!driver.cr6cd_dix_driverid,
+    retry: false,
   });
 
   const deductions = (deductionData || []).filter((d) => d.cr6cd_dix_selected && !d.cr6cd_dix_deductionkey?.startsWith('transfer_') && !d.cr6cd_dix_deductionkey?.startsWith('reactivate_'));
@@ -123,7 +143,7 @@ function ViewModal({ driver, onClose }: { driver: Driver; onClose: () => void })
       />
       <div
         className={cn(
-          'relative w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col bg-card border border-border/80 rounded-2xl shadow-2xl overflow-hidden transition-all duration-200',
+          'relative w-full max-w-6xl mx-4 max-h-[90vh] flex flex-col bg-card border border-border/80 rounded-2xl shadow-2xl overflow-hidden transition-all duration-200',
           closing
             ? 'opacity-0 scale-95 translate-y-3'
             : 'opacity-100 scale-100 translate-y-0 animate-fade-in-up',
@@ -368,7 +388,11 @@ export default function SearchRecords() {
 
   return (
     <div className="p-6">
-      {viewDriver && <ViewModal driver={viewDriver} onClose={() => setViewDriver(null)} />}
+      {viewDriver && (
+        <ErrorBoundary fallbackLabel="Unable to display this record" onReset={() => setViewDriver(null)}>
+          <ViewModal driver={viewDriver} onClose={() => setViewDriver(null)} />
+        </ErrorBoundary>
+      )}
 
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">

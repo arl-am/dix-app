@@ -14,6 +14,7 @@ import IntentOfLease from './pages/quickforms/IntentOfLease';
 import IrpPlateForm from './pages/quickforms/IrpPlateForm';
 import InsuranceForm from './pages/quickforms/InsuranceForm';
 import WelcomeTour from './components/WelcomeTour';
+import { PresenceProvider } from './hooks/usePresence';
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
+        <PresenceProvider>
         <HashRouter>
           <div className="flex h-screen bg-background overflow-hidden transition-colors duration-200">
             <Sidebar />
@@ -44,6 +46,7 @@ export default function App() {
           <Toaster position="top-right" richColors />
           <WelcomeTour />
         </HashRouter>
+        </PresenceProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

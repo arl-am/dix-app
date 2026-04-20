@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import portAuthorityLogo from '../assets/port-authority-nj-logo.png';
+import nickSignature from '../assets/nick-signature.png';
 import { assetUrl } from '../utils/assetUrl';
 import { stateAbbr, formatDatePdf } from './utils';
 
@@ -32,6 +33,23 @@ function loadImage(url: string): Promise<string> {
   });
 }
 
+function loadImageWithDims(url: string): Promise<{ base64: string; w: number; h: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d');
+      if (!ctx) return reject(new Error('no ctx'));
+      ctx.drawImage(img, 0, 0);
+      resolve({ base64: c.toDataURL('image/png'), w: img.width, h: img.height });
+    };
+    img.onerror = () => reject(new Error('load failed'));
+    img.src = url;
+  });
+}
+
 export async function generateSeaLinkEntry(data: SeaLinkEntryData): Promise<void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
   const pageWidth = 215.9;
@@ -41,6 +59,9 @@ export async function generateSeaLinkEntry(data: SeaLinkEntryData): Promise<void
 
   let logoBase64: string | null = null;
   try { logoBase64 = await loadImage(assetUrl(portAuthorityLogo)); } catch { /* skip */ }
+
+  let signature: { base64: string; w: number; h: number } | null = null;
+  try { signature = await loadImageWithDims(assetUrl(nickSignature)); } catch { /* skip */ }
 
   function ul(x: number, yy: number, len: number, w = 0.3) {
     doc.setDrawColor(0, 0, 0);
@@ -259,7 +280,18 @@ export async function generateSeaLinkEntry(data: SeaLinkEntryData): Promise<void
 
   doc.setFont('helvetica', 'normal');
   doc.text('SIGNATURE:', margin, y);
-  ul(margin + doc.getTextWidth('SIGNATURE:') + 1, y + 1, 93 - doc.getTextWidth('SIGNATURE:'));
+  const sigLabelW = doc.getTextWidth('SIGNATURE:');
+  const sigLineStart = margin + sigLabelW + 1;
+  const sigLineLen = 93 - sigLabelW;
+  ul(sigLineStart, y + 1, sigLineLen);
+
+  if (signature) {
+    const sigTargetW = Math.min(sigLineLen - 4, 38);
+    const sigTargetH = (signature.h / signature.w) * sigTargetW;
+    const sigImgX = sigLineStart + 2;
+    const sigImgY = y + 1 - sigTargetH + 1;
+    doc.addImage(signature.base64, 'PNG', sigImgX, sigImgY, sigTargetW, sigTargetH);
+  }
 
   const dtX = margin + 95;
   doc.text('DATE:', dtX, y);

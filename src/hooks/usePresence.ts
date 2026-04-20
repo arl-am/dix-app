@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { createContext, createElement, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { isLocal } from '../lib/utils';
 
 export interface ActiveUser {
@@ -139,3 +139,19 @@ export function usePresence() {
 }
 
 export { deriveInitials };
+
+interface PresenceValue {
+  activeUsers: ActiveUser[];
+  currentUser: { userId: string; userName: string } | null;
+}
+
+const PresenceContext = createContext<PresenceValue>({ activeUsers: [], currentUser: null });
+
+export function PresenceProvider({ children }: { children: ReactNode }) {
+  const value = usePresence();
+  return createElement(PresenceContext.Provider, { value }, children);
+}
+
+export function usePresenceContext(): PresenceValue {
+  return useContext(PresenceContext);
+}
