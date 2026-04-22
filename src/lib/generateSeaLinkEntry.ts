@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import portAuthorityLogo from '../assets/port-authority-nj-logo.png';
-import nickSignature from '../assets/nick-signature.png';
+import albertoSignature from '../assets/alberto-signature.png';
 import { assetUrl } from '../utils/assetUrl';
 import { stateAbbr, formatDatePdf } from './utils';
 
@@ -61,7 +61,7 @@ export async function generateSeaLinkEntry(data: SeaLinkEntryData): Promise<void
   try { logoBase64 = await loadImage(assetUrl(portAuthorityLogo)); } catch { /* skip */ }
 
   let signature: { base64: string; w: number; h: number } | null = null;
-  try { signature = await loadImageWithDims(assetUrl(nickSignature)); } catch { /* skip */ }
+  try { signature = await loadImageWithDims(assetUrl(albertoSignature)); } catch { /* skip */ }
 
   function ul(x: number, yy: number, len: number, w = 0.3) {
     doc.setDrawColor(0, 0, 0);
