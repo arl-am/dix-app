@@ -1,0 +1,62 @@
+# DIX App - Pulse project import
+# Full project trajectory: completed phases plus the path to the Monday.com
+# Cancellations Return Tracking migration and Inventory Management integration.
+
+[PROJECT]
+Title,Description,Type,Priority,Status,Department,Platforms,Input Date,Due Date
+DIX - Driver Integration App,"Modern Power App for driver onboarding, contract management, deductions, testing compliance, and document generation. Consolidates Monday.com's Cancellations Return Tracking board into a single tool and wires the return workflow into the Inventory Management App.",Feature,High,In Progress,Processing,"Power Apps,Power Automate,Dataverse,Monday.com,Github,Visual Studio Code,Claude Code",2026-03-01,2026-07-31
+
+[PHASES]
+Order,Name,Description,Status,Progress,Start Date,End Date
+1,Discovery and Core Setup,Stakeholder interviews and initial data model for driver onboarding,Completed,100,2026-03-01,2026-03-15
+2,New Entry Wizard,Six-step wizard covering setup, driver details, compliance, transfers, deductions, and review,Completed,100,2026-03-15,2026-04-05
+3,ELP Testing and Compliance,English Language Proficiency test trigger and automated scoring with pass/fail routing,Completed,100,2026-03-25,2026-04-12
+4,Document Generation Suite,Quick-generate PDFs and email drafts for start-up, recruiting, equipment, ports and rails, and orientation packets,Completed,100,2026-03-25,2026-04-18
+5,Rider Permit Migration,Moved Rider Permit tooling out of Monday.com into DIX with live PDF generation and history,Completed,100,2026-04-10,2026-04-18
+6,Active Users and Welcome Tour,Presence pill in the header and first-run walkthrough for new users,Completed,100,2026-04-15,2026-04-18
+7,Production Release and Stabilization,First production release plus post-launch polish and deploy reliability work,In Progress,0,2026-04-18,2026-05-05
+8,Hazmat and Homeland Test Submission,Scoring flows and UI badges for Hazmat and Homeland Security tests,Pending,0,2026-05-05,2026-05-15
+9,Cancellations Module Activation,Re-enable the Cancellations screens currently hidden behind Coming Soon badges,Pending,0,2026-05-15,2026-05-30
+10,Cancellations Return Tracking Migration,Pull the Monday.com Cancellations Return Tracking workflow into DIX so returns live alongside cancellation records,Pending,0,2026-05-30,2026-06-30
+11,Inventory Management Integration,Connect DIX cancellation returns to the Inventory Management App so returned items move through inventory automatically,Pending,0,2026-06-30,2026-07-25
+12,Sunset Monday.com Board,Parallel-run validation then retire the Monday.com board,Pending,0,2026-07-25,2026-07-31
+
+[TASKS]
+Phase,Title,Description,Status,Priority,Due Date
+Discovery and Core Setup,Interview processing and recruiting leads,Capture the onboarding pain points to replace and the KPIs to preserve,Completed,High,2026-03-05
+Discovery and Core Setup,Seed terminal config for all 50+ terminals,"Baseline agent data so deduction rates, contacts, and company info are live from day one",Completed,High,2026-03-12
+New Entry Wizard,Ship wizard shell with progress bar,"Horizontal step indicator, scaled current step, green checkmarks on completed steps",Completed,High,2026-03-20
+New Entry Wizard,Build progressive save between steps,Each Next click persists the record so nothing is lost mid-flow,Completed,High,2026-03-28
+New Entry Wizard,Driver / vendor / unit form sections,"License, address, contract type, fuel card, vendor, and unit capture",Completed,High,2026-04-02
+New Entry Wizard,Live Deductions and Cost Summary,Toggle deductions and see weekly / monthly / one-time totals update in real time,Completed,High,2026-04-05
+ELP Testing and Compliance,Wire ELP toggle and request flow,Sending a test from the wizard drops a Forms link into the driver's inbox,Completed,High,2026-04-04
+ELP Testing and Compliance,Automated scoring and pass / fail routing,"Driver pass emails recruiter; fail emails management with the result PDF attached",Completed,High,2026-04-12
+ELP Testing and Compliance,Status badges in the UI,"Toggle locks to Sent / Passed / Failed once the driver has taken the test",Completed,Medium,2026-04-12
+Document Generation Suite,Start-up packet PDFs,"Lease Agreement, Agent Confirmation, Fleet Commitment, Road Test, Welcome Letter",Completed,High,2026-04-08
+Document Generation Suite,Recruiting and equipment docs,"Deductions Checklist, IRP Lease, Truck Box Forms",Completed,High,2026-04-12
+Document Generation Suite,Ports and rails quick docs,"CN Registration, CP Registration, FastPass ID, SeaLink Entry",Completed,High,2026-04-16
+Document Generation Suite,Add/Move email drafts via Front,One click creates the Front draft with all driver info pre-filled,Completed,High,2026-04-18
+Rider Permit Migration,Auto-numbered PRO and rate ladder,Removes the old manual Monday.com entry and makes rate selection instant,Completed,High,2026-04-15
+Rider Permit Migration,PDF generation and history view,"Two-page permit PDF, last 100 permits searchable with per-row re-download",Completed,High,2026-04-18
+Active Users and Welcome Tour,Presence pill in the header,See who else is working in DIX right now with colored initials and a live count,Completed,Medium,2026-04-18
+Active Users and Welcome Tour,Nine-page welcome tour for first-time users,"Logo splash plus eight feature clips covering setup, progressive save, testing, deductions, review, search, and quick forms",Completed,Medium,2026-04-18
+Production Release and Stabilization,First production release,App live for the processing team,Completed,High,2026-04-20
+Production Release and Stabilization,Wire current user from presence,"No more hardcoded names - Header, Dashboard greeting, CP Letter, Intent of Lease, and Truck Box all show the signed-in user",Completed,High,2026-04-22
+Production Release and Stabilization,SeaLink signature swap to Alberto Florez,Replaces the old approval signature on page 1 of the SeaLink PDF,Completed,Medium,2026-04-22
+Production Release and Stabilization,Error boundary around Search Records View,Surfaces the real error instead of a blank screen and catches the stale formatDate crash,Completed,High,2026-04-22
+Production Release and Stabilization,Search Records cleanup,"Real unit numbers, terminal filter, and a Search By dropdown for better triage",Completed,Medium,2026-04-22
+Production Release and Stabilization,Deploy reliability hardening,Tighten the release process so future versions ship without URL churn,In Progress,High,2026-05-05
+Hazmat and Homeland Test Submission,Hazmat Forms scoring flow,"Same pattern as ELP: Forms submission scores automatically and updates the driver record",Pending,High,2026-05-10
+Hazmat and Homeland Test Submission,Homeland Security Forms scoring flow,Runs alongside Hazmat off the same trigger so one submission drives both results,Pending,High,2026-05-12
+Hazmat and Homeland Test Submission,Pass / fail badges in the UI,Toggles lock once a result lands so agents can see status at a glance,Pending,Medium,2026-05-14
+Cancellations Module Activation,Re-enable New Cancellation nav and button,Remove the Coming Soon gating so users can open the wizard,Pending,Medium,2026-05-18
+Cancellations Module Activation,QA the base Cancellations wizard,"Walk through create / edit / view, confirm approvals and deduction dates behave",Pending,Medium,2026-05-25
+Cancellations Return Tracking Migration,Audit the Monday.com board,"Document every column, status, and automation on Cancellations Return Tracking so nothing gets lost in translation",Pending,High,2026-06-01
+Cancellations Return Tracking Migration,Design return tracking data model,"Return status, items to return, return date, condition notes, and agent confirmation live alongside the cancellation record",Pending,High,2026-06-08
+Cancellations Return Tracking Migration,Import historical returns,Bring prior Monday.com return records into DIX so history is preserved,Pending,Medium,2026-06-18
+Cancellations Return Tracking Migration,Build Return Tracking UI,"Items-to-return checklist, status chips, agent confirmation step, and per-agent filtering",Pending,High,2026-06-28
+Inventory Management Integration,Define the handoff contract with Inventory,Agree on the fields and identifiers both apps will share for driver returns,Pending,High,2026-07-05
+Inventory Management Integration,Push confirmed returns to Inventory,Confirming a return in DIX creates or updates the matching inventory record automatically,Pending,High,2026-07-15
+Inventory Management Integration,Two-way status sync,Inventory marks an item as received and DIX flips the cancellation to Returned and Received with no manual step,Pending,Medium,2026-07-22
+Sunset Monday.com Board,Run DIX and Monday.com in parallel for a week,Dual-entry validation window to catch any gaps before turning off the board,Pending,High,2026-07-28
+Sunset Monday.com Board,Archive the board and update runbooks,"Export the final snapshot, revoke access, and point every runbook and training doc at DIX",Pending,Medium,2026-07-31
