@@ -29,10 +29,11 @@ export interface AgentConfirmationData {
   reactivateItems: Record<string, boolean>;
   pdiMonthly: number;
   iftaNumber: string;
+  onboardingDate?: string;
 }
 
 export function generateAgentConfirmation(data: AgentConfirmationData): void {
-  const { form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber } = data;
+  const { form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber, onboardingDate } = data;
 
   const bobtailValue = agent?.cr6cd_bobtailvalue ?? 0;
   const occAccMonthly = agent?.cr6cd_occaccmonthly ?? 0;
@@ -240,8 +241,9 @@ export function generateAgentConfirmation(data: AgentConfirmationData): void {
   doc.setFontSize(10);
   doc.setTextColor(...hexToRgb(navyColor));
   doc.setFont('helvetica', 'normal');
-  const today = new Date();
-  doc.text(`${format(today, 'd')} DAY OF ${format(today, 'MMMM').toUpperCase()}, ${format(today, 'yyyy')}`, margin, yPos);
+  const parsedOnboarding = onboardingDate ? new Date(`${onboardingDate}T00:00:00`) : null;
+  const dateForLine = parsedOnboarding && !isNaN(parsedOnboarding.getTime()) ? parsedOnboarding : new Date();
+  doc.text(`${format(dateForLine, 'd')} DAY OF ${format(dateForLine, 'MMMM').toUpperCase()}, ${format(dateForLine, 'yyyy')}`, margin, yPos);
   yPos += 22;
 
   // Signatures

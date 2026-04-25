@@ -51,6 +51,7 @@ interface Step6Props {
   maintenanceAmount: string;
   iftaNumber: string;
   driverId?: string;
+  startDate: string;
 }
 
 const STATUS_CONFIG: Record<string, { icon: React.ElementType; classes: string; label: string }> = {
@@ -100,7 +101,7 @@ export default function Step6Review({
   form, agent, actionType, contractType, selections,
   elpRequired, elpStatus, hazmatStatus, homelandStatus,
   transferOccAcc, transferEquipment, reactivateEquipment, transferItems, reactivateItems,
-  pdiMonthly, pdiWeeklyDeposit, maintenanceAmount, iftaNumber, driverId,
+  pdiMonthly, pdiWeeklyDeposit, maintenanceAmount, iftaNumber, driverId, startDate,
 }: Step6Props) {
   const { currentUser } = usePresenceContext();
   const currentUserName = currentUser?.userName || '';
@@ -842,6 +843,7 @@ export default function Step6Review({
         iftaNumber={iftaNumber}
         maintenanceAmount={maintenanceAmount}
         driverId={driverId}
+        startDate={startDate}
         onOpenWelcomeModal={() => setShowWelcomeModal(true)}
         onOpenIrpModal={openIrpModal}
         onOpenTruckBoxModal={openTruckBoxModal}
@@ -1005,7 +1007,7 @@ function CollapsibleSection({ title, count, defaultOpen, children }: { title: st
   );
 }
 
-function DocumentSections({ form, agent, actionType, contractType, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber, maintenanceAmount, driverId, onOpenWelcomeModal, onOpenIrpModal, onOpenTruckBoxModal, onOpenFastPassModal, cableType }: {
+function DocumentSections({ form, agent, actionType, contractType, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber, maintenanceAmount, driverId, startDate, onOpenWelcomeModal, onOpenIrpModal, onOpenTruckBoxModal, onOpenFastPassModal, cableType }: {
   form: Record<string, string>;
   agent: Agent | null;
   actionType: string;
@@ -1019,6 +1021,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
   iftaNumber: string;
   maintenanceAmount: string;
   driverId?: string;
+  startDate: string;
   onOpenWelcomeModal: () => void;
   onOpenIrpModal: () => void;
   onOpenTruckBoxModal: () => void;
@@ -1037,7 +1040,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
   const handleClick = async (docId: string) => {
     try {
       if (docId === 'agent_confirmation') {
-        generateAgentConfirmation({ form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber });
+        generateAgentConfirmation({ form, agent, selections, transferEquipment, reactivateEquipment, transferItems, reactivateItems, pdiMonthly, iftaNumber, onboardingDate: startDate });
         markDownloaded(docId);
         toast.success('Agent Confirmation downloaded');
       } else if (docId === 'fleet_commitment') {

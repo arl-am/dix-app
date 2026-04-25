@@ -482,6 +482,7 @@ export default function NewEntry() {
                     pdiMonthly={pdi.pdiMonthly} pdiWeeklyDeposit={pdi.pdiWeeklyDeposit}
                     maintenanceAmount={maintenanceAmount} iftaNumber={iftaNumber}
                     driverId={driverId}
+                    startDate={startDate}
                   />
                 )}
               </div>
