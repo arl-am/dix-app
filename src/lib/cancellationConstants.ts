@@ -121,16 +121,20 @@ export const EQUIPMENT_LIFECYCLE = {
   REACTIVATED: 100000009,
 } as const;
 
+// User-facing labels (Dataverse choice text is independent — these are what the UI shows).
+// "Need" reads as "Required", "N/A" as "Not Required", "Not Received" as "Not Returned",
+// "Forfeit" as "Discarded". Transferred + Reactivated are surfaced via the boolean qualifier
+// columns now, but we keep their label entries in the map for legacy data + tag derivation.
 export const EQUIPMENT_LIFECYCLE_LABELS: Record<number, string> = {
-  [EQUIPMENT_LIFECYCLE.NEED]: 'Need',
+  [EQUIPMENT_LIFECYCLE.NEED]: 'Required',
   [EQUIPMENT_LIFECYCLE.RETURNED]: 'Returned',
-  [EQUIPMENT_LIFECYCLE.NOT_RECEIVED]: 'Not Received',
+  [EQUIPMENT_LIFECYCLE.NOT_RECEIVED]: 'Not Returned',
   [EQUIPMENT_LIFECYCLE.TRANSFERRED]: 'Transferred',
   [EQUIPMENT_LIFECYCLE.DAMAGED]: 'Damaged',
-  [EQUIPMENT_LIFECYCLE.FORFEIT]: 'Forfeit',
+  [EQUIPMENT_LIFECYCLE.FORFEIT]: 'Discarded',
   [EQUIPMENT_LIFECYCLE.UNDER_REVIEW]: 'Under Review',
   [EQUIPMENT_LIFECYCLE.NO_LONGER_NEEDED]: 'No Longer Needed',
-  [EQUIPMENT_LIFECYCLE.NA]: 'N/A',
+  [EQUIPMENT_LIFECYCLE.NA]: 'Not Required',
   [EQUIPMENT_LIFECYCLE.REACTIVATED]: 'Reactivated',
 };
 
@@ -167,6 +171,24 @@ export const EQUIPMENT_LIFECYCLE_OPTIONS = Object.entries(EQUIPMENT_LIFECYCLE_LA
   value: Number(v),
   label: l,
 }));
+
+// Primary lifecycle states that the modal lets a user pick (single-select within this set).
+// Transferred + Reactivated are surfaced as additive boolean qualifiers — see TRACKING_QUALIFIERS.
+export const TRACKING_PRIMARY_STATES: Array<{ value: number; label: string }> = [
+  { value: EQUIPMENT_LIFECYCLE.NEED,         label: 'Required' },
+  { value: EQUIPMENT_LIFECYCLE.NA,           label: 'Not Required' },
+  { value: EQUIPMENT_LIFECYCLE.RETURNED,     label: 'Returned' },
+  { value: EQUIPMENT_LIFECYCLE.NOT_RECEIVED, label: 'Not Returned' },
+  { value: EQUIPMENT_LIFECYCLE.DAMAGED,      label: 'Damaged' },
+  { value: EQUIPMENT_LIFECYCLE.FORFEIT,      label: 'Discarded' },
+  { value: EQUIPMENT_LIFECYCLE.UNDER_REVIEW, label: 'Under Review' },
+];
+
+// Boolean qualifier flags surfaced in the modal alongside the primary state.
+export const TRACKING_QUALIFIERS = [
+  { key: 'transferred',  label: 'Transferred',  color: '#8B5CF6' },
+  { key: 'reactivated',  label: 'Reactivated',  color: '#0EA5E9' },
+] as const;
 
 // Master catalog of trackable equipment, in display order.
 // `category` drives the auto-seeding rule below.
@@ -311,7 +333,14 @@ interface DeriveInput {
   status?: number | null;       // manual override; Released shows up as a secondary tag
   canceltype?: number | null;   // null + no equipment ⇒ Pending intake
   forfeit?: boolean;            // whole-record forfeit flag
-  equipment: { lifecycleState: number }[];
+  equipment: { lifecycleState: number; istransferred?: boolean; isreactivated?: boolean }[];
+}
+
+// Equipment ordering — sort by EQUIPMENT_CATALOG index so ELD comes first
+// rather than alphabetic (which would put DashCam first).
+export function equipmentSortIndex(key: string): number {
+  const i = EQUIPMENT_CATALOG.findIndex((c) => c.key === key);
+  return i < 0 ? 999 : i;
 }
 
 // Pending = the cancellation is a stub that still needs intake (e.g. created
@@ -359,17 +388,17 @@ export function deriveTags(input: DeriveInput): CxlTag[] {
   if (input.forfeit) {
     tags.push({ key: 'forfeit_record', label: 'Forfeit', color: '#DC2626', variant: 'secondary' });
   }
-  if (input.equipment.some((e) => e.lifecycleState === EQUIPMENT_LIFECYCLE.TRANSFERRED)) {
+  if (input.equipment.some((e) => e.istransferred || e.lifecycleState === EQUIPMENT_LIFECYCLE.TRANSFERRED)) {
     tags.push({ key: 'transferred', label: 'Transferred', color: '#8B5CF6', variant: 'secondary' });
   }
-  if (input.equipment.some((e) => e.lifecycleState === EQUIPMENT_LIFECYCLE.REACTIVATED)) {
+  if (input.equipment.some((e) => e.isreactivated || e.lifecycleState === EQUIPMENT_LIFECYCLE.REACTIVATED)) {
     tags.push({ key: 'reactivated', label: 'Reactivated', color: '#0EA5E9', variant: 'secondary' });
   }
   if (input.equipment.some((e) => e.lifecycleState === EQUIPMENT_LIFECYCLE.DAMAGED)) {
     tags.push({ key: 'damaged', label: 'Damaged', color: '#F97316', variant: 'secondary' });
   }
   if (input.equipment.some((e) => e.lifecycleState === EQUIPMENT_LIFECYCLE.FORFEIT)) {
-    tags.push({ key: 'item_forfeit', label: 'Items Forfeit', color: '#DC2626', variant: 'secondary' });
+    tags.push({ key: 'item_discarded', label: 'Items Discarded', color: '#DC2626', variant: 'secondary' });
   }
 
   return tags;

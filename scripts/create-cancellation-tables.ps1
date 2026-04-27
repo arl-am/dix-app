@@ -412,6 +412,10 @@ New-Table -SchemaName "cr6cd_dixcxlequipment" `
         (MemoCol   "cr6cd_notes"          "Notes" 1000)
     )
 
+# Qualifier-flag bools, added independently so the script remains idempotent.
+Add-Column "cr6cd_dixcxlequipment" (BoolCol "cr6cd_istransferred"  "Is Transferred")
+Add-Column "cr6cd_dixcxlequipment" (BoolCol "cr6cd_isreactivated"  "Is Reactivated")
+
 # =====================================================================
 # STEP 3 - Lookups
 # =====================================================================

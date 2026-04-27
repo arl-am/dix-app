@@ -31,6 +31,8 @@ export interface Cr6cd_dixcxlequipmentsBase {
   cr6cd_dixcxlequipmentid: string;
   "cr6cd_equipmentcancellation@odata.bind"?: string;
   cr6cd_equipmentkey: string;
+  cr6cd_isreactivated?: boolean;
+  cr6cd_istransferred?: boolean;
   cr6cd_lifecyclestate?: Cr6cd_dixcxlequipmentscr6cd_lifecyclestate;
   cr6cd_name: string;
   cr6cd_notes?: string;
@@ -47,6 +49,8 @@ export interface Cr6cd_dixcxlequipmentsBase {
 
 export interface Cr6cd_dixcxlequipments extends Cr6cd_dixcxlequipmentsBase {
   cr6cd_equipmentcancellationname?: string;
+  cr6cd_isreactivatedname?: string;
+  cr6cd_istransferredname?: string;
   cr6cd_lifecyclestatename?: string;
   createdbyname?: string;
   createdbyyominame: string;

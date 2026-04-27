@@ -300,13 +300,15 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
     setTimeout(() => { setStep((s) => Math.max(s - 1, 0)); setAnimating(false); }, 150);
   };
 
-  const onUpdateEquipmentRow = (id: string, lifecycleState: number) => {
+  const onPrimaryChange = (id: string, lifecycleState: number) => {
     if (!cxlId) return;
-    updateEquipment.mutate({
-      cancellationId: cxlId,
-      equipmentId: id,
-      lifecycleState,
-    });
+    updateEquipment.mutate({ cancellationId: cxlId, equipmentId: id, lifecycleState });
+  };
+
+  const onQualifierToggle = (id: string, key: 'transferred' | 'reactivated', value: boolean) => {
+    if (!cxlId) return;
+    const patch = key === 'transferred' ? { istransferred: value } : { isreactivated: value };
+    updateEquipment.mutate({ cancellationId: cxlId, equipmentId: id, ...patch });
   };
 
   const animClass = animating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0';
@@ -359,7 +361,8 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
                   <Step2Equipment
                     equipment={equipment}
                     isLoading={loadingEquipment}
-                    onUpdate={onUpdateEquipmentRow}
+                    onPrimaryChange={onPrimaryChange}
+                    onQualifierToggle={onQualifierToggle}
                     extras={extras}
                     onExtraChange={(field, value) => setExtras((e) => ({ ...e, [field]: value }))}
                   />

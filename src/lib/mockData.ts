@@ -157,6 +157,8 @@ export interface CxlEquipment {
   cr6cd_lifecyclestate: number;
   cr6cd_returneddate?: string | null;
   cr6cd_notes?: string;
+  cr6cd_istransferred?: boolean;
+  cr6cd_isreactivated?: boolean;
   _cr6cd_equipmentcancellation_value: string;
   createdon?: string;
 }

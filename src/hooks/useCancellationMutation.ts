@@ -131,17 +131,21 @@ export function useSeedEquipment() {
 export interface UpdateEquipmentInput {
   cancellationId: string;
   equipmentId: string;
-  lifecycleState: number;
+  lifecycleState?: number;
   returneddate?: string | null;
   notes?: string;
+  istransferred?: boolean;
+  isreactivated?: boolean;
 }
 
 async function updateEquipment(input: UpdateEquipmentInput): Promise<void> {
-  const payload: Record<string, unknown> = {
-    cr6cd_lifecyclestate: input.lifecycleState,
-    cr6cd_returneddate: input.returneddate || undefined,
-    cr6cd_notes: input.notes || undefined,
-  };
+  const payload: Record<string, unknown> = {};
+  if (input.lifecycleState !== undefined) payload.cr6cd_lifecyclestate = input.lifecycleState;
+  if (input.returneddate !== undefined)   payload.cr6cd_returneddate = input.returneddate || null;
+  if (input.notes !== undefined)          payload.cr6cd_notes = input.notes;
+  if (input.istransferred !== undefined)  payload.cr6cd_istransferred = input.istransferred;
+  if (input.isreactivated !== undefined)  payload.cr6cd_isreactivated = input.isreactivated;
+  if (Object.keys(payload).length === 0) return;
   if (isLocal) {
     console.log('[mock] updateEquipment →', input.equipmentId, payload);
     return;

@@ -6,6 +6,7 @@ const SELECT = [
   'cr6cd_dixcxlequipmentid', 'cr6cd_name',
   'cr6cd_equipmentkey', 'cr6cd_displayname', 'cr6cd_lifecyclestate',
   'cr6cd_returneddate', 'cr6cd_notes',
+  'cr6cd_istransferred', 'cr6cd_isreactivated',
   '_cr6cd_equipmentcancellation_value', 'createdon',
 ];
 

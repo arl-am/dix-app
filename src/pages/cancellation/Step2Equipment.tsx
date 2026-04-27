@@ -3,7 +3,7 @@ import { ArrowRightLeft, Truck } from 'lucide-react';
 import CustomSelect from '../../components/CustomSelect';
 import DatePicker from '../../components/DatePicker';
 import EquipmentRequirementCard from './EquipmentRequirementCard';
-import { EQUIPMENT_LIFECYCLE } from '../../lib/cancellationConstants';
+import { EQUIPMENT_LIFECYCLE, equipmentSortIndex } from '../../lib/cancellationConstants';
 import type { CxlEquipment } from '../../lib/mockData';
 
 export interface IntakeExtras {
@@ -19,7 +19,8 @@ export interface IntakeExtras {
 interface Props {
   equipment: CxlEquipment[];
   isLoading: boolean;
-  onUpdate: (equipmentId: string, lifecycleState: number) => void;
+  onPrimaryChange: (equipmentId: string, lifecycleState: number) => void;
+  onQualifierToggle: (equipmentId: string, key: 'transferred' | 'reactivated', value: boolean) => void;
   extras: IntakeExtras;
   onExtraChange: <K extends keyof IntakeExtras>(field: K, value: IntakeExtras[K]) => void;
 }
@@ -49,13 +50,17 @@ function inlineInput(
   );
 }
 
-export default function Step2Equipment({ equipment, isLoading, onUpdate, extras, onExtraChange }: Props) {
+export default function Step2Equipment({ equipment, isLoading, onPrimaryChange, onQualifierToggle, extras, onExtraChange }: Props) {
   const sorted = useMemo(
-    () => [...equipment].sort((a, b) => a.cr6cd_displayname.localeCompare(b.cr6cd_displayname)),
+    () => [...equipment].sort(
+      (a, b) => equipmentSortIndex(a.cr6cd_equipmentkey) - equipmentSortIndex(b.cr6cd_equipmentkey),
+    ),
     [equipment],
   );
 
-  const anyTransferred = sorted.some((e) => e.cr6cd_lifecyclestate === EQUIPMENT_LIFECYCLE.TRANSFERRED);
+  const anyTransferred = sorted.some(
+    (e) => e.cr6cd_istransferred || e.cr6cd_lifecyclestate === EQUIPMENT_LIFECYCLE.TRANSFERRED,
+  );
 
   return (
     <div className="space-y-6">
@@ -127,7 +132,8 @@ export default function Step2Equipment({ equipment, isLoading, onUpdate, extras,
                   <EquipmentRequirementCard
                     key={item.cr6cd_dixcxlequipmentid}
                     item={item}
-                    onUpdate={(s) => onUpdate(item.cr6cd_dixcxlequipmentid, s)}
+                    onPrimaryChange={(s) => onPrimaryChange(item.cr6cd_dixcxlequipmentid, s)}
+                    onQualifierToggle={(k, v) => onQualifierToggle(item.cr6cd_dixcxlequipmentid, k, v)}
                     delayMs={idx * 25}
                   >
                     {inline}

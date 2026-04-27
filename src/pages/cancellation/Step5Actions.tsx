@@ -199,17 +199,29 @@ export default function Step5Actions({ cancellation, equipment, agent, terminalL
           </div>
           <div className="p-3 max-h-[280px] overflow-y-auto">
             {equipment.map((e) => (
-              <div key={e.cr6cd_dixcxlequipmentid} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/30">
-                <span className="text-sm text-foreground">{e.cr6cd_displayname}</span>
-                <span
-                  className={cn(
-                    'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold text-white',
-                    e.cr6cd_lifecyclestate === EQUIPMENT_LIFECYCLE.NA && 'opacity-60',
+              <div key={e.cr6cd_dixcxlequipmentid} className="flex items-center justify-between gap-2 py-1.5 px-2 rounded hover:bg-muted/30">
+                <span className="text-sm text-foreground break-words">{e.cr6cd_displayname}</span>
+                <div className="flex items-center gap-1 flex-wrap justify-end">
+                  <span
+                    className={cn(
+                      'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold text-white',
+                      e.cr6cd_lifecyclestate === EQUIPMENT_LIFECYCLE.NA && 'opacity-60',
+                    )}
+                    style={{ backgroundColor: EQUIPMENT_LIFECYCLE_COLORS[e.cr6cd_lifecyclestate] }}
+                  >
+                    {EQUIPMENT_LIFECYCLE_LABELS[e.cr6cd_lifecyclestate]}
+                  </span>
+                  {e.cr6cd_istransferred && (
+                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: '#8B5CF6' }}>
+                      Transferred
+                    </span>
                   )}
-                  style={{ backgroundColor: EQUIPMENT_LIFECYCLE_COLORS[e.cr6cd_lifecyclestate] }}
-                >
-                  {EQUIPMENT_LIFECYCLE_LABELS[e.cr6cd_lifecyclestate]}
-                </span>
+                  {e.cr6cd_isreactivated && (
+                    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold text-white" style={{ backgroundColor: '#0EA5E9' }}>
+                      Reactivated
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
             {equipment.length === 0 && <p className="text-xs text-muted-foreground p-4 text-center">No equipment recorded.</p>}

@@ -54,6 +54,68 @@
           "required": true,
           "maxLength": 50
         },
+        "cr6cd_isreactivated": {
+          "type": "string",
+          "title": "Is Reactivated",
+          "x-ms-dataverse-attribute": "cr6cd_isreactivated",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr6cd_isreactivated",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "d7a5a71c-8b42-f111-88b3-70a8a53ff434",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Is Reactivated",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr6cd_isreactivatedname": {
+          "type": "string",
+          "title": "cr6cd_isreactivatedname",
+          "x-ms-dataverse-attribute": "cr6cd_isreactivatedname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr6cd_isreactivatedName",
+          "x-ms-read-only": true
+        },
+        "cr6cd_istransferred": {
+          "type": "string",
+          "title": "Is Transferred",
+          "x-ms-dataverse-attribute": "cr6cd_istransferred",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr6cd_istransferred",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "d2a5a71c-8b42-f111-88b3-70a8a53ff434",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Is Transferred",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr6cd_istransferredname": {
+          "type": "string",
+          "title": "cr6cd_istransferredname",
+          "x-ms-dataverse-attribute": "cr6cd_istransferredname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr6cd_istransferredName",
+          "x-ms-read-only": true
+        },
         "cr6cd_lifecyclestate": {
           "type": "string",
           "title": "Lifecycle State",
