@@ -56,6 +56,14 @@
         "dixpresences": {
           "entitySetName": "cr6cd_dixpresences",
           "logicalName": "cr6cd_dixpresence"
+        },
+        "dixcancellationequipment": {
+          "entitySetName": "cr6cd_dixcxlequipments",
+          "logicalName": "cr6cd_dixcxlequipment"
+        },
+        "dixcancellationnotes": {
+          "entitySetName": "cr6cd_dixcxlnotes",
+          "logicalName": "cr6cd_dixcxlnote"
         }
       },
       "environmentVariableName": ""

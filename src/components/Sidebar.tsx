@@ -10,11 +10,18 @@ import { cn } from '../lib/utils';
 import dixLogo from '../assets/dix-logo.png';
 import { assetUrl } from '../utils/assetUrl';
 
-const navItems = [
+type NavItem = {
+  label: string;
+  path: string;
+  icon: typeof LayoutGrid;
+  disabled?: boolean;
+};
+
+const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/', icon: LayoutGrid },
   { label: 'Search Records', path: '/drivers', icon: Database },
   { label: 'New Entry', path: '/new-driver', icon: CirclePlus },
-  { label: 'New Cancellation', path: '/cancellations', icon: CircleX, disabled: true },
+  { label: 'New Cancellation', path: '/cancellations', icon: CircleX },
   { label: 'Quick Forms', path: '/documents', icon: FileText },
 ];
 

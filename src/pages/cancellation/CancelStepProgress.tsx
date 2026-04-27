@@ -2,15 +2,13 @@ import { Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const STEPS = [
-  'Cancellation Details',
+  'Submit Request',
   'Equipment & Returns',
   'Final Release',
-  'Review & Actions',
+  'Review & Documents',
 ];
 
-interface Props {
-  current: number;
-}
+interface Props { current: number }
 
 export default function CancelStepProgress({ current }: Props) {
   return (
@@ -25,7 +23,7 @@ export default function CancelStepProgress({ current }: Props) {
                 className={cn(
                   'w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm border-2',
                   'transition-all duration-200 ease-out',
-                  isCompleted && 'bg-[#16A34A] border-[#16A34A] text-white',
+                  isCompleted && 'bg-[#10B981] border-[#10B981] text-white',
                   isActive && 'bg-[#2563EB] border-[#2563EB] text-white shadow-lg shadow-[#2563EB]/30 scale-110',
                   !isCompleted && !isActive && 'bg-muted border-border text-muted-foreground',
                 )}
@@ -43,8 +41,8 @@ export default function CancelStepProgress({ current }: Props) {
             </div>
             {idx < STEPS.length - 1 && (
               <div className={cn(
-                'w-16 md:w-24 h-0.5 mx-3 mb-6 rounded-full transition-all duration-400',
-                idx < current ? 'bg-[#16A34A]' : 'bg-border',
+                'w-20 md:w-32 h-0.5 mx-3 mb-6 rounded-full transition-all duration-400',
+                idx < current ? 'bg-[#10B981]' : 'bg-border',
               )} />
             )}
           </div>

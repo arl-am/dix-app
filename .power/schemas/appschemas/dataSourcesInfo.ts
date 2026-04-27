@@ -19,6 +19,20 @@ export const dataSourcesInfo = {
     "dataSourceType": "Dataverse",
     "apis": {}
   },
+  "cr6cd_dixcxlequipments": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "cr6cd_dixcxlequipmentid",
+    "dataSourceType": "Dataverse",
+    "apis": {}
+  },
+  "cr6cd_dixcxlnotes": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "cr6cd_dixcxlnoteid",
+    "dataSourceType": "Dataverse",
+    "apis": {}
+  },
   "cr6cd_dix_cancellations": {
     "tableId": "",
     "version": "",

@@ -1,106 +1,162 @@
-import { cn } from '../../lib/utils';
+import { useMemo } from 'react';
+import { cn, formatDate } from '../../lib/utils';
 import DatePicker from '../../components/DatePicker';
+import { tentativeReleaseDate } from '../../lib/cancellationConstants';
 
-const RECEIVED_ITEMS = ['ELD', 'DashCam', 'Door Signs', 'IFTA', 'PrePass', 'RFID', 'Logs', 'Trailer Lock', 'Plate'];
-
-interface Props {
-  form: Record<string, string>;
-  onChange: (field: string, value: string) => void;
+export interface Step3Form {
+  lastitemreceived: string;
   forfeit: boolean;
-  onForfeitChange: (v: boolean) => void;
+  elddeposit: string;
+  dashcamdeposit: string;
+  pdideposit: string;
+  notes: string;
+  requestreturnlabel: boolean;
+  rltrackingnumber: string;
+  returnlabelurl: string;
 }
 
-export default function Step4FinalRelease({ form, onChange, forfeit, onForfeitChange }: Props) {
-  const lastItemDate = form.lastItemReceived ? new Date(form.lastItemReceived) : null;
-  const tentativeDate = lastItemDate ? new Date(lastItemDate.getTime() + 45 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null;
+interface Props {
+  form: Step3Form;
+  onChange: <K extends keyof Step3Form>(field: K, value: Step3Form[K]) => void;
+  cancellationName: string;
+  terminalLabel: string;
+  driverName: string;
+}
 
-  const field = (name: string, label: string, opts?: { type?: string; placeholder?: string }) => (
-    <div className="space-y-1.5">
-      <label className="text-sm font-medium text-muted-foreground">{label}</label>
-      <input
-        type={opts?.type || 'text'}
-        placeholder={opts?.placeholder}
-        value={form[name] || ''}
-        onChange={(e) => onChange(name, e.target.value)}
-        className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground hover:border-muted-foreground/40"
-      />
-    </div>
-  );
+export default function Step4FinalRelease({ form, onChange, cancellationName, terminalLabel, driverName }: Props) {
+  const tentative = useMemo(() => tentativeReleaseDate(form.lastitemreceived), [form.lastitemreceived]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 border border-border animate-fade-in">
-        <span className="text-sm font-semibold text-foreground">{form.cxlFirstName || 'Marcus'} {form.cxlLastName || 'Johnson'}</span>
+        <span className="text-sm font-semibold text-foreground">{cancellationName}</span>
+        {driverName && <><div className="w-px h-6 bg-border" /><span className="text-sm text-muted-foreground">{driverName}</span></>}
         <div className="w-px h-6 bg-border" />
-        <span className="text-sm text-muted-foreground">{form.cxlUnitNumber || 'U30845'}</span>
-        <div className="w-px h-6 bg-border" />
-        <span className="text-sm text-muted-foreground">{form.cxlCity || 'Los Angeles'}</span>
+        <span className="text-sm text-muted-foreground">Terminal {terminalLabel || '—'}</span>
       </div>
 
       <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up">
         <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-base font-semibold text-foreground">Items Received</h3>
-        </div>
-        <div className="p-6">
-          <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border">
-            {RECEIVED_ITEMS.map((item) => (
-              <div key={item} className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50 text-sm font-medium text-foreground transition-all duration-200 hover:bg-muted">
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up" style={{ animationDelay: '55ms' }}>
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-base font-semibold text-foreground">Deposits & Release Details</h3>
+          <h3 className="text-base font-semibold text-foreground">Return Label</h3>
         </div>
         <div className="p-6 space-y-4">
           <label className={cn(
             'flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-all duration-200',
-            forfeit ? 'bg-destructive/10 border-destructive/30' : 'bg-muted/40 border-border hover:border-muted-foreground/40',
+            form.requestreturnlabel ? 'bg-primary/10 border-primary/30' : 'bg-muted/40 border-border hover:border-muted-foreground/40',
           )}>
-            <input type="checkbox" checked={forfeit} onChange={(e) => onForfeitChange(e.target.checked)} className="accent-destructive w-4 h-4" />
+            <input
+              type="checkbox"
+              checked={form.requestreturnlabel}
+              onChange={(e) => onChange('requestreturnlabel', e.target.checked)}
+              className="accent-primary w-4 h-4"
+            />
+            <span className={cn('text-sm font-medium', form.requestreturnlabel ? 'text-primary' : 'text-muted-foreground')}>
+              Request a return label for the driver
+            </span>
+          </label>
+          {form.requestreturnlabel && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-muted-foreground">Tracking Number</label>
+                <input
+                  type="text"
+                  value={form.rltrackingnumber || ''}
+                  placeholder="e.g. 8706 5380 0618"
+                  onChange={(e) => onChange('rltrackingnumber', e.target.value)}
+                  className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-muted-foreground">Label URL</label>
+                <input
+                  type="text"
+                  value={form.returnlabelurl || ''}
+                  placeholder="SharePoint or other share link"
+                  onChange={(e) => onChange('returnlabelurl', e.target.value)}
+                  className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+        <div className="px-6 py-4 border-b border-border">
+          <h3 className="text-base font-semibold text-foreground">Release Details</h3>
+        </div>
+        <div className="p-6 space-y-4">
+          <label className={cn(
+            'flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-all duration-200',
+            form.forfeit ? 'bg-destructive/10 border-destructive/30' : 'bg-muted/40 border-border hover:border-muted-foreground/40',
+          )}>
+            <input
+              type="checkbox"
+              checked={form.forfeit}
+              onChange={(e) => onChange('forfeit', e.target.checked)}
+              className="accent-destructive w-4 h-4"
+            />
             <div>
-              <span className={cn('text-sm font-semibold', forfeit ? 'text-destructive' : 'text-foreground')}>Forfeit</span>
+              <span className={cn('text-sm font-semibold', form.forfeit ? 'text-destructive' : 'text-foreground')}>Forfeit</span>
               <p className="text-xs text-muted-foreground">Forfeits all deposits</p>
             </div>
           </label>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-muted-foreground">Unit's Start Date</label>
-              <DatePicker value={form.unitStartDate || ''} onChange={(v) => onChange('unitStartDate', v)} placeholder="Pick a date" />
-            </div>
-            {field('cancellationReason', 'Cancellation Reason', { placeholder: 'Enter reason' })}
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {field('eldDeposit', 'ELD Deposit ($)', { type: 'number', placeholder: '0.00' })}
-            {field('dashcamDeposit', 'DashCam Deposit ($)', { type: 'number', placeholder: '0.00' })}
-            {field('pdiDeposit', 'PDI Deposit ($)', { type: 'number', placeholder: '0.00' })}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-muted-foreground">ELD Deposit ($)</label>
+              <input
+                type="number"
+                value={form.elddeposit || ''}
+                placeholder="0.00"
+                onChange={(e) => onChange('elddeposit', e.target.value)}
+                className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-muted-foreground">DashCam Deposit ($)</label>
+              <input
+                type="number"
+                value={form.dashcamdeposit || ''}
+                placeholder="0.00"
+                onChange={(e) => onChange('dashcamdeposit', e.target.value)}
+                className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-muted-foreground">PDI Deposit ($)</label>
+              <input
+                type="number"
+                value={form.pdideposit || ''}
+                placeholder="0.00"
+                onChange={(e) => onChange('pdideposit', e.target.value)}
+                className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">Corporate Notes</label>
-            <textarea
-              placeholder="Enter notes..."
-              value={form.corporateNotes || ''}
-              onChange={(e) => onChange('corporateNotes', e.target.value)}
-              rows={3}
-              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground hover:border-muted-foreground/40 resize-none"
-            />
-          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-muted-foreground">Last Item Received</label>
-              <DatePicker value={form.lastItemReceived || ''} onChange={(v) => onChange('lastItemReceived', v)} placeholder="Pick a date" />
+              <DatePicker value={form.lastitemreceived || ''} onChange={(v) => onChange('lastitemreceived', v)} placeholder="Pick a date" />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-muted-foreground">Tentative Release Date</label>
               <div className="h-10 rounded-lg border border-input bg-muted/30 px-3 flex items-center text-sm text-muted-foreground">
-                {tentativeDate ? `${tentativeDate} (Last Item + 45 days)` : 'Select Last Item Received date'}
+                {tentative ? `${formatDate(tentative)} (Last Item + 45 days)` : 'Select Last Item Received date'}
               </div>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">Corporate Notes</label>
+            <textarea
+              placeholder="Internal notes for ops/billing..."
+              value={form.notes || ''}
+              onChange={(e) => onChange('notes', e.target.value)}
+              rows={3}
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none"
+            />
           </div>
         </div>
       </div>

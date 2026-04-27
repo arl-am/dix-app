@@ -1,87 +1,119 @@
-import { cn } from '../../lib/utils';
+import { useMemo } from 'react';
+import { Package, Truck } from 'lucide-react';
 import CustomSelect from '../../components/CustomSelect';
-
-const EQUIPMENT_ITEMS = ['ELD', 'DashCam', 'Door Signs', 'IFTA', 'PrePass', 'RFID', 'Trailer Lock', 'Logs'];
+import DatePicker from '../../components/DatePicker';
+import { cn, formatDate } from '../../lib/utils';
+import {
+  EQUIPMENT_LIFECYCLE,
+  EQUIPMENT_LIFECYCLE_LABELS,
+  EQUIPMENT_LIFECYCLE_COLORS,
+  EQUIPMENT_LIFECYCLE_OPTIONS,
+  equipmentProgress,
+} from '../../lib/cancellationConstants';
+import type { CxlEquipment } from '../../lib/mockData';
 
 interface Props {
-  equipment: Record<string, boolean>;
-  onToggle: (key: string) => void;
-  plateOption: string;
-  onPlateChange: (v: string) => void;
-  transferEquipment: boolean;
-  onTransferChange: (v: boolean) => void;
-  form: Record<string, string>;
+  equipment: CxlEquipment[];
+  isLoading: boolean;
+  onUpdate: (equipmentId: string, patch: Partial<{ lifecycleState: number; returneddate: string; notes: string }>) => void;
+  cancellationName: string;
+  terminalLabel: string;
 }
 
-export default function Step2Equipment({ equipment, onToggle, plateOption, onPlateChange, transferEquipment, onTransferChange, form }: Props) {
+export default function Step2Equipment({ equipment, isLoading, onUpdate, cancellationName, terminalLabel }: Props) {
+  const sorted = useMemo(() => [...equipment].sort((a, b) => a.cr6cd_displayname.localeCompare(b.cr6cd_displayname)), [equipment]);
+  const progress = useMemo(() => equipmentProgress(sorted.map((e) => ({ lifecycleState: e.cr6cd_lifecyclestate }))), [sorted]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 border border-border animate-fade-in">
-        <span className="text-sm text-muted-foreground">{form.cxlFirstName || 'No'} {form.cxlLastName || 'Driver'}</span>
+        <Truck className="w-5 h-5 text-muted-foreground" />
+        <span className="text-sm font-semibold text-foreground">{cancellationName || '—'}</span>
         <div className="w-px h-6 bg-border" />
-        <span className="text-sm text-muted-foreground">{form.terminal || 'No Terminal'}</span>
-        <div className="w-px h-6 bg-border" />
-        <span className="text-sm font-medium text-foreground">{form.cxlUnitNumber || '—'}</span>
+        <span className="text-sm text-muted-foreground">Terminal {terminalLabel || '—'}</span>
       </div>
 
       <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up">
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-base font-semibold text-foreground">Equipment Required</h3>
-        </div>
-        <div className="p-6">
-          <div className="flex flex-wrap items-center gap-3 p-4 rounded-lg bg-muted/40 border border-border">
-            {EQUIPMENT_ITEMS.map((item) => (
-              <label
-                key={item}
-                className={cn(
-                  'flex items-center gap-2 select-none px-3 py-2 rounded-lg border cursor-pointer',
-                  'transition-all duration-200',
-                  equipment[item]
-                    ? 'bg-primary/10 border-primary/30 text-primary shadow-sm'
-                    : 'bg-background border-border text-foreground hover:border-muted-foreground/40',
-                )}
-              >
-                <input
-                  type="checkbox"
-                  checked={!!equipment[item]}
-                  onChange={() => onToggle(item)}
-                  className="accent-primary w-4 h-4"
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+              <Package className="w-4 h-4 text-primary" /> Equipment & Returns
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Set each item to N/A if not applicable, then update lifecycle state as items come back.</p>
+          </div>
+          <div className="flex items-center gap-3 min-w-[260px]">
+            <div className="flex-1">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-muted-foreground">Returned</span>
+                <span className="font-semibold text-foreground">{progress.returned} / {progress.total}</span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-[#10B981] transition-all duration-300"
+                  style={{ width: `${progress.percent}%` }}
                 />
-                <span className="text-sm font-medium">{item}</span>
-                {equipment[item] && <span className="text-xs text-primary/70">Required</span>}
-              </label>
-            ))}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background">
-              <span className="text-sm font-medium">Plate</span>
-              <CustomSelect
-                options={[
-                  { value: 'No Fleet', label: 'No Fleet' },
-                  { value: 'Fleet 1', label: 'Fleet 1' },
-                  { value: 'Fleet 2', label: 'Fleet 2' },
-                ]}
-                value={plateOption}
-                onChange={onPlateChange}
-                triggerClassName="h-8 min-w-[120px]"
-              />
+              </div>
             </div>
+            <span className="text-2xl font-bold text-[#10B981]">{progress.percent}%</span>
           </div>
         </div>
-      </div>
 
-      <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up" style={{ animationDelay: '55ms' }}>
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-base font-semibold text-foreground">Transfer Equipment</h3>
-        </div>
-        <div className="p-6">
-          <label className={cn(
-            'flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-all duration-200',
-            transferEquipment ? 'bg-primary/10 border-primary/30' : 'bg-muted/40 border-border hover:border-muted-foreground/40',
-          )}>
-            <input type="checkbox" checked={transferEquipment} onChange={(e) => onTransferChange(e.target.checked)} className="accent-primary w-4 h-4" />
-            <span className={cn('text-sm font-medium', transferEquipment ? 'text-primary' : 'text-muted-foreground')}>
-              {transferEquipment ? 'Enabled' : 'Disabled'}
-            </span>
-          </label>
+        <div className="divide-y divide-border">
+          {isLoading && (
+            <div className="px-6 py-12 text-center text-sm text-muted-foreground">Loading equipment...</div>
+          )}
+          {!isLoading && sorted.length === 0 && (
+            <div className="px-6 py-12 text-center text-sm text-muted-foreground">
+              Equipment will be auto-seeded the first time you save Step 1.
+            </div>
+          )}
+          {sorted.map((item) => (
+            <div key={item.cr6cd_dixcxlequipmentid} className="px-6 py-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-center transition-colors duration-200 hover:bg-muted/30">
+              <div className="md:col-span-3">
+                <p className="text-sm font-semibold text-foreground">{item.cr6cd_displayname}</p>
+                <p className="text-[11px] text-muted-foreground">{item.cr6cd_equipmentkey}</p>
+              </div>
+              <div className="md:col-span-3">
+                <CustomSelect
+                  options={EQUIPMENT_LIFECYCLE_OPTIONS.map((o) => ({ value: String(o.value), label: o.label }))}
+                  value={String(item.cr6cd_lifecyclestate)}
+                  onChange={(v) => onUpdate(item.cr6cd_dixcxlequipmentid, { lifecycleState: Number(v) })}
+                  triggerClassName="h-9"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium',
+                    'border-transparent text-white',
+                  )}
+                  style={{ backgroundColor: EQUIPMENT_LIFECYCLE_COLORS[item.cr6cd_lifecyclestate] }}
+                >
+                  {EQUIPMENT_LIFECYCLE_LABELS[item.cr6cd_lifecyclestate]}
+                </span>
+              </div>
+              <div className="md:col-span-2">
+                {item.cr6cd_lifecyclestate === EQUIPMENT_LIFECYCLE.RETURNED ? (
+                  <DatePicker
+                    value={item.cr6cd_returneddate || ''}
+                    onChange={(v) => onUpdate(item.cr6cd_dixcxlequipmentid, { returneddate: v })}
+                    placeholder="Returned date"
+                  />
+                ) : (
+                  <span className="text-xs text-muted-foreground">{item.cr6cd_returneddate ? formatDate(item.cr6cd_returneddate) : '—'}</span>
+                )}
+              </div>
+              <div className="md:col-span-2">
+                <input
+                  type="text"
+                  value={item.cr6cd_notes || ''}
+                  placeholder="Notes"
+                  onChange={(e) => onUpdate(item.cr6cd_dixcxlequipmentid, { notes: e.target.value })}
+                  className="w-full h-9 rounded-md border border-input bg-background px-2 text-xs shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

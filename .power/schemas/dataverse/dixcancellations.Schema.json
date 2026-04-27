@@ -10,6 +10,13 @@
       "x-ms-dataverse-primary-id": "cr6cd_dix_cancellationid",
       "x-ms-dataverse-primary-name": "cr6cd_dix_name",
       "properties": {
+        "cr6cd_dix_allitemsrcvddate": {
+          "type": "string",
+          "title": "All Items Received Date",
+          "x-ms-dataverse-attribute": "cr6cd_dix_allitemsrcvddate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr6cd_dix_allitemsrcvddate"
+        },
         "cr6cd_dix_amount": {
           "type": "string",
           "title": "Amount",
@@ -56,6 +63,30 @@
           "x-ms-schema-name": "cr6cd_dix_approvedName",
           "x-ms-read-only": true
         },
+        "cr6cd_dix_assignee": {
+          "type": "string",
+          "title": "Assignee",
+          "x-ms-dataverse-attribute": "cr6cd_dix_assignee",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_assignee",
+          "maxLength": 200
+        },
+        "cr6cd_dix_cancagent": {
+          "type": "string",
+          "title": "Terminal Agent",
+          "x-ms-dataverse-attribute": "cr6cd_dix_cancagent",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr6cd_dix_cancagent"
+        },
+        "cr6cd_dix_cancagentname": {
+          "type": "string",
+          "title": "cr6cd_dix_cancagentname",
+          "x-ms-dataverse-attribute": "cr6cd_dix_cancagentname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_cancagentName",
+          "x-ms-read-only": true,
+          "maxLength": 850
+        },
         "cr6cd_dix_cancdriver": {
           "type": "string",
           "title": "Driver",
@@ -71,6 +102,13 @@
           "x-ms-schema-name": "cr6cd_dix_cancdriverName",
           "x-ms-read-only": true,
           "maxLength": 200
+        },
+        "cr6cd_dix_canceldate": {
+          "type": "string",
+          "title": "Cancel Date",
+          "x-ms-dataverse-attribute": "cr6cd_dix_canceldate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr6cd_dix_canceldate"
         },
         "cr6cd_dix_cancellationid": {
           "type": "string",
@@ -90,12 +128,221 @@
           "x-ms-schema-name": "cr6cd_dix_cancellationreason",
           "maxLength": 2000
         },
+        "cr6cd_dix_cancelreason": {
+          "type": "string",
+          "title": "Cancel Reason",
+          "x-ms-dataverse-attribute": "cr6cd_dix_cancelreason",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr6cd_dix_cancelreason",
+          "enum": [
+            "Resigned - Other",
+            "Resigned - Found Another Job",
+            "Resigned - Truck Down",
+            "Resigned - Sick or Injury",
+            "Resigned - Personal Issue",
+            "Resigned - Retiring",
+            "Termination - Other",
+            "Termination - No Contact",
+            "Termination - Medically Disqualified",
+            "Termination - Safety Violations"
+          ],
+          "x-ms-enum-values": [
+            100000000,
+            100000001,
+            100000002,
+            100000003,
+            100000004,
+            100000005,
+            100000006,
+            100000007,
+            100000008,
+            100000009
+          ],
+          "Color": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "52ded739-6d42-f111-88b3-70a8a53ff434",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Cancel Reason",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr6cd_dix_cancelreasonname": {
+          "type": "string",
+          "title": "cr6cd_dix_cancelreasonname",
+          "x-ms-dataverse-attribute": "cr6cd_dix_cancelreasonname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr6cd_dix_cancelreasonName",
+          "x-ms-read-only": true
+        },
+        "cr6cd_dix_canceltype": {
+          "type": "string",
+          "title": "Cancellation Type",
+          "x-ms-dataverse-attribute": "cr6cd_dix_canceltype",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr6cd_dix_canceltype",
+          "enum": [
+            "Vendor Only",
+            "Driver Only",
+            "Unit Only",
+            "Vendor/Driver/Unit",
+            "Vendor/Driver",
+            "Vendor/Unit",
+            "Driver/Unit",
+            "Trailer Only",
+            "SUB Unit",
+            "Rental Only"
+          ],
+          "x-ms-enum-values": [
+            100000000,
+            100000001,
+            100000002,
+            100000003,
+            100000004,
+            100000005,
+            100000006,
+            100000007,
+            100000008,
+            100000009
+          ],
+          "Color": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "48ded739-6d42-f111-88b3-70a8a53ff434",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Cancellation Type",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr6cd_dix_canceltypename": {
+          "type": "string",
+          "title": "cr6cd_dix_canceltypename",
+          "x-ms-dataverse-attribute": "cr6cd_dix_canceltypename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr6cd_dix_canceltypeName",
+          "x-ms-read-only": true
+        },
+        "cr6cd_dix_dashcamdeposit": {
+          "type": "string",
+          "title": "DashCam Deposit",
+          "x-ms-dataverse-attribute": "cr6cd_dix_dashcamdeposit",
+          "x-ms-dataverse-type": "MoneyType",
+          "x-ms-schema-name": "cr6cd_dix_dashcamdeposit"
+        },
+        "cr6cd_dix_dashcamdeposit_base": {
+          "type": "string",
+          "title": "DashCam Deposit (Base)",
+          "x-ms-dataverse-attribute": "cr6cd_dix_dashcamdeposit_base",
+          "x-ms-dataverse-type": "MoneyType",
+          "x-ms-schema-name": "cr6cd_dix_dashcamdeposit_Base",
+          "x-ms-read-only": true
+        },
         "cr6cd_dix_deductiondate": {
           "type": "string",
           "title": "Deduction Date",
           "x-ms-dataverse-attribute": "cr6cd_dix_deductiondate",
           "x-ms-dataverse-type": "DateTimeType",
           "x-ms-schema-name": "cr6cd_dix_deductiondate"
+        },
+        "cr6cd_dix_drivercode": {
+          "type": "string",
+          "title": "Driver Code",
+          "x-ms-dataverse-attribute": "cr6cd_dix_drivercode",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_drivercode",
+          "maxLength": 100
+        },
+        "cr6cd_dix_drivername": {
+          "type": "string",
+          "title": "Driver Name",
+          "x-ms-dataverse-attribute": "cr6cd_dix_drivername",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_drivername",
+          "maxLength": 200
+        },
+        "cr6cd_dix_driverphone": {
+          "type": "string",
+          "title": "Driver Phone",
+          "x-ms-dataverse-attribute": "cr6cd_dix_driverphone",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_driverphone",
+          "maxLength": 30
+        },
+        "cr6cd_dix_duedate": {
+          "type": "string",
+          "title": "CXL Due Date",
+          "x-ms-dataverse-attribute": "cr6cd_dix_duedate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr6cd_dix_duedate"
+        },
+        "cr6cd_dix_elddeposit": {
+          "type": "string",
+          "title": "ELD Deposit",
+          "x-ms-dataverse-attribute": "cr6cd_dix_elddeposit",
+          "x-ms-dataverse-type": "MoneyType",
+          "x-ms-schema-name": "cr6cd_dix_elddeposit"
+        },
+        "cr6cd_dix_elddeposit_base": {
+          "type": "string",
+          "title": "ELD Deposit (Base)",
+          "x-ms-dataverse-attribute": "cr6cd_dix_elddeposit_base",
+          "x-ms-dataverse-type": "MoneyType",
+          "x-ms-schema-name": "cr6cd_dix_elddeposit_Base",
+          "x-ms-read-only": true
+        },
+        "cr6cd_dix_forfeit": {
+          "type": "string",
+          "title": "Forfeit Deposits",
+          "x-ms-dataverse-attribute": "cr6cd_dix_forfeit",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr6cd_dix_forfeit",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "45832859-6d42-f111-88b3-70a8a53ff434",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Forfeit Deposits",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr6cd_dix_forfeitname": {
+          "type": "string",
+          "title": "cr6cd_dix_forfeitname",
+          "x-ms-dataverse-attribute": "cr6cd_dix_forfeitname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr6cd_dix_forfeitName",
+          "x-ms-read-only": true
+        },
+        "cr6cd_dix_lastitemreceived": {
+          "type": "string",
+          "title": "Last Item Received",
+          "x-ms-dataverse-attribute": "cr6cd_dix_lastitemreceived",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr6cd_dix_lastitemreceived"
         },
         "cr6cd_dix_name": {
           "type": "string",
@@ -115,6 +362,21 @@
           "x-ms-schema-name": "cr6cd_dix_notes",
           "maxLength": 4000
         },
+        "cr6cd_dix_pdideposit": {
+          "type": "string",
+          "title": "PDI Deposit",
+          "x-ms-dataverse-attribute": "cr6cd_dix_pdideposit",
+          "x-ms-dataverse-type": "MoneyType",
+          "x-ms-schema-name": "cr6cd_dix_pdideposit"
+        },
+        "cr6cd_dix_pdideposit_base": {
+          "type": "string",
+          "title": "PDI Deposit (Base)",
+          "x-ms-dataverse-attribute": "cr6cd_dix_pdideposit_base",
+          "x-ms-dataverse-type": "MoneyType",
+          "x-ms-schema-name": "cr6cd_dix_pdideposit_Base",
+          "x-ms-read-only": true
+        },
         "cr6cd_dix_reason": {
           "type": "string",
           "title": "Reason",
@@ -123,12 +385,166 @@
           "x-ms-schema-name": "cr6cd_dix_reason",
           "maxLength": 200
         },
+        "cr6cd_dix_reasondetails": {
+          "type": "string",
+          "title": "Reason Details",
+          "x-ms-dataverse-attribute": "cr6cd_dix_reasondetails",
+          "x-ms-dataverse-type": "MemoType",
+          "x-ms-schema-name": "cr6cd_dix_reasondetails",
+          "maxLength": 2000
+        },
         "cr6cd_dix_requestdate": {
           "type": "string",
           "title": "Request Date",
           "x-ms-dataverse-attribute": "cr6cd_dix_requestdate",
           "x-ms-dataverse-type": "DateTimeType",
           "x-ms-schema-name": "cr6cd_dix_requestdate"
+        },
+        "cr6cd_dix_requestreturnlabel": {
+          "type": "string",
+          "title": "Request Return Label",
+          "x-ms-dataverse-attribute": "cr6cd_dix_requestreturnlabel",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr6cd_dix_requestreturnlabel",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "6224a152-6d42-f111-88b3-70a8a53ff434",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Request Return Label",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr6cd_dix_requestreturnlabelname": {
+          "type": "string",
+          "title": "cr6cd_dix_requestreturnlabelname",
+          "x-ms-dataverse-attribute": "cr6cd_dix_requestreturnlabelname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr6cd_dix_requestreturnlabelName",
+          "x-ms-read-only": true
+        },
+        "cr6cd_dix_returnlabelurl": {
+          "type": "string",
+          "title": "Return Label URL",
+          "x-ms-dataverse-attribute": "cr6cd_dix_returnlabelurl",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_returnlabelurl",
+          "maxLength": 500
+        },
+        "cr6cd_dix_rltrackingnumber": {
+          "type": "string",
+          "title": "Return Label Tracking",
+          "x-ms-dataverse-attribute": "cr6cd_dix_rltrackingnumber",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_rltrackingnumber",
+          "maxLength": 100
+        },
+        "cr6cd_dix_startdate": {
+          "type": "string",
+          "title": "Start Date",
+          "x-ms-dataverse-attribute": "cr6cd_dix_startdate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr6cd_dix_startdate"
+        },
+        "cr6cd_dix_status": {
+          "type": "string",
+          "title": "Cancellation Status",
+          "x-ms-dataverse-attribute": "cr6cd_dix_status",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr6cd_dix_status",
+          "enum": [
+            "Not Started",
+            "In Progress",
+            "Awaiting Returns",
+            "All Items Received",
+            "Items Not Received",
+            "Forfeit",
+            "Transferred",
+            "Reactivated NTL",
+            "Released"
+          ],
+          "x-ms-enum-values": [
+            100000000,
+            100000001,
+            100000002,
+            100000003,
+            100000004,
+            100000005,
+            100000006,
+            100000007,
+            100000008
+          ],
+          "Color": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "4dded739-6d42-f111-88b3-70a8a53ff434",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Cancellation Status",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr6cd_dix_statusname": {
+          "type": "string",
+          "title": "cr6cd_dix_statusname",
+          "x-ms-dataverse-attribute": "cr6cd_dix_statusname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr6cd_dix_statusName",
+          "x-ms-read-only": true
+        },
+        "cr6cd_dix_submittedby": {
+          "type": "string",
+          "title": "Submitted By",
+          "x-ms-dataverse-attribute": "cr6cd_dix_submittedby",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_submittedby",
+          "maxLength": 200
+        },
+        "cr6cd_dix_trailercode": {
+          "type": "string",
+          "title": "Trailer Code",
+          "x-ms-dataverse-attribute": "cr6cd_dix_trailercode",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_trailercode",
+          "maxLength": 100
+        },
+        "cr6cd_dix_unitnumber": {
+          "type": "string",
+          "title": "Unit Number",
+          "x-ms-dataverse-attribute": "cr6cd_dix_unitnumber",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_unitnumber",
+          "maxLength": 50
+        },
+        "cr6cd_dix_vendorcode": {
+          "type": "string",
+          "title": "Vendor Code",
+          "x-ms-dataverse-attribute": "cr6cd_dix_vendorcode",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_vendorcode",
+          "maxLength": 100
+        },
+        "cr6cd_dix_vendorname": {
+          "type": "string",
+          "title": "Vendor Name",
+          "x-ms-dataverse-attribute": "cr6cd_dix_vendorname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_vendorname",
+          "maxLength": 200
         },
         "createdby": {
           "type": "string",

@@ -93,18 +93,75 @@ export interface Driver {
 export interface Cancellation {
   cr6cd_dix_cancellationid: string;
   cr6cd_dix_name: string;
-  cr6cd_dix_cancellationreason: string;
-  cr6cd_dix_requestdate: string;
-  cr6cd_dix_notes: string;
-  cr6cd_dix_approved: boolean;
-  cr6cd_dix_amount: number;
-  cr6cd_dix_deductiondate: string;
-  cr6cd_dix_reason: string;
-  _cr6cd_dix_cancdriver_value: string;
+  cr6cd_dix_cancellationreason?: string;
+  cr6cd_dix_requestdate?: string;
+  cr6cd_dix_notes?: string;
+  cr6cd_dix_approved?: boolean;
+  cr6cd_dix_amount?: number;
+  cr6cd_dix_deductiondate?: string;
+  cr6cd_dix_reason?: string;
+  _cr6cd_dix_cancdriver_value?: string;
+
+  cr6cd_dix_canceltype?: number | null;
+  cr6cd_dix_status?: number | null;
+  cr6cd_dix_cancelreason?: number | null;
+  cr6cd_dix_reasondetails?: string;
+  cr6cd_dix_unitnumber?: string;
+  cr6cd_dix_vendorcode?: string;
+  cr6cd_dix_vendorname?: string;
+  cr6cd_dix_drivercode?: string;
+  cr6cd_dix_drivername?: string;
+  cr6cd_dix_driverphone?: string;
+  cr6cd_dix_trailercode?: string;
+  cr6cd_dix_startdate?: string;
+  cr6cd_dix_canceldate?: string;
+  cr6cd_dix_duedate?: string;
+  cr6cd_dix_allitemsrcvddate?: string;
+  cr6cd_dix_lastitemreceived?: string;
+  cr6cd_dix_submittedby?: string;
+  cr6cd_dix_assignee?: string;
+  cr6cd_dix_requestreturnlabel?: boolean;
+  cr6cd_dix_returnlabelurl?: string;
+  cr6cd_dix_rltrackingnumber?: string;
+  cr6cd_dix_forfeit?: boolean;
+  cr6cd_dix_elddeposit?: number;
+  cr6cd_dix_dashcamdeposit?: number;
+  cr6cd_dix_pdideposit?: number;
+  _cr6cd_dix_cancagent_value?: string;
+
+  createdon?: string;
+  modifiedon?: string;
+
   driverName?: string;
   terminal?: string;
   driverCode?: string;
   unitNumber?: string;
+}
+
+export interface CxlEquipment {
+  cr6cd_dixcxlequipmentid: string;
+  cr6cd_name: string;
+  cr6cd_equipmentkey: string;
+  cr6cd_displayname: string;
+  cr6cd_lifecyclestate: number;
+  cr6cd_returneddate?: string | null;
+  cr6cd_notes?: string;
+  _cr6cd_equipmentcancellation_value: string;
+  createdon?: string;
+}
+
+export interface NoteLike { userId: string; userName: string; likedAt: string }
+
+export interface CxlNote {
+  cr6cd_dixcxlnoteid: string;
+  cr6cd_name: string;
+  cr6cd_body: string;
+  cr6cd_likedby?: string; // JSON array of NoteLike
+  _cr6cd_notecancellation_value: string;
+  _cr6cd_parentnote_value?: string | null;
+  createdon: string;
+  createdByName?: string;
+  createdById?: string;
 }
 
 export const MOCK_AGENTS: Agent[] = [
@@ -363,85 +420,219 @@ export const MOCK_DRIVERS: Driver[] = [
 
 export const MOCK_CANCELLATIONS: Cancellation[] = [
   {
+    cr6cd_dix_cancellationid: 'cx-pending-0001',
+    cr6cd_dix_name: 'PA-STUB-12047',
+    cr6cd_dix_drivername: 'Pending Power Automate Driver',
+    cr6cd_dix_unitnumber: '12047',
+    cr6cd_dix_submittedby: 'Power Automate',
+    cr6cd_dix_requestdate: '2026-04-27',
+    _cr6cd_dix_cancagent_value: 'a1b2c3d4-0001-0001-0001-000000000001',
+    terminal: '1683',
+    unitNumber: '12047',
+    driverName: 'Pending Power Automate Driver',
+    createdon: '2026-04-27T08:00:00Z',
+  },
+  {
     cr6cd_dix_cancellationid: 'cx-0001',
-    cr6cd_dix_name: 'CXL-0001',
-    cr6cd_dix_cancellationreason: 'Driver resigned',
-    cr6cd_dix_requestdate: '2026-03-29',
-    cr6cd_dix_notes: 'Driver chose to leave the company',
-    cr6cd_dix_approved: true,
-    cr6cd_dix_amount: 500.00,
-    cr6cd_dix_deductiondate: '2026-03-29',
-    cr6cd_dix_reason: 'Voluntary',
-    _cr6cd_dix_cancdriver_value: 'd1-0001',
-    driverName: 'Driver 1',
-    terminal: '5058',
-    driverCode: 'CX01000',
-    unitNumber: 'U30000',
+    cr6cd_dix_name: 'AT806T02',
+    cr6cd_dix_canceltype: 100000003,
+    cr6cd_dix_status: 100000002,
+    cr6cd_dix_cancelreason: 100000000,
+    cr6cd_dix_reasondetails: 'Please block fuel card and cancel vendor and unit. Driver parking truck due to fuel prices.',
+    cr6cd_dix_requestdate: '2026-04-24',
+    cr6cd_dix_canceldate: '2026-04-24',
+    cr6cd_dix_duedate: '2026-05-01',
+    cr6cd_dix_startdate: '2023-11-29',
+    cr6cd_dix_unitnumber: 'AT806T02',
+    cr6cd_dix_vendorcode: 'VISBOILC02',
+    cr6cd_dix_vendorname: 'VISHKA CORPORATION INC',
+    cr6cd_dix_drivercode: 'ANDVISBOILD03',
+    cr6cd_dix_drivername: 'ANDRIY VISHKA',
+    cr6cd_dix_driverphone: '773-418-4398',
+    cr6cd_dix_submittedby: 'Cristal Vargas',
+    cr6cd_dix_assignee: 'Daniela Ramirez',
+    cr6cd_dix_forfeit: false,
+    _cr6cd_dix_cancagent_value: 'a1b2c3d4-0001-0001-0001-000000000001',
+    terminal: '1683',
+    unitNumber: 'AT806T02',
+    driverName: 'ANDRIY VISHKA',
+    driverCode: 'ANDVISBOILD03',
+    createdon: '2026-04-24T13:14:21Z',
   },
   {
     cr6cd_dix_cancellationid: 'cx-0002',
-    cr6cd_dix_name: 'CXL-0002',
-    cr6cd_dix_cancellationreason: 'Contract expired',
-    cr6cd_dix_requestdate: '2026-03-27',
-    cr6cd_dix_notes: '',
-    cr6cd_dix_approved: true,
-    cr6cd_dix_amount: 300.00,
-    cr6cd_dix_deductiondate: '2026-03-27',
-    cr6cd_dix_reason: 'Contract End',
-    _cr6cd_dix_cancdriver_value: 'd1-0002',
-    driverName: 'Driver 2',
-    terminal: '5042',
-    driverCode: 'CX01001',
-    unitNumber: 'U30013',
+    cr6cd_dix_name: '464009L',
+    cr6cd_dix_canceltype: 100000009,
+    cr6cd_dix_status: 100000000,
+    cr6cd_dix_cancelreason: 100000006,
+    cr6cd_dix_reasondetails: 'Rental unit returned. Jaime Mike',
+    cr6cd_dix_requestdate: '2026-04-21',
+    cr6cd_dix_canceldate: '2026-04-21',
+    cr6cd_dix_duedate: '2026-04-28',
+    cr6cd_dix_startdate: '2026-04-17',
+    cr6cd_dix_unitnumber: '464009L',
+    cr6cd_dix_submittedby: 'Jaime Mike',
+    cr6cd_dix_assignee: 'Maria Melgarejo',
+    cr6cd_dix_forfeit: false,
+    _cr6cd_dix_cancagent_value: 'a1b2c3d4-0002-0002-0002-000000000002',
+    terminal: '5058',
+    unitNumber: '464009L',
+    createdon: '2026-04-21T13:37:22Z',
   },
   {
     cr6cd_dix_cancellationid: 'cx-0003',
-    cr6cd_dix_name: 'CXL-0003',
-    cr6cd_dix_cancellationreason: 'Medical leave',
-    cr6cd_dix_requestdate: '2026-03-24',
-    cr6cd_dix_notes: 'Extended medical leave',
-    cr6cd_dix_approved: false,
-    cr6cd_dix_amount: 0,
-    cr6cd_dix_deductiondate: '2026-03-24',
-    cr6cd_dix_reason: 'Medical',
-    _cr6cd_dix_cancdriver_value: 'd1-0003',
-    driverName: 'Driver 3',
-    terminal: '5046',
-    driverCode: 'CX01002',
-    unitNumber: 'U30026',
+    cr6cd_dix_name: 'CXL-N/A-0003',
+    cr6cd_dix_canceltype: 100000001,
+    cr6cd_dix_status: 100000001,
+    cr6cd_dix_cancelreason: 100000004,
+    cr6cd_dix_reasondetails: 'Driver advised dispatcher he quit. All items returned. Not eligible for rehire without management approval.',
+    cr6cd_dix_requestdate: '2026-04-22',
+    cr6cd_dix_canceldate: '2026-04-22',
+    cr6cd_dix_duedate: '2026-04-29',
+    cr6cd_dix_startdate: '2025-10-12',
+    cr6cd_dix_vendorcode: 'VETPOGA',
+    cr6cd_dix_vendorname: 'VETERAN CARRIERS INC.',
+    cr6cd_dix_drivercode: 'CHASEASWGA',
+    cr6cd_dix_drivername: 'Charles Seabrough',
+    cr6cd_dix_driverphone: '478-494-4932',
+    cr6cd_dix_submittedby: 'Kiko Nieves',
+    cr6cd_dix_assignee: 'Daniela Ramirez',
+    cr6cd_dix_forfeit: false,
+    _cr6cd_dix_cancagent_value: 'a1b2c3d4-0003-0003-0003-000000000003',
+    terminal: '1716',
+    driverName: 'Charles Seabrough',
+    driverCode: 'CHASEASWGA',
+    createdon: '2026-04-22T17:14:27Z',
   },
   {
     cr6cd_dix_cancellationid: 'cx-0004',
-    cr6cd_dix_name: 'CXL-0004',
-    cr6cd_dix_cancellationreason: 'Equipment return',
-    cr6cd_dix_requestdate: '2026-03-21',
-    cr6cd_dix_notes: '',
-    cr6cd_dix_approved: true,
-    cr6cd_dix_amount: 250.00,
-    cr6cd_dix_deductiondate: '2026-03-21',
-    cr6cd_dix_reason: 'Equipment Return',
-    _cr6cd_dix_cancdriver_value: 'd1-0004',
-    driverName: 'Driver 4',
-    terminal: '1000',
-    driverCode: 'CX01003',
-    unitNumber: 'U30039',
+    cr6cd_dix_name: '799',
+    cr6cd_dix_canceltype: 100000003,
+    cr6cd_dix_status: 100000003,
+    cr6cd_dix_cancelreason: 100000004,
+    cr6cd_dix_reasondetails: 'Driver quit and no replacement available.',
+    cr6cd_dix_requestdate: '2026-04-03',
+    cr6cd_dix_canceldate: '2026-04-03',
+    cr6cd_dix_duedate: '2026-04-10',
+    cr6cd_dix_allitemsrcvddate: '2026-04-15',
+    cr6cd_dix_lastitemreceived: '2026-04-15',
+    cr6cd_dix_startdate: '2026-03-16',
+    cr6cd_dix_unitnumber: '799',
+    cr6cd_dix_vendorcode: 'ROWEAGA',
+    cr6cd_dix_drivercode: 'LORBOLWAGA',
+    cr6cd_dix_drivername: 'Lorenzo Bolden',
+    cr6cd_dix_driverphone: '478-538-3024',
+    cr6cd_dix_rltrackingnumber: '870305414716',
+    cr6cd_dix_submittedby: 'Daniela Ramirez',
+    cr6cd_dix_assignee: 'Alberto Florez',
+    cr6cd_dix_forfeit: false,
+    cr6cd_dix_elddeposit: 100,
+    cr6cd_dix_dashcamdeposit: 100,
+    _cr6cd_dix_cancagent_value: 'a1b2c3d4-0004-0004-0004-000000000004',
+    terminal: '5046',
+    unitNumber: '799',
+    driverName: 'Lorenzo Bolden',
+    driverCode: 'LORBOLWAGA',
+    createdon: '2026-04-03T13:31:16Z',
   },
   {
     cr6cd_dix_cancellationid: 'cx-0005',
-    cr6cd_dix_name: 'CXL-0005',
-    cr6cd_dix_cancellationreason: 'Voluntary resignation',
-    cr6cd_dix_requestdate: '2026-03-19',
-    cr6cd_dix_notes: 'Driver found another carrier',
-    cr6cd_dix_approved: true,
-    cr6cd_dix_amount: 450.00,
-    cr6cd_dix_deductiondate: '2026-03-19',
-    cr6cd_dix_reason: 'Voluntary',
-    _cr6cd_dix_cancdriver_value: 'd1-0005',
-    driverName: 'Driver 5',
-    terminal: '5046',
-    driverCode: 'CX01004',
-    unitNumber: 'U30052',
+    cr6cd_dix_name: '658',
+    cr6cd_dix_canceltype: 100000003,
+    cr6cd_dix_status: 100000008,
+    cr6cd_dix_cancelreason: 100000002,
+    cr6cd_dix_reasondetails: 'Truck had mechanical issues.',
+    cr6cd_dix_requestdate: '2026-04-06',
+    cr6cd_dix_canceldate: '2026-04-06',
+    cr6cd_dix_duedate: '2026-04-13',
+    cr6cd_dix_allitemsrcvddate: '2026-04-12',
+    cr6cd_dix_lastitemreceived: '2026-04-12',
+    cr6cd_dix_startdate: '2025-05-20',
+    cr6cd_dix_unitnumber: '658',
+    cr6cd_dix_vendorcode: 'YAEREGA',
+    cr6cd_dix_vendorname: 'YA EXPRESS LLC',
+    cr6cd_dix_drivercode: 'SOMMAMREGA',
+    cr6cd_dix_drivername: 'Somathya Mam',
+    cr6cd_dix_driverphone: '678-557-4053',
+    cr6cd_dix_submittedby: 'Chris Cordova',
+    cr6cd_dix_assignee: 'Alberto Florez',
+    cr6cd_dix_forfeit: false,
+    cr6cd_dix_elddeposit: 100,
+    cr6cd_dix_dashcamdeposit: 100,
+    cr6cd_dix_pdideposit: 250,
+    _cr6cd_dix_cancagent_value: 'a1b2c3d4-0005-0005-0005-000000000005',
+    terminal: '1000',
+    unitNumber: '658',
+    driverName: 'Somathya Mam',
+    driverCode: 'SOMMAMREGA',
+    createdon: '2026-04-06T14:43:44Z',
   },
+];
+
+export const MOCK_CXL_NOTES: CxlNote[] = [
+  {
+    cr6cd_dixcxlnoteid: 'note-0001',
+    cr6cd_name: 'Note',
+    cr6cd_body: 'Driver reached out — confirmed truck box will be shipped Monday.',
+    cr6cd_likedby: JSON.stringify([
+      { userId: 'u-2', userName: 'Sarah Reisker', likedAt: '2026-04-25T11:00:00Z' },
+    ]),
+    _cr6cd_notecancellation_value: 'cx-0001',
+    createdon: '2026-04-24T18:30:00Z',
+    createdByName: 'Daniela Ramirez',
+    createdById: 'u-1',
+  },
+  {
+    cr6cd_dixcxlnoteid: 'note-0002',
+    cr6cd_name: 'Note',
+    cr6cd_body: 'Thanks. Will keep an eye out for the FedEx tracking.',
+    _cr6cd_notecancellation_value: 'cx-0001',
+    _cr6cd_parentnote_value: 'note-0001',
+    createdon: '2026-04-25T10:55:00Z',
+    createdByName: 'Sarah Reisker',
+    createdById: 'u-2',
+  },
+];
+
+export const MOCK_CXL_EQUIPMENT: CxlEquipment[] = [
+  // Cancellation cx-0001 (Vendor/Driver/Unit) — early stage, all needed
+  ...['eld','dashcam','dashcam_cover','door_signs','ifta','license_plate'].map((k, i) => ({
+    cr6cd_dixcxlequipmentid: `eq-0001-${i}`,
+    cr6cd_name: `${k} - AT806T02`,
+    cr6cd_equipmentkey: k,
+    cr6cd_displayname: ({
+      eld: 'ELD', dashcam: 'DashCam', dashcam_cover: 'DashCam Cover',
+      door_signs: 'Door Signs', ifta: 'IFTA', license_plate: 'License Plate',
+    } as Record<string, string>)[k],
+    cr6cd_lifecyclestate: 100000000,
+    _cr6cd_equipmentcancellation_value: 'cx-0001',
+  })),
+  // Cancellation cx-0004 (Vendor/Driver/Unit) — completed
+  ...['eld','dashcam','dashcam_cover','door_signs','ifta'].map((k, i) => ({
+    cr6cd_dixcxlequipmentid: `eq-0004-${i}`,
+    cr6cd_name: `${k} - 799`,
+    cr6cd_equipmentkey: k,
+    cr6cd_displayname: ({
+      eld: 'ELD', dashcam: 'DashCam', dashcam_cover: 'DashCam Cover',
+      door_signs: 'Door Signs', ifta: 'IFTA',
+    } as Record<string, string>)[k],
+    cr6cd_lifecyclestate: 100000001,
+    cr6cd_returneddate: '2026-04-15',
+    _cr6cd_equipmentcancellation_value: 'cx-0004',
+  })),
+  // Cancellation cx-0005 (Released) — all returned, status flagged Released
+  ...['eld','dashcam','dashcam_cover','door_signs','ifta','license_plate'].map((k, i) => ({
+    cr6cd_dixcxlequipmentid: `eq-0005-${i}`,
+    cr6cd_name: `${k} - 658`,
+    cr6cd_equipmentkey: k,
+    cr6cd_displayname: ({
+      eld: 'ELD', dashcam: 'DashCam', dashcam_cover: 'DashCam Cover',
+      door_signs: 'Door Signs', ifta: 'IFTA', license_plate: 'License Plate',
+    } as Record<string, string>)[k],
+    cr6cd_lifecyclestate: 100000001,
+    cr6cd_returneddate: '2026-04-12',
+    _cr6cd_equipmentcancellation_value: 'cx-0005',
+  })),
 ];
 
 export const ACTION_TYPE_LABELS: Record<number, string> = {

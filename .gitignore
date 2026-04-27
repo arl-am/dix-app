@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Local Dataverse auth cache (token + refresh token)
+scripts/.auth-cache.json
