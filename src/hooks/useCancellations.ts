@@ -15,6 +15,9 @@ const SELECT = [
   'cr6cd_dix_requestreturnlabel', 'cr6cd_dix_returnlabelurl', 'cr6cd_dix_rltrackingnumber',
   'cr6cd_dix_forfeit',
   'cr6cd_dix_elddeposit', 'cr6cd_dix_dashcamdeposit', 'cr6cd_dix_pdideposit',
+  'cr6cd_dix_transferredtounit', 'cr6cd_dix_prepassnumber', 'cr6cd_dix_rfidnumber',
+  'cr6cd_dix_platenumber', 'cr6cd_dix_fleetnumber',
+  'cr6cd_dix_logsfromdate', 'cr6cd_dix_logstodate', 'cr6cd_dix_bypassagentaddress',
   'cr6cd_dix_notes', 'cr6cd_dix_requestdate',
   '_cr6cd_dix_cancagent_value', '_cr6cd_dix_cancdriver_value',
   'createdon', 'modifiedon',
@@ -31,15 +34,28 @@ async function fetchCancellations(): Promise<Cancellation[]> {
   const { dataSourcesInfo } = await import('../../.power/schemas/appschemas/dataSourcesInfo');
   const client = getClient(dataSourcesInfo);
 
-  const result: any = await client.retrieveMultipleRecordsAsync('cr6cd_dix_cancellations', {
-    select: SELECT,
-    orderBy: ['createdon desc'],
-    top: 500,
-  });
-  const data = (result.data || []) as any[];
+  // Fetch cancellations + agents in parallel so we can resolve the terminal
+  // lookup to its numeric `cr6cd_terminal` (the agent's primary name shows up
+  // as "1683 - 1683" via the formatted-value annotation, which is wrong).
+  const [cxlResult, agentResult]: [any, any] = await Promise.all([
+    client.retrieveMultipleRecordsAsync('cr6cd_dix_cancellations', {
+      select: SELECT,
+      orderBy: ['createdon desc'],
+      top: 500,
+    }),
+    client.retrieveMultipleRecordsAsync('cr6cd_agentses', {
+      select: ['cr6cd_agentsid', 'cr6cd_terminal'],
+      top: 500,
+    }),
+  ]);
+  const agentTerminalById = new Map<string, string>();
+  for (const a of (agentResult.data || []) as any[]) {
+    agentTerminalById.set(a.cr6cd_agentsid, a.cr6cd_terminal || '');
+  }
+  const data = (cxlResult.data || []) as any[];
   return data.map((d) => ({
     ...d,
-    terminal: d['_cr6cd_dix_cancagent_value@OData.Community.Display.V1.FormattedValue'] || '',
+    terminal: agentTerminalById.get(d._cr6cd_dix_cancagent_value || '') || '',
     driverName: d.cr6cd_dix_drivername || '',
     driverCode: d.cr6cd_dix_drivercode || '',
     unitNumber: d.cr6cd_dix_unitnumber || '',

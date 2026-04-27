@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Search, Plus, LayoutGrid, Table } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Search, Plus, LayoutGrid, Table } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAgents } from '../hooks/useAgents';
 import { useCancellations, useCancellation } from '../hooks/useCancellations';
@@ -8,46 +8,41 @@ import {
   useSaveSubmit,
   useSeedEquipment,
   useUpdateEquipment,
-  useSaveFinalRelease,
-  useSetStatus,
+  useSaveIntakeExtras,
+  useSaveBypass,
 } from '../hooks/useCancellationMutation';
 import { usePresenceContext } from '../hooks/usePresence';
 import CustomSelect from '../components/CustomSelect';
 import CancelStepProgress from './cancellation/CancelStepProgress';
 import Step1Details, { type Step1Form } from './cancellation/Step1Details';
-import Step2Equipment from './cancellation/Step2Equipment';
-import Step4FinalRelease, { type Step3Form } from './cancellation/Step4FinalRelease';
+import Step2Equipment, { type IntakeExtras } from './cancellation/Step2Equipment';
+import Step3ReturnAddress from './cancellation/Step3ReturnAddress';
 import Step5Actions from './cancellation/Step5Actions';
 import CancellationKanban from './cancellation/CancellationKanban';
 import CancellationTable from './cancellation/CancellationTable';
 import TrackingModal from './cancellation/TrackingModal';
 import { cn } from '../lib/utils';
 import {
-  CXL_TYPE_LABELS,
   CXL_TYPE_OPTIONS,
-  CXL_STATUS,
   typeNeedsDriver,
   typeNeedsVendor,
   typeNeedsUnit,
   typeNeedsTrailer,
 } from '../lib/cancellationConstants';
-import { generateCancellationLetter } from '../lib/generateCancellationLetter';
 import type { Cancellation } from '../lib/mockData';
-
-const STEP_NEXT_LABELS = ['Next: Equipment', 'Next: Final Release', 'Next: Review', ''];
 
 // ─────────────────────── Listing ───────────────────────
 function CancellationListing({ onNew, onEdit }: { onNew: () => void; onEdit: (c: Cancellation) => void }) {
   const { data: cancellations = [], isLoading } = useCancellations();
+  const [search, setSearch] = useState('');
+  const [terminalFilter, setTerminalFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [view, setView] = useState<'kanban' | 'table'>('kanban');
   const [trackingId, setTrackingId] = useState<string | null>(null);
   const trackingCancellation = useMemo(
     () => cancellations.find((c) => c.cr6cd_dix_cancellationid === trackingId) ?? null,
     [cancellations, trackingId],
   );
-  const [search, setSearch] = useState('');
-  const [terminalFilter, setTerminalFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [view, setView] = useState<'kanban' | 'table'>('kanban');
 
   const filtered = cancellations.filter((c) => {
     const q = search.toLowerCase();
@@ -65,8 +60,8 @@ function CancellationListing({ onNew, onEdit }: { onNew: () => void; onEdit: (c:
   const terminals = [...new Set(cancellations.map((c) => c.terminal).filter((t): t is string => !!t))].sort();
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4 animate-fade-in">
+    <div className="p-6 animate-fade-in-up">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-foreground tracking-tight">Cancellations</h1>
           <p className="text-muted-foreground mt-1">Track driver, vendor, and unit cancellations through the full return lifecycle.</p>
@@ -154,7 +149,6 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
   const [step, setStep] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [cxlId, setCxlId] = useState<string | null>(cancellationId);
-  const [pdfBusy, setPdfBusy] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const { data: existing } = useCancellation(cxlId);
@@ -163,8 +157,8 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
   const saveSubmit = useSaveSubmit();
   const seedEquipment = useSeedEquipment();
   const updateEquipment = useUpdateEquipment();
-  const saveFinalRelease = useSaveFinalRelease();
-  const setStatus = useSetStatus();
+  const saveIntakeExtras = useSaveIntakeExtras();
+  const saveBypass = useSaveBypass();
 
   const [step1, setStep1] = useState<Step1Form>({
     canceltype: null,
@@ -183,19 +177,19 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
     submittedby: currentUser?.userName || '',
   });
 
-  const [step3, setStep3] = useState<Step3Form>({
-    lastitemreceived: '',
-    forfeit: false,
-    elddeposit: '',
-    dashcamdeposit: '',
-    pdideposit: '',
-    notes: '',
-    requestreturnlabel: false,
-    rltrackingnumber: '',
-    returnlabelurl: '',
+  const [extras, setExtras] = useState<IntakeExtras>({
+    transferredtounit: '',
+    prepassnumber: '',
+    rfidnumber: '',
+    platenumber: '',
+    fleetnumber: '',
+    logsfromdate: '',
+    logstodate: '',
   });
 
-  // Hydrate when editing an existing record.
+  const [bypass, setBypass] = useState(false);
+
+  // Hydrate from existing record.
   useEffect(() => {
     if (!existing) return;
     setStep1({
@@ -214,23 +208,22 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
       trailercode: existing.cr6cd_dix_trailercode || '',
       submittedby: existing.cr6cd_dix_submittedby || currentUser?.userName || '',
     });
-    setStep3({
-      lastitemreceived: existing.cr6cd_dix_lastitemreceived || '',
-      forfeit: !!existing.cr6cd_dix_forfeit,
-      elddeposit: existing.cr6cd_dix_elddeposit != null ? String(existing.cr6cd_dix_elddeposit) : '',
-      dashcamdeposit: existing.cr6cd_dix_dashcamdeposit != null ? String(existing.cr6cd_dix_dashcamdeposit) : '',
-      pdideposit: existing.cr6cd_dix_pdideposit != null ? String(existing.cr6cd_dix_pdideposit) : '',
-      notes: existing.cr6cd_dix_notes || '',
-      requestreturnlabel: !!existing.cr6cd_dix_requestreturnlabel,
-      rltrackingnumber: existing.cr6cd_dix_rltrackingnumber || '',
-      returnlabelurl: existing.cr6cd_dix_returnlabelurl || '',
+    setExtras({
+      transferredtounit: existing.cr6cd_dix_transferredtounit || '',
+      prepassnumber: existing.cr6cd_dix_prepassnumber || '',
+      rfidnumber: existing.cr6cd_dix_rfidnumber || '',
+      platenumber: existing.cr6cd_dix_platenumber || '',
+      fleetnumber: existing.cr6cd_dix_fleetnumber || '',
+      logsfromdate: existing.cr6cd_dix_logsfromdate || '',
+      logstodate: existing.cr6cd_dix_logstodate || '',
     });
+    setBypass(!!existing.cr6cd_dix_bypassagentaddress);
   }, [existing, currentUser]);
 
   useEffect(() => { contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); }, [step]);
 
   const selectedAgent = useMemo(() => agents.find((a) => a.cr6cd_agentsid === step1.agentId) || null, [agents, step1.agentId]);
-  const terminalLabel = selectedAgent ? `${selectedAgent.cr6cd_terminal} — ${selectedAgent.cr6cd_title}` : '';
+  const terminalLabel = selectedAgent ? `${selectedAgent.cr6cd_terminal} · ${selectedAgent.cr6cd_title}` : '';
   const cancellationName = existing?.cr6cd_dix_name || step1.unitnumber || step1.drivername || step1.vendorname || 'New Cancellation';
 
   const validateStep1 = (): string | null => {
@@ -245,8 +238,10 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
     return null;
   };
 
+  const isSaving = saveSubmit.isPending || seedEquipment.isPending || saveIntakeExtras.isPending || saveBypass.isPending;
+
   const goNext = async () => {
-    if (animating) return;
+    if (animating || isSaving) return;
     if (step === 0) {
       const err = validateStep1();
       if (err) { toast.error(err); return; }
@@ -280,22 +275,16 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
         toast.error('Failed to save: ' + (e instanceof Error ? e.message : String(e)));
         return;
       }
+    } else if (step === 1 && cxlId) {
+      try {
+        await saveIntakeExtras.mutateAsync({ cancellationId: cxlId, ...extras });
+      } catch (e) {
+        toast.error('Failed to save: ' + (e instanceof Error ? e.message : String(e)));
+        return;
+      }
     } else if (step === 2 && cxlId) {
       try {
-        await saveFinalRelease.mutateAsync({
-          cancellationId: cxlId,
-          lastitemreceived: step3.lastitemreceived || undefined,
-          forfeit: step3.forfeit,
-          elddeposit: step3.elddeposit ? parseFloat(step3.elddeposit) : undefined,
-          dashcamdeposit: step3.dashcamdeposit ? parseFloat(step3.dashcamdeposit) : undefined,
-          pdideposit: step3.pdideposit ? parseFloat(step3.pdideposit) : undefined,
-          notes: step3.notes || undefined,
-          requestreturnlabel: step3.requestreturnlabel,
-          rltrackingnumber: step3.rltrackingnumber || undefined,
-          returnlabelurl: step3.returnlabelurl || undefined,
-          allitemsrcvddate: step3.lastitemreceived || undefined,
-        });
-        toast.success('Final release saved.');
+        await saveBypass.mutateAsync({ cancellationId: cxlId, bypass });
       } catch (e) {
         toast.error('Failed to save: ' + (e instanceof Error ? e.message : String(e)));
         return;
@@ -305,158 +294,142 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
     setTimeout(() => { setStep((s) => Math.min(s + 1, 3)); setAnimating(false); }, 150);
   };
 
-  const goBack = () => {
+  const goPrev = () => {
     if (animating) return;
     setAnimating(true);
     setTimeout(() => { setStep((s) => Math.max(s - 1, 0)); setAnimating(false); }, 150);
   };
 
-  const onUpdateEquipmentRow = (id: string, patch: Partial<{ lifecycleState: number; returneddate: string; notes: string }>) => {
+  const onUpdateEquipmentRow = (id: string, lifecycleState: number) => {
     if (!cxlId) return;
-    const current = equipment.find((e) => e.cr6cd_dixcxlequipmentid === id);
-    const newLifecycle = patch.lifecycleState ?? current?.cr6cd_lifecyclestate ?? 100000000;
     updateEquipment.mutate({
       cancellationId: cxlId,
       equipmentId: id,
-      lifecycleState: newLifecycle,
-      returneddate: patch.returneddate,
-      notes: patch.notes,
+      lifecycleState,
     });
   };
 
-  const handleGeneratePdf = async () => {
-    if (!existing) return;
-    setPdfBusy(true);
-    try {
-      generateCancellationLetter({
-        cancellation: existing,
-        agent: selectedAgent,
-        equipment,
-        sentBy: currentUser?.userName || 'Operations',
-      });
-    } catch (e) {
-      toast.error('PDF failed: ' + (e instanceof Error ? e.message : String(e)));
-    } finally {
-      setPdfBusy(false);
-    }
-  };
-
-  const handleCreateEmailDraft = () => {
-    toast.info('Email draft flow not yet wired. Coming soon.');
-  };
-
-  const handleSetStatus = (status: number) => {
-    if (!cxlId) return;
-    setStatus.mutate({ cancellationId: cxlId, status }, {
-      onSuccess: () => {
-        toast.success(`Status updated.`);
-        if (status === CXL_STATUS.RELEASED) toast.success('Cancellation released.');
-      },
-      onError: () => toast.error('Failed to update status'),
-    });
-  };
-
-  const animClass = animating ? 'opacity-0 translate-y-3 scale-[0.99]' : 'opacity-100 translate-y-0 scale-100';
+  const animClass = animating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0';
 
   return (
-    <div className="p-6 animate-fade-in-up">
-      <div className="mb-6 flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-input bg-background shadow-sm transition-all duration-200 hover:bg-accent active:scale-95"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        <h1 className="text-2xl font-semibold text-foreground tracking-tight">
-          {cancellationId || cxlId ? 'Edit Cancellation' : 'New Cancellation'}
-        </h1>
-        {cancellationName && (
-          <span className="ml-2 inline-flex items-center rounded-md bg-primary/10 text-primary px-2.5 py-1 text-xs font-bold">
-            {cancellationName}
-          </span>
-        )}
-      </div>
+    <div className="h-full flex flex-col animate-fade-in-up">
+      <div className="flex-1 overflow-auto p-6 pb-4" ref={contentRef}>
+        <div className="flex justify-center">
+          <div className="w-full max-w-[1280px] bg-card border border-border rounded-xl shadow-sm overflow-hidden">
 
-      <div className="flex-1 flex justify-center">
-        <div className="w-full max-w-[1280px] bg-card border border-border rounded-xl shadow-sm">
-          <div className="p-8" ref={contentRef}>
-            <CancelStepProgress current={step} />
-
-            <div className={`transition-all duration-200 ease-out ${animClass}`}>
-              {step === 0 && (
-                <Step1Details
-                  form={step1}
-                  onChange={(field, value) => setStep1((f) => ({ ...f, [field]: value }))}
-                  agents={agents}
-                />
-              )}
-              {step === 1 && (
-                <Step2Equipment
-                  equipment={equipment}
-                  isLoading={loadingEquipment}
-                  onUpdate={onUpdateEquipmentRow}
-                  cancellationName={cancellationName}
-                  terminalLabel={terminalLabel}
-                />
-              )}
-              {step === 2 && (
-                <Step4FinalRelease
-                  form={step3}
-                  onChange={(field, value) => setStep3((f) => ({ ...f, [field]: value }))}
-                  cancellationName={cancellationName}
-                  terminalLabel={terminalLabel}
-                  driverName={step1.drivername}
-                />
-              )}
-              {step === 3 && existing && (
-                <Step5Actions
-                  cancellation={existing}
-                  equipment={equipment}
-                  terminalLabel={terminalLabel}
-                  onSetStatus={handleSetStatus}
-                  onGeneratePdf={handleGeneratePdf}
-                  onCreateEmailDraft={handleCreateEmailDraft}
-                  pdfBusy={pdfBusy}
-                />
-              )}
-              {step === 3 && !existing && (
-                <p className="text-sm text-muted-foreground p-8 text-center">Loading record...</p>
-              )}
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-card via-card to-primary/[0.04]">
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={onBack}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-input bg-background shadow-sm transition-all duration-200 hover:bg-accent active:scale-95"
+                  aria-label="Back to listing"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+                <div>
+                  <h1 className="text-lg font-bold text-foreground tracking-tight">
+                    {cancellationId || cxlId ? 'Edit Cancellation' : 'New Cancellation'}
+                  </h1>
+                  <p className="text-[11px] text-muted-foreground">
+                    {cxlId ? `Updating ${cancellationName}` : 'Capture intake details, requirements, and return address.'}
+                  </p>
+                </div>
+                <div className="flex-1" />
+                <div className="flex items-center gap-2 flex-wrap">
+                  {step1.unitnumber && <InfoChip label="Unit" value={step1.unitnumber} />}
+                  {selectedAgent && <InfoChip label="Terminal" value={selectedAgent.cr6cd_terminal} />}
+                  {step1.drivername && <InfoChip label="Driver" value={step1.drivername} />}
+                  {step1.vendorname && <InfoChip label="Vendor" value={step1.vendorname} />}
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-              <div>
-                {step > 0 && (
-                  <button
-                    onClick={goBack}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium border border-input bg-background shadow-sm hover:bg-accent active:scale-95 h-9 px-4 py-2"
-                  >
-                    <ArrowLeft className="w-4 h-4" /> Back
-                  </button>
+            <div className="p-8">
+              <CancelStepProgress current={step} />
+
+              <div className={`transition-all duration-200 ease-out ${animClass}`}>
+                {step === 0 && (
+                  <Step1Details
+                    form={step1}
+                    onChange={(field, value) => setStep1((f) => ({ ...f, [field]: value }))}
+                    agents={agents}
+                  />
                 )}
-              </div>
-              <div className="flex items-center gap-3">
-                {step < 3 ? (
-                  <button
-                    onClick={goNext}
-                    disabled={saveSubmit.isPending || saveFinalRelease.isPending}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium text-white h-9 px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-95 min-w-[160px] disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {saveSubmit.isPending || saveFinalRelease.isPending ? 'Saving...' : STEP_NEXT_LABELS[step]} {!saveSubmit.isPending && <ArrowRight className="w-4 h-4" />}
-                  </button>
-                ) : (
-                  <button
-                    onClick={onBack}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium text-white h-9 px-4 py-2 bg-[#10B981] hover:bg-[#059669] active:scale-95"
-                  >
-                    Back to Cancellations
-                  </button>
+                {step === 1 && (
+                  <Step2Equipment
+                    equipment={equipment}
+                    isLoading={loadingEquipment}
+                    onUpdate={onUpdateEquipmentRow}
+                    extras={extras}
+                    onExtraChange={(field, value) => setExtras((e) => ({ ...e, [field]: value }))}
+                  />
+                )}
+                {step === 2 && (
+                  <Step3ReturnAddress
+                    agent={selectedAgent}
+                    bypass={bypass}
+                    onBypassChange={setBypass}
+                  />
+                )}
+                {step === 3 && existing && (
+                  <Step5Actions
+                    cancellation={existing}
+                    equipment={equipment}
+                    agent={selectedAgent}
+                    terminalLabel={terminalLabel}
+                  />
+                )}
+                {step === 3 && !existing && (
+                  <p className="text-sm text-muted-foreground p-8 text-center">Loading record...</p>
                 )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <div className="shrink-0 border-t border-border/60 bg-background/80 backdrop-blur-xl px-6 py-3">
+        <div className="flex justify-center">
+          <div className="w-full max-w-[1280px] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {step > 0 && (
+                <button
+                  onClick={goPrev}
+                  disabled={isSaving}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium border border-input bg-background shadow-sm hover:bg-accent hover:-translate-x-0.5 transition-all duration-200 active:scale-95 h-9 px-4 disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Previous
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              {step < 3 ? (
+                <button
+                  onClick={goNext}
+                  disabled={isSaving}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium text-white h-9 px-4 bg-[#2563EB] hover:bg-[#1D4ED8] hover:translate-x-0.5 hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 active:scale-95 min-w-[120px] disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {isSaving ? 'Saving…' : 'Next'} {!isSaving && <ArrowRight className="w-4 h-4" />}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                  <CheckCircle className="w-4 h-4" />
+                  All sections saved
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 border border-border/60 px-2.5 py-0.5 text-[11px]">
+      <span className="font-bold text-muted-foreground uppercase tracking-wider text-[9px]">{label}</span>
+      <span className="font-semibold text-foreground">{value}</span>
     </div>
   );
 }
@@ -473,6 +446,3 @@ export default function NewCancellation() {
   if (mode === 'list') return <CancellationListing onNew={handleNew} onEdit={handleEdit} />;
   return <CancellationWizard cancellationId={editId} onBack={handleBack} />;
 }
-
-// Keep export to satisfy referenced symbols list
-export const _CXL_TYPE_LABELS = CXL_TYPE_LABELS;

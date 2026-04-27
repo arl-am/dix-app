@@ -1,27 +1,104 @@
-import { CircleCheck, FileText, Mail, ShieldX, ArrowRight, RotateCcw } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { CircleCheck, FileText, Mail, FileSignature, Download, ChevronDown } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn, formatDate } from '../../lib/utils';
 import {
   CXL_TYPE_LABELS,
   CXL_REASON_LABELS,
-  CXL_STATUS,
-  CXL_STATUS_LABELS,
-  CXL_STATUS_COLORS,
-  EQUIPMENT_LIFECYCLE,
   EQUIPMENT_LIFECYCLE_LABELS,
   EQUIPMENT_LIFECYCLE_COLORS,
+  EQUIPMENT_LIFECYCLE,
   equipmentProgress,
   tentativeReleaseDate,
 } from '../../lib/cancellationConstants';
-import type { Cancellation, CxlEquipment } from '../../lib/mockData';
+import { generateCancellationLetter } from '../../lib/generateCancellationLetter';
+import { usePresenceContext } from '../../hooks/usePresence';
+import FinalReleaseModal from './FinalReleaseModal';
+import type { Cancellation, CxlEquipment, Agent } from '../../lib/mockData';
 
 interface Props {
   cancellation: Cancellation;
   equipment: CxlEquipment[];
+  agent: Agent | null;
   terminalLabel: string;
-  onSetStatus: (status: number) => void;
-  onGeneratePdf: () => void;
-  onCreateEmailDraft: () => void;
-  pdfBusy: boolean;
+}
+
+function CollapsibleSection({ title, count, defaultOpen, children }: { title: string; count: number; defaultOpen?: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+  return (
+    <div className="rounded-xl border border-border/80 bg-card overflow-hidden transition-all duration-200 hover:shadow-sm">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full px-5 py-3.5 flex items-center justify-between group"
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="text-sm font-semibold text-foreground">{title}</span>
+          <span className="text-[11px] font-medium text-muted-foreground bg-muted/80 rounded-full px-2 py-0.5">{count}</span>
+        </div>
+        <div className={cn(
+          'w-6 h-6 rounded-full flex items-center justify-center bg-muted/60 group-hover:bg-muted transition-all duration-300',
+          open && 'rotate-180',
+        )}>
+          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+        </div>
+      </button>
+      <div className={cn(
+        'grid transition-all duration-300 ease-out',
+        open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+      )}>
+        <div className="overflow-hidden">
+          <div className="px-5 pb-5 pt-1">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DocumentCard({ name, icon: Icon, downloaded, loading, onClick }: { name: string; icon: React.ElementType; downloaded?: boolean; loading?: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className={cn(
+        'group relative flex flex-col items-center gap-2 rounded-xl border p-4 pt-5 text-left',
+        'transition-all duration-500 ease-out',
+        loading
+          ? 'border-primary/30 bg-primary/5 cursor-wait'
+          : downloaded
+            ? 'border-emerald-500/30 bg-emerald-500/5 shadow-sm shadow-emerald-500/10'
+            : 'border-border/80 bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 active:scale-[0.97]',
+      )}
+    >
+      <div className={cn(
+        'absolute top-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500',
+        loading ? 'bg-primary/20 text-primary'
+        : downloaded ? 'bg-emerald-500 text-white scale-100'
+        : 'bg-muted/60 text-muted-foreground scale-90 group-hover:bg-primary/10 group-hover:text-primary group-hover:scale-100',
+      )}>
+        {loading
+          ? <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          : downloaded ? <CircleCheck className="w-3.5 h-3.5" />
+          : <Download className="w-3 h-3 transition-transform duration-300 group-hover:translate-y-0.5" />}
+      </div>
+      <div className={cn(
+        'w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500',
+        loading ? 'bg-primary/10 text-primary animate-pulse'
+        : downloaded ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+        : 'bg-muted/40 text-primary group-hover:scale-110',
+      )}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <span className={cn(
+        'text-xs font-medium text-center leading-tight min-h-[2rem] flex items-center transition-colors duration-500',
+        loading ? 'text-primary' : downloaded ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
+      )}>
+        {loading ? 'Generating...' : name}
+      </span>
+    </button>
+  );
 }
 
 function SummaryRow({ label, value }: { label: string; value: string | undefined | null }) {
@@ -33,20 +110,37 @@ function SummaryRow({ label, value }: { label: string; value: string | undefined
   );
 }
 
-const STATUS_ACTIONS = [
-  { status: CXL_STATUS.IN_PROGRESS,        label: 'Mark In Progress',     icon: ArrowRight },
-  { status: CXL_STATUS.AWAITING_RETURNS,   label: 'Mark Awaiting Returns', icon: ArrowRight },
-  { status: CXL_STATUS.ALL_ITEMS_RECEIVED, label: 'Mark All Items Received', icon: CircleCheck },
-  { status: CXL_STATUS.RELEASED,           label: 'Release',              icon: CircleCheck },
-  { status: CXL_STATUS.FORFEIT,            label: 'Forfeit',              icon: ShieldX },
-  { status: CXL_STATUS.TRANSFERRED,        label: 'Transferred',          icon: ArrowRight },
-  { status: CXL_STATUS.REACTIVATED_NTL,    label: 'Reactivate (No Time Lost)', icon: RotateCcw },
-];
-
-export default function Step5Actions({ cancellation, equipment, terminalLabel, onSetStatus, onGeneratePdf, onCreateEmailDraft, pdfBusy }: Props) {
+export default function Step5Actions({ cancellation, equipment, agent, terminalLabel }: Props) {
   const c = cancellation;
+  const { currentUser } = usePresenceContext();
   const progress = equipmentProgress(equipment.map((e) => ({ lifecycleState: e.cr6cd_lifecyclestate })));
-  const currentStatus = c.cr6cd_dix_status ?? CXL_STATUS.NOT_STARTED;
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [letterDone, setLetterDone] = useState(false);
+  const [emailDone, setEmailDone] = useState(false);
+  const [finalReleaseOpen, setFinalReleaseOpen] = useState(false);
+
+  const handleGeneratePdf = async () => {
+    setPdfBusy(true);
+    try {
+      generateCancellationLetter({
+        cancellation: c,
+        agent,
+        equipment,
+        sentBy: currentUser?.userName || 'Operations',
+      });
+      setLetterDone(true);
+      toast.success('Cancellation letter downloaded');
+    } catch (e) {
+      toast.error('PDF failed: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setPdfBusy(false);
+    }
+  };
+
+  const handleCreateEmailDraft = () => {
+    setEmailDone(true);
+    toast.info('Email draft flow not yet wired. Coming soon.');
+  };
 
   return (
     <div className="space-y-6">
@@ -54,16 +148,12 @@ export default function Step5Actions({ cancellation, equipment, terminalLabel, o
         <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0">
           <CircleCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
         </div>
-        <div className="flex-1">
+        <div>
           <h3 className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Cancellation saved</h3>
-          <p className="text-xs text-emerald-700 dark:text-emerald-300">Review the summary, generate documents, and update status as the case moves through the pipeline.</p>
+          <p className="text-xs text-emerald-700 dark:text-emerald-300">
+            Review the summary, then generate documents and (when items are returned) finalize the release.
+          </p>
         </div>
-        <span
-          className="inline-flex items-center rounded-full border-transparent text-white px-3 py-1 text-xs font-bold"
-          style={{ backgroundColor: CXL_STATUS_COLORS[currentStatus] }}
-        >
-          {CXL_STATUS_LABELS[currentStatus]}
-        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -100,7 +190,12 @@ export default function Step5Actions({ cancellation, equipment, terminalLabel, o
         <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up" style={{ animationDelay: '40ms' }}>
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-base font-semibold text-foreground">Equipment</h3>
-            <span className="text-xs font-bold" style={{ color: progress.percent === 100 ? '#10B981' : '#3B82F6' }}>{progress.percent}%</span>
+            <span
+              className="text-xs font-bold"
+              style={{ color: progress.percent === 100 ? '#10B981' : '#3B82F6' }}
+            >
+              {progress.percent}%
+            </span>
           </div>
           <div className="p-3 max-h-[280px] overflow-y-auto">
             {equipment.map((e) => (
@@ -122,63 +217,51 @@ export default function Step5Actions({ cancellation, equipment, terminalLabel, o
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-base font-semibold text-foreground">Status Pipeline</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Move this cancellation through the lifecycle.</p>
-        </div>
-        <div className="p-6 flex flex-wrap gap-2">
-          {STATUS_ACTIONS.map(({ status, label, icon: Icon }) => {
-            const isCurrent = currentStatus === status;
-            return (
-              <button
-                key={status}
-                onClick={() => onSetStatus(status)}
-                disabled={isCurrent}
-                className={cn(
-                  'inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium border transition-all duration-200',
-                  isCurrent
-                    ? 'bg-primary/15 border-primary/40 text-primary cursor-default'
-                    : 'bg-background border-border text-foreground hover:bg-muted/50 hover:border-muted-foreground/40 active:scale-95',
-                )}
-              >
-                <Icon className="w-3.5 h-3.5" /> {label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-card border border-border rounded-xl shadow-sm p-5 animate-fade-in-up">
-          <div className="flex items-center gap-3 mb-2">
-            <FileText className="w-5 h-5 text-primary" />
-            <h4 className="text-sm font-semibold text-foreground">Cancellation Letter</h4>
+      <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '120ms' }}>
+        <div className="flex items-center gap-3 px-1">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Download className="w-4 h-4 text-primary" />
           </div>
-          <p className="text-xs text-muted-foreground mb-3">Generate a formal cancellation letter PDF with the motor carrier letterhead.</p>
-          <button
-            onClick={onGeneratePdf}
-            disabled={pdfBusy}
-            className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-9 px-4 py-2 bg-[#2563EB] text-white transition-all duration-200 hover:bg-[#1D4ED8] hover:shadow-lg hover:shadow-primary/25 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {pdfBusy ? 'Generating...' : 'Generate PDF'}
-          </button>
+          <div>
+            <h4 className="text-sm font-semibold text-foreground">Generate Documents</h4>
+            <p className="text-[11px] text-muted-foreground">Letters, emails, and the final-release workflow live here.</p>
+          </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl shadow-sm p-5 animate-fade-in-up" style={{ animationDelay: '40ms' }}>
-          <div className="flex items-center gap-3 mb-2">
-            <Mail className="w-5 h-5 text-primary" />
-            <h4 className="text-sm font-semibold text-foreground">Cancellation Email</h4>
+        <CollapsibleSection title="Cancellation" count={2} defaultOpen>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <DocumentCard
+              name="Cancellation Letter"
+              icon={FileText}
+              loading={pdfBusy}
+              downloaded={letterDone}
+              onClick={handleGeneratePdf}
+            />
+            <DocumentCard
+              name="Cancellation Email"
+              icon={Mail}
+              downloaded={emailDone}
+              onClick={handleCreateEmailDraft}
+            />
           </div>
-          <p className="text-xs text-muted-foreground mb-3">Create a Front email draft for the terminal compliance contact (uses Power Automate flag pattern).</p>
-          <button
-            onClick={onCreateEmailDraft}
-            className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-9 px-4 py-2 bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700 active:scale-95"
-          >
-            Create Draft
-          </button>
-        </div>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="Final Release" count={1}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <DocumentCard
+              name="Final Release"
+              icon={FileSignature}
+              downloaded={!!c.cr6cd_dix_lastitemreceived}
+              onClick={() => setFinalReleaseOpen(true)}
+            />
+          </div>
+        </CollapsibleSection>
       </div>
+
+      <FinalReleaseModal
+        cancellation={finalReleaseOpen ? cancellation : null}
+        onClose={() => setFinalReleaseOpen(false)}
+      />
     </div>
   );
 }

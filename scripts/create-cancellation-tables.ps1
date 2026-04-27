@@ -249,9 +249,9 @@ function Add-OptionValue {
         Start-Sleep -Milliseconds 500
     } catch {
         $msg = ""
-        if ($_.Exception.ErrorDetails -and $_.Exception.ErrorDetails.Message) { $msg = $_.Exception.ErrorDetails.Message }
+        if ($_.ErrorDetails -and $_.ErrorDetails.Message) { $msg = $_.ErrorDetails.Message }
         else { $msg = $_.Exception.Message }
-        if ($msg -match "duplicate" -or $msg -match "already" -or $msg -match "0x80048408") {
+        if ($msg -match "duplicate" -or $msg -match "already" -or $msg -match "0x80048408" -or $msg -match "0x80044310" -or $msg -match "another picklist or status option for this optionSet already exists") {
             Write-Host "  = option $LabelText (already present, skipped)" -ForegroundColor DarkGray
         } else {
             Write-Host "  ! option $LabelText failed: $msg" -ForegroundColor Red
@@ -378,6 +378,16 @@ Add-Column "cr6cd_dix_cancellation" (BoolCol    "cr6cd_dix_forfeit"           "F
 Add-Column "cr6cd_dix_cancellation" (CurrencyCol "cr6cd_dix_elddeposit"       "ELD Deposit")
 Add-Column "cr6cd_dix_cancellation" (CurrencyCol "cr6cd_dix_dashcamdeposit"   "DashCam Deposit")
 Add-Column "cr6cd_dix_cancellation" (CurrencyCol "cr6cd_dix_pdideposit"       "PDI Deposit")
+
+# Conditional intake fields (driven by equipment chip selections in the wizard)
+Add-Column "cr6cd_dix_cancellation" (StringCol  "cr6cd_dix_transferredtounit" "Items Transferred To Unit"  100)
+Add-Column "cr6cd_dix_cancellation" (StringCol  "cr6cd_dix_prepassnumber"     "PrePass Number"             100)
+Add-Column "cr6cd_dix_cancellation" (StringCol  "cr6cd_dix_rfidnumber"        "RFID Number"                100)
+Add-Column "cr6cd_dix_cancellation" (StringCol  "cr6cd_dix_platenumber"       "Plate Number"               100)
+Add-Column "cr6cd_dix_cancellation" (StringCol  "cr6cd_dix_fleetnumber"       "Fleet Number"               50)
+Add-Column "cr6cd_dix_cancellation" (DateCol    "cr6cd_dix_logsfromdate"      "Logs From Date")
+Add-Column "cr6cd_dix_cancellation" (DateCol    "cr6cd_dix_logstodate"        "Logs To Date")
+Add-Column "cr6cd_dix_cancellation" (BoolCol    "cr6cd_dix_bypassagentaddress" "Bypass Agent Address")
 
 # =====================================================================
 # STEP 2 - Create cr6cd_dixcxlequipment (new table, new naming convention)

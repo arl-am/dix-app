@@ -19,6 +19,7 @@ async function fetchAgents(): Promise<Agent[]> {
       'cr6cd_rfidvalue', 'cr6cd_rfidmandatory', 'cr6cd_trailerusagevalue',
       'cr6cd_trailerusagerequired', 'cr6cd_trailerusageadminfee', 'cr6cd_hazmatrequired',
       'cr6cd_workerscomprequired', 'cr6cd_complianceagentemails', 'cr6cd_addmoveagentemail',
+      'cr6cd_inventoryterminal', 'cr6cd_inventoryreturnaddress', 'cr6cd_noninventoryreturnaddress',
     ],
     orderBy: ['cr6cd_terminal asc'],
   });

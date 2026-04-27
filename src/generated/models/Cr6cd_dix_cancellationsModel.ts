@@ -56,6 +56,7 @@ export interface Cr6cd_dix_cancellationsBase {
   cr6cd_dix_amount?: number;
   cr6cd_dix_approved?: boolean;
   cr6cd_dix_assignee?: string;
+  cr6cd_dix_bypassagentaddress?: boolean;
   "cr6cd_dix_cancagent@odata.bind"?: string;
   "cr6cd_dix_cancdriver@odata.bind"?: string;
   cr6cd_dix_canceldate?: string;
@@ -70,21 +71,28 @@ export interface Cr6cd_dix_cancellationsBase {
   cr6cd_dix_driverphone?: string;
   cr6cd_dix_duedate?: string;
   cr6cd_dix_elddeposit?: number;
+  cr6cd_dix_fleetnumber?: string;
   cr6cd_dix_forfeit?: boolean;
   cr6cd_dix_lastitemreceived?: string;
+  cr6cd_dix_logsfromdate?: string;
+  cr6cd_dix_logstodate?: string;
   cr6cd_dix_name: string;
   cr6cd_dix_notes?: string;
   cr6cd_dix_pdideposit?: number;
+  cr6cd_dix_platenumber?: string;
+  cr6cd_dix_prepassnumber?: string;
   cr6cd_dix_reason?: string;
   cr6cd_dix_reasondetails?: string;
   cr6cd_dix_requestdate?: string;
   cr6cd_dix_requestreturnlabel?: boolean;
   cr6cd_dix_returnlabelurl?: string;
+  cr6cd_dix_rfidnumber?: string;
   cr6cd_dix_rltrackingnumber?: string;
   cr6cd_dix_startdate?: string;
   cr6cd_dix_status?: Cr6cd_dix_cancellationscr6cd_dix_status;
   cr6cd_dix_submittedby?: string;
   cr6cd_dix_trailercode?: string;
+  cr6cd_dix_transferredtounit?: string;
   cr6cd_dix_unitnumber?: string;
   cr6cd_dix_vendorcode?: string;
   cr6cd_dix_vendorname?: string;
@@ -102,6 +110,7 @@ export interface Cr6cd_dix_cancellationsBase {
 export interface Cr6cd_dix_cancellations extends Cr6cd_dix_cancellationsBase {
   cr6cd_dix_amount_base?: number;
   cr6cd_dix_approvedname?: string;
+  cr6cd_dix_bypassagentaddressname?: string;
   cr6cd_dix_cancagentname?: string;
   cr6cd_dix_cancdrivername?: string;
   cr6cd_dix_cancelreasonname?: string;

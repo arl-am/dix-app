@@ -158,6 +158,63 @@ export function useUpdateEquipment() {
   });
 }
 
+// ─────────────────────── Step 2: conditional intake fields ───────────────────────
+export interface SaveIntakeExtrasInput {
+  cancellationId: string;
+  transferredtounit?: string;
+  prepassnumber?: string;
+  rfidnumber?: string;
+  platenumber?: string;
+  fleetnumber?: string;
+  logsfromdate?: string;
+  logstodate?: string;
+}
+
+async function saveIntakeExtras(input: SaveIntakeExtrasInput): Promise<void> {
+  const payload = strip({
+    cr6cd_dix_transferredtounit: input.transferredtounit,
+    cr6cd_dix_prepassnumber: input.prepassnumber,
+    cr6cd_dix_rfidnumber: input.rfidnumber,
+    cr6cd_dix_platenumber: input.platenumber,
+    cr6cd_dix_fleetnumber: input.fleetnumber,
+    cr6cd_dix_logsfromdate: input.logsfromdate,
+    cr6cd_dix_logstodate: input.logstodate,
+  });
+  if (isLocal) { console.log('[mock] saveIntakeExtras →', input.cancellationId, payload); return; }
+  const client = await getDV();
+  await client.updateRecordAsync('cr6cd_dix_cancellations', input.cancellationId, payload);
+}
+
+export function useSaveIntakeExtras() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: saveIntakeExtras,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['cancellations'] }),
+  });
+}
+
+// ─────────────────────── Step 3: bypass agent address ───────────────────────
+export interface SaveBypassInput {
+  cancellationId: string;
+  bypass: boolean;
+}
+
+async function saveBypass(input: SaveBypassInput): Promise<void> {
+  if (isLocal) { console.log('[mock] saveBypass →', input); return; }
+  const client = await getDV();
+  await client.updateRecordAsync('cr6cd_dix_cancellations', input.cancellationId, {
+    cr6cd_dix_bypassagentaddress: input.bypass,
+  });
+}
+
+export function useSaveBypass() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: saveBypass,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['cancellations'] }),
+  });
+}
+
 // ─────────────────────── Step 4: final release ───────────────────────
 export interface SaveFinalReleaseInput {
   cancellationId: string;

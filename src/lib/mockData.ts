@@ -37,6 +37,9 @@ export interface Agent {
   cr6cd_workerscomprequired: string;
   cr6cd_complianceagentemails: string;
   cr6cd_addmoveagentemail: string;
+  cr6cd_inventoryterminal?: boolean;
+  cr6cd_inventoryreturnaddress?: string;
+  cr6cd_noninventoryreturnaddress?: string;
 }
 
 export interface Driver {
@@ -127,6 +130,14 @@ export interface Cancellation {
   cr6cd_dix_elddeposit?: number;
   cr6cd_dix_dashcamdeposit?: number;
   cr6cd_dix_pdideposit?: number;
+  cr6cd_dix_transferredtounit?: string;
+  cr6cd_dix_prepassnumber?: string;
+  cr6cd_dix_rfidnumber?: string;
+  cr6cd_dix_platenumber?: string;
+  cr6cd_dix_fleetnumber?: string;
+  cr6cd_dix_logsfromdate?: string;
+  cr6cd_dix_logstodate?: string;
+  cr6cd_dix_bypassagentaddress?: boolean;
   _cr6cd_dix_cancagent_value?: string;
 
   createdon?: string;
@@ -204,6 +215,9 @@ export const MOCK_AGENTS: Agent[] = [
     cr6cd_workerscomprequired: 'Yes',
     cr6cd_complianceagentemails: 'compliance@arlnetwork.com',
     cr6cd_addmoveagentemail: 'addmove@arlnetwork.com',
+    cr6cd_inventoryterminal: true,
+    cr6cd_inventoryreturnaddress: '4500 Dawn Ave, Suite 200\nMiami, FL 33101\nAttn: ARL Inventory Receiving',
+    cr6cd_noninventoryreturnaddress: '1234 Driver Way\nMiami, FL 33102\nAttn: Driver Returns Desk',
   },
   {
     cr6cd_agentsid: 'a1b2c3d4-0002-0002-0002-000000000002',

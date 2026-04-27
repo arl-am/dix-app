@@ -71,6 +71,37 @@
           "x-ms-schema-name": "cr6cd_dix_assignee",
           "maxLength": 200
         },
+        "cr6cd_dix_bypassagentaddress": {
+          "type": "string",
+          "title": "Bypass Agent Address",
+          "x-ms-dataverse-attribute": "cr6cd_dix_bypassagentaddress",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr6cd_dix_bypassagentaddress",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "a2d7d6c3-8442-f111-88b3-70a8a53ff434",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Bypass Agent Address",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr6cd_dix_bypassagentaddressname": {
+          "type": "string",
+          "title": "cr6cd_dix_bypassagentaddressname",
+          "x-ms-dataverse-attribute": "cr6cd_dix_bypassagentaddressname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr6cd_dix_bypassagentaddressName",
+          "x-ms-read-only": true
+        },
         "cr6cd_dix_cancagent": {
           "type": "string",
           "title": "Terminal Agent",
@@ -306,6 +337,14 @@
           "x-ms-schema-name": "cr6cd_dix_elddeposit_Base",
           "x-ms-read-only": true
         },
+        "cr6cd_dix_fleetnumber": {
+          "type": "string",
+          "title": "Fleet Number",
+          "x-ms-dataverse-attribute": "cr6cd_dix_fleetnumber",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_fleetnumber",
+          "maxLength": 50
+        },
         "cr6cd_dix_forfeit": {
           "type": "string",
           "title": "Forfeit Deposits",
@@ -344,6 +383,20 @@
           "x-ms-dataverse-type": "DateTimeType",
           "x-ms-schema-name": "cr6cd_dix_lastitemreceived"
         },
+        "cr6cd_dix_logsfromdate": {
+          "type": "string",
+          "title": "Logs From Date",
+          "x-ms-dataverse-attribute": "cr6cd_dix_logsfromdate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr6cd_dix_logsfromdate"
+        },
+        "cr6cd_dix_logstodate": {
+          "type": "string",
+          "title": "Logs To Date",
+          "x-ms-dataverse-attribute": "cr6cd_dix_logstodate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr6cd_dix_logstodate"
+        },
         "cr6cd_dix_name": {
           "type": "string",
           "title": "Name",
@@ -376,6 +429,22 @@
           "x-ms-dataverse-type": "MoneyType",
           "x-ms-schema-name": "cr6cd_dix_pdideposit_Base",
           "x-ms-read-only": true
+        },
+        "cr6cd_dix_platenumber": {
+          "type": "string",
+          "title": "Plate Number",
+          "x-ms-dataverse-attribute": "cr6cd_dix_platenumber",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_platenumber",
+          "maxLength": 100
+        },
+        "cr6cd_dix_prepassnumber": {
+          "type": "string",
+          "title": "PrePass Number",
+          "x-ms-dataverse-attribute": "cr6cd_dix_prepassnumber",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_prepassnumber",
+          "maxLength": 100
         },
         "cr6cd_dix_reason": {
           "type": "string",
@@ -438,6 +507,14 @@
           "x-ms-dataverse-type": "StringType",
           "x-ms-schema-name": "cr6cd_dix_returnlabelurl",
           "maxLength": 500
+        },
+        "cr6cd_dix_rfidnumber": {
+          "type": "string",
+          "title": "RFID Number",
+          "x-ms-dataverse-attribute": "cr6cd_dix_rfidnumber",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_rfidnumber",
+          "maxLength": 100
         },
         "cr6cd_dix_rltrackingnumber": {
           "type": "string",
@@ -520,6 +597,14 @@
           "x-ms-dataverse-attribute": "cr6cd_dix_trailercode",
           "x-ms-dataverse-type": "StringType",
           "x-ms-schema-name": "cr6cd_dix_trailercode",
+          "maxLength": 100
+        },
+        "cr6cd_dix_transferredtounit": {
+          "type": "string",
+          "title": "Items Transferred To Unit",
+          "x-ms-dataverse-attribute": "cr6cd_dix_transferredtounit",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr6cd_dix_transferredtounit",
           "maxLength": 100
         },
         "cr6cd_dix_unitnumber": {

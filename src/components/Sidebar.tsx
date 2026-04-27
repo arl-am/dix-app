@@ -21,7 +21,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/', icon: LayoutGrid },
   { label: 'Search Records', path: '/drivers', icon: Database },
   { label: 'New Entry', path: '/new-driver', icon: CirclePlus },
-  { label: 'New Cancellation', path: '/cancellations', icon: CircleX },
+  { label: 'Cancellations', path: '/cancellations', icon: CircleX },
   { label: 'Quick Forms', path: '/documents', icon: FileText },
 ];
 
