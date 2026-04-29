@@ -38,13 +38,13 @@ function inlineInput(
 ) {
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</label>
+      <label className="eq-label text-[10px] font-bold uppercase tracking-wider">{label}</label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-8 rounded-md border border-input bg-white/80 px-2.5 text-xs shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+        className="eq-input w-full h-8 rounded-md border border-input px-2.5 text-xs shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
       />
     </div>
   );
@@ -97,7 +97,7 @@ export default function Step2Equipment({ equipment, isLoading, onPrimaryChange, 
                     <div className="grid grid-cols-2 gap-2">
                       {inlineInput('Plate Number', extras.platenumber, (v) => onExtraChange('platenumber', v), 'ABC-1234')}
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Fleet</label>
+                        <label className="eq-label text-[10px] font-bold uppercase tracking-wider">Fleet</label>
                         <CustomSelect
                           options={FLEET_OPTIONS}
                           value={extras.fleetnumber}
@@ -111,7 +111,7 @@ export default function Step2Equipment({ equipment, isLoading, onPrimaryChange, 
                 } else if (isRequired && key === 'logs') {
                   inline = (
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Logs Date Range</label>
+                      <label className="eq-label text-[10px] font-bold uppercase tracking-wider">Logs Date Range</label>
                       <div className="grid grid-cols-2 gap-2">
                         <DatePicker
                           value={extras.logsfromdate}
@@ -147,24 +147,22 @@ export default function Step2Equipment({ equipment, isLoading, onPrimaryChange, 
 
       {anyTransferred && (
         <div
-          className="rounded-xl border-2 overflow-hidden"
+          className="eq-transfer-panel rounded-xl border-2 overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
-            borderColor: '#C4B5FD',
             animation: 'fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both',
           }}
         >
-          <div className="px-5 py-3 flex items-center gap-2.5 border-b border-purple-200/60">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#8B5CF6' }}>
+          <div className="eq-transfer-divider px-5 py-3 flex items-center gap-2.5 border-b">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-[#8B5CF6]">
               <ArrowRightLeft className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1">
-              <h4 className="text-sm font-bold text-purple-900">Transfer Destination</h4>
-              <p className="text-[11px] text-purple-700">At least one item is being transferred — tell us where it's going.</p>
+              <h4 className="eq-transfer-title text-sm font-bold">Transfer Destination</h4>
+              <p className="eq-transfer-body text-[11px]">At least one item is being transferred — tell us where it's going.</p>
             </div>
           </div>
           <div className="p-5">
-            <label className="text-xs font-semibold text-purple-900 mb-1.5 inline-flex items-center gap-1.5">
+            <label className="eq-transfer-title text-xs font-semibold mb-1.5 inline-flex items-center gap-1.5">
               <Truck className="w-3.5 h-3.5" />
               Items transferred to unit
               <span className="text-rose-600">*</span>
@@ -174,7 +172,7 @@ export default function Step2Equipment({ equipment, isLoading, onPrimaryChange, 
               value={extras.transferredtounit}
               onChange={(e) => onExtraChange('transferredtounit', e.target.value)}
               placeholder="Enter unit number"
-              className="w-full h-10 rounded-lg border-2 border-purple-300 bg-white/80 px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-[#8B5CF6] focus:ring-2 focus:ring-purple-200 placeholder:text-purple-400/70"
+              className="eq-transfer-input w-full h-10 rounded-lg border-2 px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-[#8B5CF6] focus:ring-2 focus:ring-purple-200/50"
             />
           </div>
         </div>

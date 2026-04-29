@@ -34,9 +34,7 @@ export default function EquipmentRequirementCard({
       className={cn(
         'group relative rounded-2xl border overflow-hidden',
         'transition-all duration-500 ease-out hover:-translate-y-0.5',
-        isRequired
-          ? 'bg-gradient-to-br from-[#FFFAF3] to-[#FFEFDC] border-orange-200 hover:border-orange-300 hover:shadow-[0_10px_28px_-10px_rgba(249,115,22,0.32)] dark:from-orange-950/40 dark:to-orange-950/15 dark:border-orange-900/40'
-          : 'bg-card border-border/80 hover:border-foreground/15 hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.12)]',
+        isRequired ? 'eq-required-card' : 'bg-card border-border/80 hover:border-foreground/15 hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.12)]',
       )}
       style={{
         animation: 'card-pop-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both',
@@ -51,12 +49,15 @@ export default function EquipmentRequirementCard({
         <div
           className={cn(
             'relative grid grid-cols-2 rounded-xl p-1 h-9 isolate transition-colors duration-500',
-            isRequired ? 'bg-orange-200/45 dark:bg-orange-950/40' : 'bg-muted/70',
+            isRequired ? 'eq-required-track' : 'bg-muted/70',
           )}
         >
           <span
             aria-hidden
-            className="absolute top-1 bottom-1 rounded-lg bg-card transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            className={cn(
+              'absolute top-1 bottom-1 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
+              isRequired ? 'eq-required-pill' : 'bg-card',
+            )}
             style={{
               left: isRequired ? '4px' : '50%',
               right: isRequired ? '50%' : '4px',
@@ -69,7 +70,7 @@ export default function EquipmentRequirementCard({
             className={cn(
               'relative z-10 inline-flex items-center justify-center gap-1.5 text-xs font-semibold tracking-tight',
               'transition-colors duration-200 active:scale-[0.97]',
-              isRequired ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80',
+              isRequired ? 'eq-text-active' : 'text-muted-foreground hover:text-foreground/80',
             )}
           >
             <span
@@ -84,7 +85,7 @@ export default function EquipmentRequirementCard({
             className={cn(
               'relative z-10 inline-flex items-center justify-center gap-1.5 text-xs font-semibold tracking-tight',
               'transition-colors duration-200 active:scale-[0.97]',
-              !isRequired ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80',
+              !isRequired ? 'text-foreground' : 'eq-text-inactive',
             )}
           >
             <span
@@ -115,7 +116,7 @@ export default function EquipmentRequirementCard({
         {children && (
           <div className={cn(
             'pt-3 border-t -mx-4 px-4 transition-colors duration-500',
-            isRequired ? 'border-orange-200/60 dark:border-orange-900/30' : 'border-border/60',
+            isRequired ? 'eq-required-content-border' : 'border-border/60',
           )}>{children}</div>
         )}
       </div>
