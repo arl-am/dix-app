@@ -57,24 +57,40 @@ export default function TrackingModal({ cancellation, onClose, onOpenWizard }: P
     return deriveTags({
       status: cancellation.cr6cd_dix_status,
       forfeit: isForfeit,
-      equipment: sorted.map((e) => ({ lifecycleState: e.cr6cd_lifecyclestate })),
+      equipment: sorted.map((e) => ({
+        lifecycleState: e.cr6cd_lifecyclestate,
+        istransferred: e.cr6cd_istransferred,
+        isreactivated: e.cr6cd_isreactivated,
+      })),
     });
   }, [cancellation, isForfeit, sorted]);
 
-  const handleEqUpdate = (id: string, patch: Partial<{ lifecycleState: number; returneddate: string; notes: string }>) => {
+  const handleEqUpdate = (
+    id: string,
+    patch: Partial<{
+      lifecycleState: number;
+      returneddate: string;
+      notes: string;
+      istransferred: boolean;
+      isreactivated: boolean;
+    }>,
+  ) => {
     if (!cxlId) return;
     const current = equipment.find((e) => e.cr6cd_dixcxlequipmentid === id);
+    const isLifecycleChange = patch.lifecycleState !== undefined;
     const newLifecycle = patch.lifecycleState ?? current?.cr6cd_lifecyclestate ?? EQUIPMENT_LIFECYCLE.NEED;
-    const returneddate = patch.returneddate ??
-      (newLifecycle === EQUIPMENT_LIFECYCLE.RETURNED && !current?.cr6cd_returneddate
-        ? new Date().toISOString().slice(0, 10)
-        : undefined);
+    const autoStampReturned =
+      isLifecycleChange &&
+      newLifecycle === EQUIPMENT_LIFECYCLE.RETURNED &&
+      !current?.cr6cd_returneddate;
     updateEquipment.mutate({
       cancellationId: cxlId,
       equipmentId: id,
-      lifecycleState: newLifecycle,
-      returneddate,
+      lifecycleState: isLifecycleChange ? newLifecycle : undefined,
+      returneddate: patch.returneddate ?? (autoStampReturned ? new Date().toISOString().slice(0, 10) : undefined),
       notes: patch.notes,
+      istransferred: patch.istransferred,
+      isreactivated: patch.isreactivated,
     });
   };
 

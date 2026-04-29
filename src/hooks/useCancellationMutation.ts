@@ -5,6 +5,7 @@ import {
   defaultLifecycleForType,
   defaultDueDate,
 } from '../lib/cancellationConstants';
+import type { CxlEquipment } from '../lib/mockData';
 
 function strip(obj: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== ''));
@@ -158,7 +159,30 @@ export function useUpdateEquipment() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: updateEquipment,
-    onSuccess: (_data, vars) => qc.invalidateQueries({ queryKey: ['cxl-equipment', vars.cancellationId] }),
+    onMutate: async (input) => {
+      const queryKey = ['cxl-equipment', input.cancellationId];
+      await qc.cancelQueries({ queryKey });
+      const previous = qc.getQueryData<CxlEquipment[]>(queryKey);
+      qc.setQueryData<CxlEquipment[]>(queryKey, (old) => {
+        if (!old) return old;
+        return old.map((e) => {
+          if (e.cr6cd_dixcxlequipmentid !== input.equipmentId) return e;
+          const next = { ...e };
+          if (input.lifecycleState !== undefined) next.cr6cd_lifecyclestate = input.lifecycleState;
+          if (input.returneddate !== undefined)   next.cr6cd_returneddate = input.returneddate || undefined;
+          if (input.notes !== undefined)          next.cr6cd_notes = input.notes;
+          if (input.istransferred !== undefined)  next.cr6cd_istransferred = input.istransferred;
+          if (input.isreactivated !== undefined)  next.cr6cd_isreactivated = input.isreactivated;
+          return next;
+        });
+      });
+      return { previous, queryKey };
+    },
+    onError: (_err, _input, ctx) => {
+      if (ctx?.previous && ctx?.queryKey) qc.setQueryData(ctx.queryKey, ctx.previous);
+    },
+    onSettled: (_data, _err, vars) =>
+      qc.invalidateQueries({ queryKey: ['cxl-equipment', vars.cancellationId] }),
   });
 }
 
