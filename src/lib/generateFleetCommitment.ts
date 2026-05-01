@@ -14,7 +14,7 @@ function hexToRgb(hex: string): [number, number, number] {
 function formatDateMMDDYYYY(dateStr: string | undefined): string {
   if (!dateStr) return '_______________';
   try {
-    return format(new Date(dateStr), 'MM-dd-yyyy');
+    return format(new Date(`${dateStr}T00:00:00`), 'MM-dd-yyyy');
   } catch {
     return '_______________';
   }
@@ -23,12 +23,13 @@ function formatDateMMDDYYYY(dateStr: string | undefined): string {
 export interface FleetCommitmentData {
   form: Record<string, string>;
   agent: Agent | null;
+  onboardingDate?: string;
 }
 
 export function generateFleetCommitment(data: FleetCommitmentData): void {
-  const { form, agent } = data;
+  const { form, agent, onboardingDate } = data;
 
-  const startDate = formatDateMMDDYYYY(form.purchaseDate);
+  const startDate = formatDateMMDDYYYY(onboardingDate);
   const driverName = `${form.firstName || ''} ${form.lastName || ''}`.trim() || '_______________';
   const motorCarrierName = agent?.cr6cd_motorcarrier || 'American Carrier Transport, LLC';
 

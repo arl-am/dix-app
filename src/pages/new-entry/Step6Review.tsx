@@ -83,7 +83,6 @@ const EQUIPMENT_DOCUMENTS = [
 ];
 
 const PORTS_RAILS_DOCUMENTS = [
-  { id: 'cn_registration', name: 'CN Registration', icon: TrainFront },
   { id: 'fastpass_id', name: 'FastPass ID', icon: CreditCard },
   { id: 'sealink_entry', name: 'SeaLink Entry', icon: Anchor },
 ];
@@ -246,7 +245,7 @@ export default function Step6Review({
       terminal: agent?.cr6cd_terminal || '',
       unitNumber: form.unitNumber || '',
       truckColor: form.color || '',
-      motorCarrierName: agent?.cr6cd_motorcarrier || '',
+      motorCarrierName: agent?.cr6cd_company || agent?.cr6cd_motorcarrier || '',
       receiverName: `${form.firstName || ''} ${form.lastName || ''}`.trim(),
       sentBy: currentUserName,
       recruiterName: currentUserName,
@@ -1044,11 +1043,11 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
         markDownloaded(docId);
         toast.success('Agent Confirmation downloaded');
       } else if (docId === 'fleet_commitment') {
-        generateFleetCommitment({ form, agent });
+        generateFleetCommitment({ form, agent, onboardingDate: startDate });
         markDownloaded(docId);
         toast.success('Fleet Commitment downloaded');
       } else if (docId === 'road_test_ibe') {
-        generateRoadTest({ form, agent });
+        generateRoadTest({ form, agent, onboardingDate: startDate });
         markDownloaded(docId);
         toast.success('Road Test downloaded');
       } else if (docId === 'welcome_letter') {
@@ -1132,7 +1131,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
           cnDivision: agent?.cr6cd_division || '',
         });
         markDownloaded(docId);
-        toast.success('CN Registration downloaded');
+        toast.success('CP Registration downloaded');
       } else if (docId === 'cp_letter') {
         await generateCPLetter({
           date: new Date().toLocaleDateString('en-US'),
@@ -1145,14 +1144,14 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
           sentBy: currentUserName,
         });
         markDownloaded(docId);
-        toast.success('CP Letter downloaded');
+        toast.success('CN Registration downloaded');
       } else if (docId === 'cp_registration') {
         if (!driverId) {
           toast.error('Driver record not saved yet');
           return;
         }
         setLoadingDoc('cp_registration');
-        const toastId = toast.loading('Sending CP Registration email...');
+        const toastId = toast.loading('Sending CN Registration email...');
         try {
           const isLocal = window.location.hostname === 'localhost';
           if (isLocal) {
@@ -1177,15 +1176,15 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
               }
             }
             if (!completed) {
-              toast.warning('CP Registration is taking longer than expected. Check Power Automate for status.', { id: toastId });
+              toast.warning('CN Registration is taking longer than expected. Check Power Automate for status.', { id: toastId });
               setLoadingDoc(null);
               return;
             }
           }
           markDownloaded(docId);
-          toast.success('CP Registration email draft created', { id: toastId });
+          toast.success('CN Registration email draft created', { id: toastId });
         } catch (err) {
-          toast.error(`CP Registration failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
+          toast.error(`CN Registration failed: ${err instanceof Error ? err.message : 'Unknown error'}`, { id: toastId });
           setLoadingDoc(null);
           throw err;
         }
@@ -1401,18 +1400,8 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="Ports & Rails" count={PORTS_RAILS_DOCUMENTS.length + 1}>
+      <CollapsibleSection title="Ports & Rails" count={PORTS_RAILS_DOCUMENTS.length + 2}>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {PORTS_RAILS_DOCUMENTS.map((doc) => (
-            <DocumentCard
-              key={doc.id}
-              name={doc.name}
-              icon={doc.icon}
-              downloaded={!!downloaded[doc.id]}
-              loading={loadingDoc === doc.id}
-              onClick={() => handleClick(doc.id)}
-            />
-          ))}
           <div className={cn(
             'relative flex flex-col items-center gap-2 rounded-xl border p-4 pt-5',
             'transition-all duration-500 ease-out',
@@ -1431,7 +1420,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
             <span className={cn(
               'text-xs font-medium text-center leading-tight',
               downloaded['cp_letter'] && downloaded['cp_registration'] ? 'text-emerald-700 dark:text-emerald-300' : 'text-foreground',
-            )}>CP Registration</span>
+            )}>CN Registration</span>
             <div className="flex gap-1.5 w-full mt-0.5">
               <button
                 onClick={() => handleClick('cp_letter')}
@@ -1472,6 +1461,25 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
               </button>
             </div>
           </div>
+
+          <DocumentCard
+            name="CP Registration"
+            icon={TrainFront}
+            downloaded={!!downloaded['cn_registration']}
+            loading={loadingDoc === 'cn_registration'}
+            onClick={() => handleClick('cn_registration')}
+          />
+
+          {PORTS_RAILS_DOCUMENTS.map((doc) => (
+            <DocumentCard
+              key={doc.id}
+              name={doc.name}
+              icon={doc.icon}
+              downloaded={!!downloaded[doc.id]}
+              loading={loadingDoc === doc.id}
+              onClick={() => handleClick(doc.id)}
+            />
+          ))}
         </div>
       </CollapsibleSection>
 

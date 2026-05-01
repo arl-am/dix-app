@@ -23,7 +23,12 @@ async function fetchAgents(): Promise<Agent[]> {
     ],
     orderBy: ['cr6cd_terminal asc'],
   });
-  return result.data as unknown as Agent[];
+  const rows = (result.data ?? []) as unknown as Record<string, unknown>[];
+  return rows.map((r) => ({
+    ...r,
+    cr6cd_elddepositfullvalue: r.cr6cd_elddepositfullvalue ?? r.cr6cd_ELDDepositFullValue,
+    cr6cd_platedepositfullvalue: r.cr6cd_platedepositfullvalue ?? r.cr6cd_PlateDepositFullValue,
+  })) as unknown as Agent[];
 }
 
 export function useAgents() {

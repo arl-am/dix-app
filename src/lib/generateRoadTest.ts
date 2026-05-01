@@ -17,11 +17,12 @@ function hexToRgb(hex: string): [number, number, number] {
 export interface RoadTestData {
   form: Record<string, string>;
   agent: Agent | null;
+  onboardingDate?: string;
 }
 
-export function generateRoadTest({ form, agent }: RoadTestData): void {
+export function generateRoadTest({ form, agent, onboardingDate }: RoadTestData): void {
   const driverName = `${form.firstName || ''} ${form.lastName || ''}`.trim();
-  const startDate = form.purchaseDate ? new Date(form.purchaseDate) : new Date();
+  const startDate = onboardingDate ? new Date(`${onboardingDate}T00:00:00`) : new Date();
   const motorCarrierName = agent?.cr6cd_motorcarrier || 'American Carrier Transport, LLC';
 
   const doc = new jsPDF({
@@ -42,7 +43,7 @@ export function generateRoadTest({ form, agent }: RoadTestData): void {
   const roadTestCertification = `IBE driver certifies that I successfully completed a road test under the laws of the state with whom I have been issued a commercial operator's license as described in Section (1) above.`;
 
   const dayDates: string[] = [];
-  for (let i = 7; i >= 1; i--) {
+  for (let i = 6; i >= 0; i--) {
     const date = subDays(startDate, i);
     dayDates.push(format(date, 'MM/dd'));
   }
