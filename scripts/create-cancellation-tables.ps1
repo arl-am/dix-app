@@ -261,10 +261,21 @@ function Add-OptionValue {
 }
 
 function New-Lookup {
-    param([string]$SchemaName, [string]$DisplayLabel, [string]$ReferencingEntity, [string]$ReferencedEntity)
+    param(
+        [string]$SchemaName,
+        [string]$DisplayLabel,
+        [string]$ReferencingEntity,
+        [string]$ReferencedEntity,
+        [string]$RelationshipName = $null
+    )
+    # For self-referencing lookups (ReferencingEntity == ReferencedEntity), the
+    # relationship schema name MUST differ from the column schema name, otherwise
+    # solution import to a downstream environment fails with:
+    #   "RelationshipName X conflict with attribute name on entity Y"
+    if (-not $RelationshipName) { $RelationshipName = $SchemaName }
     $body = @{
         "@odata.type"        = "Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata"
-        SchemaName           = $SchemaName
+        SchemaName           = $RelationshipName
         ReferencingEntity    = $ReferencingEntity
         ReferencedEntity     = $ReferencedEntity
         CascadeConfiguration = @{
@@ -281,7 +292,7 @@ function New-Lookup {
     }
     try {
         Invoke-DV -Method POST -Uri "/api/data/v9.2/RelationshipDefinitions" -Body $body
-        Write-Host "  + lookup $SchemaName ($ReferencingEntity -> $ReferencedEntity)" -ForegroundColor Cyan
+        Write-Host "  + lookup $SchemaName via rel $RelationshipName ($ReferencingEntity -> $ReferencedEntity)" -ForegroundColor Cyan
         Start-Sleep -Seconds 2
     } catch {
         if (Is-AlreadyExistsError $_) {
@@ -458,7 +469,10 @@ New-Lookup -SchemaName "cr6cd_notecancellation" -DisplayLabel "Cancellation" `
     -ReferencingEntity "cr6cd_dixcxlnote" -ReferencedEntity "cr6cd_dix_cancellation"
 
 # Note -> Parent Note (self-reference for replies)
+# Self-referencing lookups need a relationship schema name distinct from the
+# column schema name, or solution import to Prod fails with a name conflict.
 New-Lookup -SchemaName "cr6cd_parentnote" -DisplayLabel "Parent Note" `
+    -RelationshipName "cr6cd_dixcxlnote_parentnote" `
     -ReferencingEntity "cr6cd_dixcxlnote" -ReferencedEntity "cr6cd_dixcxlnote"
 
 Write-Host "`nDone." -ForegroundColor Green
