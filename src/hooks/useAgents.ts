@@ -20,6 +20,7 @@ async function fetchAgents(): Promise<Agent[]> {
       'cr6cd_trailerusagerequired', 'cr6cd_trailerusageadminfee', 'cr6cd_hazmatrequired',
       'cr6cd_workerscomprequired', 'cr6cd_complianceagentemails', 'cr6cd_addmoveagentemail',
       'cr6cd_inventoryterminal', 'cr6cd_inventoryreturnaddress', 'cr6cd_noninventoryreturnaddress',
+      'cr6cd_marylandliquorpermit',
     ],
     orderBy: ['cr6cd_terminal asc'],
   });
@@ -28,6 +29,10 @@ async function fetchAgents(): Promise<Agent[]> {
     ...r,
     cr6cd_elddepositfullvalue: r.cr6cd_elddepositfullvalue ?? r.cr6cd_ELDDepositFullValue,
     cr6cd_platedepositfullvalue: r.cr6cd_platedepositfullvalue ?? r.cr6cd_PlateDepositFullValue,
+    cr6cd_marylandliquorpermit:
+      r.cr6cd_marylandliquorpermit ??
+      r.cr6cd_MarylandLiquorPermit ??
+      r.cr6cd_marylandLiquorPermit,
   })) as unknown as Agent[];
 }
 

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Filter, Building2, User, Truck, Pencil, Trash2, Eye, X, Mail, CreditCard, MapPin, Shield, FileText, CheckCircle, XCircle, Package, DollarSign, Loader2, FileDown } from 'lucide-react';
+import { Search, Filter, Building2, User, Truck, Pencil, Trash2, Eye, X, Mail, CreditCard, MapPin, Shield, FileText, CheckCircle, XCircle, Package, DollarSign, Loader2, FileDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDrivers } from '../hooks/useDrivers';
 import { useDeleteDriver } from '../hooks/useDriverMutation';
 import { formatDate, cn, isLocal } from '../lib/utils';
@@ -370,6 +370,15 @@ function displayDriverName(d: Driver): string {
   return n;
 }
 
+const PAGE_SIZE = 15;
+
+function getPageItems(current: number, total: number): (number | 'dots')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  if (current <= 4) return [1, 2, 3, 4, 5, 'dots', total];
+  if (current >= total - 3) return [1, 'dots', total - 4, total - 3, total - 2, total - 1, total];
+  return [1, 'dots', current - 1, current, current + 1, 'dots', total];
+}
+
 export default function SearchRecords() {
   const navigate = useNavigate();
   const { data: drivers = [], isLoading } = useDrivers();
@@ -406,6 +415,17 @@ export default function SearchRecords() {
     const matchesTerminal = terminalFilter === 'all' || (d.cr6cd_dix_agentname || '') === terminalFilter;
     return matchesSearch && matchesTerminal;
   });
+
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  useEffect(() => { setPage(1); }, [search, searchField, terminalFilter]);
+  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
+  const startIdx = (page - 1) * PAGE_SIZE;
+  const visible = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+  const goTo = (next: number) => {
+    const clamped = Math.max(1, Math.min(totalPages, next));
+    if (clamped !== page) setPage(clamped);
+  };
 
   const handleDelete = (id: string, name: string) => {
     deleteDriver.mutate(id, {
@@ -507,10 +527,12 @@ export default function SearchRecords() {
         ) : filtered.length === 0 ? (
           <Spinner label="No records found" className="[&>div:first-child]:hidden" />
         ) : (
-          filtered.map((d) => (
+          <div key={`page-${page}`} className="contents">
+          {visible.map((d, idx) => (
             <div
               key={d.cr6cd_dix_driverid}
-              className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 px-6 py-4 border-b border-border last:border-b-0 transition-all duration-200 hover:bg-primary/5"
+              className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 px-6 py-4 border-b border-border last:border-b-0 transition-all duration-200 hover:bg-primary/5 animate-fade-in-up"
+              style={{ animationDelay: `${idx * 22}ms`, animationFillMode: 'backwards' }}
             >
               <div className="lg:w-28">
                 <span className="lg:hidden text-xs text-muted-foreground">Terminal: </span>
@@ -583,9 +605,62 @@ export default function SearchRecords() {
                 </button>
               </div>
             </div>
-          ))
+          ))}
+          </div>
         )}
       </div>
+
+      {!isLoading && filtered.length > 0 && (
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in-up" style={{ animationDelay: '180ms' }}>
+          <div className="text-xs text-muted-foreground">
+            Showing <span className="font-semibold text-foreground tabular-nums">{startIdx + 1}</span>
+            <span className="mx-1">–</span>
+            <span className="font-semibold text-foreground tabular-nums">{Math.min(startIdx + PAGE_SIZE, filtered.length)}</span>
+            {' '}of{' '}
+            <span className="font-semibold text-foreground tabular-nums">{filtered.length}</span>
+            {' '}records
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => goTo(page - 1)}
+              disabled={page === 1}
+              className="inline-flex items-center gap-1 h-9 px-3 rounded-lg text-xs font-medium border border-input bg-background text-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-muted-foreground/40 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
+              title="Previous page"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" /> Prev
+            </button>
+            {getPageItems(page, totalPages).map((item, i) => (
+              item === 'dots' ? (
+                <span key={`dots-${i}`} className="px-2 text-xs text-muted-foreground select-none">…</span>
+              ) : (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => goTo(item)}
+                  className={cn(
+                    'inline-flex items-center justify-center w-9 h-9 rounded-lg text-xs font-semibold tabular-nums transition-all duration-200 active:scale-95',
+                    item === page
+                      ? 'bg-primary text-white shadow-md shadow-primary/25 scale-105'
+                      : 'border border-input bg-background text-foreground shadow-sm hover:bg-accent hover:border-muted-foreground/40 hover:-translate-y-0.5',
+                  )}
+                >
+                  {item}
+                </button>
+              )
+            ))}
+            <button
+              type="button"
+              onClick={() => goTo(page + 1)}
+              disabled={page === totalPages}
+              className="inline-flex items-center gap-1 h-9 px-3 rounded-lg text-xs font-medium border border-input bg-background text-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-muted-foreground/40 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-background"
+              title="Next page"
+            >
+              Next <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

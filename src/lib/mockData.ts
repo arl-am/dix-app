@@ -40,6 +40,7 @@ export interface Agent {
   cr6cd_inventoryterminal?: boolean;
   cr6cd_inventoryreturnaddress?: string;
   cr6cd_noninventoryreturnaddress?: string;
+  cr6cd_marylandliquorpermit?: number;
 }
 
 export interface Driver {

@@ -238,6 +238,9 @@ export default function Step6Review({
     truckColor: '', motorCarrierName: '', cableType: '', recruiterName: '',
   });
 
+  const mdLiquorRaw = agent?.cr6cd_marylandliquorpermit;
+  const mdLiquorRequired = mdLiquorRaw != null && mdLiquorRaw !== 0;
+
   const openTruckBoxModal = () => {
     setTbSameAddr(false);
     setTruckBoxData((d) => ({
@@ -245,12 +248,12 @@ export default function Step6Review({
       terminal: agent?.cr6cd_terminal || '',
       unitNumber: form.unitNumber || '',
       truckColor: form.color || '',
-      motorCarrierName: agent?.cr6cd_company || agent?.cr6cd_motorcarrier || '',
+      motorCarrierName: agent?.cr6cd_division || agent?.cr6cd_company || agent?.cr6cd_motorcarrier || '',
       receiverName: `${form.firstName || ''} ${form.lastName || ''}`.trim(),
       sentBy: currentUserName,
       recruiterName: currentUserName,
       street: '', city: '', state: '', zipCode: '',
-      boxItems: { ...defaultOnItems },
+      boxItems: { ...defaultOnItems, mdLiquor: mdLiquorRequired },
     }));
     setShowTruckBoxModal(true);
   };
@@ -591,23 +594,33 @@ export default function Step6Review({
                 {BOX_ITEM_LABELS.map(([key, label]) => {
                   const on = truckBoxData.boxItems[key];
                   const isDefault = defaultOnItems[key];
+                  const isRequired = key === 'mdLiquor' && mdLiquorRequired;
                   return (
                     <button key={key} type="button" onClick={() => setTruckBoxData((d) => ({ ...d, boxItems: { ...d.boxItems, [key]: !d.boxItems[key] } }))}
                       className={cn(
                         'flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all duration-200 text-left min-h-[38px]',
                         on && isDefault && 'bg-primary/10 border-primary/30 text-primary shadow-sm shadow-primary/10 -translate-y-0.5',
-                        on && !isDefault && 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 shadow-sm shadow-amber-500/10 -translate-y-0.5',
-                        !on && 'bg-background border-border text-foreground hover:border-muted-foreground/30 hover:bg-muted/30 hover:shadow-sm hover:-translate-y-0.5',
+                        on && !isDefault && !isRequired && 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 shadow-sm shadow-amber-500/10 -translate-y-0.5',
+                        on && isRequired && 'bg-rose-500/10 border-rose-500/40 text-rose-600 dark:text-rose-400 shadow-sm shadow-rose-500/10 -translate-y-0.5',
+                        !on && isRequired && 'bg-rose-500/5 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 hover:shadow-sm hover:-translate-y-0.5',
+                        !on && !isRequired && 'bg-background border-border text-foreground hover:border-muted-foreground/30 hover:bg-muted/30 hover:shadow-sm hover:-translate-y-0.5',
                       )}
                     >
                       <div className={cn('w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200',
                         on && isDefault && 'bg-primary text-white',
-                        on && !isDefault && 'bg-amber-500 text-white',
-                        !on && 'border border-muted-foreground/30',
+                        on && !isDefault && !isRequired && 'bg-amber-500 text-white',
+                        on && isRequired && 'bg-rose-500 text-white',
+                        !on && isRequired && 'border border-rose-500/50',
+                        !on && !isRequired && 'border border-muted-foreground/30',
                       )}>
                         {on && <Check className="w-2.5 h-2.5" />}
                       </div>
-                      {label}
+                      <span className="flex-1 truncate">{label}</span>
+                      {isRequired && (
+                        <span className="ml-auto text-[8px] font-bold uppercase tracking-wider px-1 py-px rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex-shrink-0">
+                          Req
+                        </span>
+                      )}
                     </button>
                   );
                 })}

@@ -41,7 +41,15 @@
       "Bash(command -v pac)",
       "Bash(pac --version)",
       "Bash(command -v az)",
-      "Bash(az --version)"
+      "Bash(az --version)",
+      "WebFetch(domain:inventcrm.wordpress.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:www.burgersandbytes.nl)",
+      "WebFetch(domain:d365demystified.com)",
+      "WebFetch(domain:rajeevpentyala.com)",
+      "Bash(git status *)",
+      "Bash(git check-ignore *)"
     ]
   }
 }

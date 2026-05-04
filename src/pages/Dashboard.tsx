@@ -30,7 +30,11 @@ export default function Dashboard() {
     const t = d.cr6cd_dix_agentname || 'Unknown';
     terminalCounts[t] = (terminalCounts[t] || 0) + 1;
   }
-  const maxCount = Math.max(1, ...Object.values(terminalCounts));
+  const topTerminals = Object.entries(terminalCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10);
+  const maxCount = Math.max(1, ...topTerminals.map(([, c]) => c));
+  const recentDrivers = drivers.slice(0, 10);
 
   return (
     <div className="p-6">
@@ -95,16 +99,17 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {drivers.length === 0 ? (
+                {recentDrivers.length === 0 ? (
                   <tr><td colSpan={6}><div className="flex items-center justify-center py-12 text-sm text-muted-foreground font-medium animate-fade-in">No records yet</div></td></tr>
                 ) : (
-                  drivers.slice(0, 10).map((d, idx) => (
+                  recentDrivers.map((d, idx) => (
                     <tr
                       key={d.cr6cd_dix_driverid}
                       className={cn(
-                        'border-b cursor-pointer transition-all duration-200 hover:bg-primary/5 active:bg-primary/10',
+                        'border-b cursor-pointer transition-all duration-200 hover:bg-primary/5 active:bg-primary/10 animate-fade-in-up',
                         idx % 2 === 0 ? 'bg-card' : 'bg-muted/30',
                       )}
+                      style={{ animationDelay: `${180 + idx * 35}ms`, animationFillMode: 'backwards' }}
                     >
                       <td className="px-4 py-3 font-medium text-foreground">{d.cr6cd_dix_name}</td>
                       <td className="px-4 py-3 text-muted-foreground">{d.cr6cd_dix_agentname || '—'}</td>
@@ -129,17 +134,21 @@ export default function Dashboard() {
             <h2 className="text-base font-semibold text-foreground">Entries by Terminal — This Month</h2>
           </div>
           <div className="p-6 space-y-3">
-            {Object.entries(terminalCounts).length === 0 ? (
+            {topTerminals.length === 0 ? (
               <p className="text-sm text-muted-foreground">No entries this month</p>
             ) : (
-              Object.entries(terminalCounts).map(([terminal, count], idx) => (
-                <div key={terminal} className="flex items-center gap-3 animate-fade-in-up" style={{ animationDelay: `${500 + idx * 60}ms` }}>
+              topTerminals.map(([terminal, count], idx) => (
+                <div
+                  key={terminal}
+                  className="flex items-center gap-3 animate-fade-in-up"
+                  style={{ animationDelay: `${360 + idx * 45}ms`, animationFillMode: 'backwards' }}
+                >
                   <span className="w-16 text-center shrink-0 font-mono text-xs bg-muted/50 rounded-md px-2 py-0.5 border border-border">
                     {terminal}
                   </span>
                   <div className="flex-1 h-7 bg-muted/30 rounded-md overflow-hidden relative">
                     <div
-                      className="h-full bg-[#3B82F6] rounded-md transition-all duration-500 ease-out"
+                      className="h-full bg-gradient-to-r from-[#3B82F6] to-[#60A5FA] rounded-md transition-[width] duration-700 ease-out shadow-sm shadow-blue-500/30"
                       style={{ width: `${(count / maxCount) * 100}%` }}
                     />
                   </div>
@@ -147,7 +156,7 @@ export default function Dashboard() {
                 </div>
               ))
             )}
-            {agents.length > 0 && Object.keys(terminalCounts).length === 0 && (
+            {agents.length > 0 && topTerminals.length === 0 && (
               agents.slice(0, 3).map((a, idx) => (
                 <div key={a.cr6cd_agentsid} className="flex items-center gap-3 animate-fade-in-up" style={{ animationDelay: `${500 + idx * 60}ms` }}>
                   <span className="w-16 text-center shrink-0 font-mono text-xs bg-muted/50 rounded-md px-2 py-0.5 border border-border">

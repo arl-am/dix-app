@@ -125,8 +125,9 @@ export async function generateTruckBoxForms(data: TruckBoxFormData): Promise<voi
     ['hazmatBooks', 'Hazmat Books (red & orange) & Certificate'], ['eld', 'ELD'],
     ['dashCam', 'Dash Cam'], ['mdLiquor', 'MD Liquor Permit'],
   ];
+  const splitAt = Math.ceil(items.length / 2);
   const rH = 9; let lbY = yPos; let rbY = yPos;
-  items.slice(0, 8).forEach(([key, label], i) => {
+  items.slice(0, splitAt).forEach(([key, label], i) => {
     const cy = yPos + i * rH; const on = data.boxItems[key];
     if (on) drawChecked(doc, 15, cy); else drawUnchecked(doc, 15, cy);
     doc.setFont('helvetica', 'normal'); doc.setTextColor(...hexToRgb('#374151')); doc.setFontSize(9);
@@ -134,7 +135,7 @@ export async function generateTruckBoxForms(data: TruckBoxFormData): Promise<voi
     if (key === 'doorSigns' && on) { const w = doc.getTextWidth(label); doc.setFont('helvetica', 'bold'); doc.setTextColor(...hexToRgb('#2563EB')); doc.text(' - ' + data.motorCarrierName, 23 + w, cy + 4); }
     lbY = cy + 5;
   });
-  items.slice(8).forEach(([key, label], i) => {
+  items.slice(splitAt).forEach(([key, label], i) => {
     const cy = yPos + i * rH; const on = data.boxItems[key];
     if (on) drawChecked(doc, 108, cy); else drawUnchecked(doc, 108, cy);
     doc.setFont('helvetica', 'normal'); doc.setTextColor(...hexToRgb('#374151')); doc.setFontSize(9);
