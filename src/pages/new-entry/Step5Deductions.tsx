@@ -227,6 +227,7 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
               iconColor="text-sky-600 dark:text-sky-400"
               title="Weekly Settlement Deductions"
               items={summary.weekly}
+              subtotalLabel="Weekly Subtotal"
             />
             <SummarySection
               icon={DollarSign}
@@ -234,6 +235,7 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
               iconColor="text-violet-600 dark:text-violet-400"
               title="Monthly Charges"
               items={summary.monthly}
+              subtotalLabel="Monthly Subtotal"
             />
             {summary.onetime.length > 0 && (
               <SummarySection
@@ -242,6 +244,7 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
                 iconColor="text-amber-600 dark:text-amber-400"
                 title="One-Time Charges"
                 items={summary.onetime}
+                subtotalLabel="One-Time Subtotal"
               />
             )}
           </div>
@@ -258,12 +261,13 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
   );
 }
 
-function SummarySection({ icon: Icon, iconBg, iconColor, title, items }: {
+function SummarySection({ icon: Icon, iconBg, iconColor, title, items, subtotalLabel }: {
   icon: React.ElementType;
   iconBg: string;
   iconColor: string;
   title: string;
   items: { label: string; value: number; subtitle?: string }[];
+  subtotalLabel?: string;
 }) {
   const prevLabelsRef = useRef<Set<string>>(new Set());
   const [newLabels, setNewLabels] = useState<Set<string>>(new Set());
@@ -352,6 +356,12 @@ function SummarySection({ icon: Icon, iconBg, iconColor, title, items }: {
                 </div>
               );
             })}
+            <div className="flex items-center justify-between px-4 py-2.5 bg-muted/40">
+              <span className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">{subtotalLabel ?? 'Subtotal'}</span>
+              <span className="text-sm font-bold tabular-nums text-foreground">
+                {formatCurrency(items.reduce((s, i) => s + i.value, 0))}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -391,7 +401,11 @@ function SummaryFooter({ estimatedMonthly, weeklyTotal, monthlyTotal, onetimeTot
       <div className="space-y-1 mt-3 pt-3 border-t border-slate-600">
         <div className="flex items-center justify-between">
           <span className="text-xs text-slate-400">Weekly settlements:</span>
-          <span className="text-xs font-medium text-slate-300 tabular-nums transition-all duration-300">{formatCurrency(weeklyTotal)}/week</span>
+          <span className="text-xs font-medium text-slate-300 tabular-nums transition-all duration-300">
+            {formatCurrency(weeklyTotal)}/week
+            <span className="text-slate-500 font-normal"> × 4 = </span>
+            <span className="font-semibold text-white">{formatCurrency(weeklyTotal * 4)}</span>
+          </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-xs text-slate-400">After deposits end:</span>

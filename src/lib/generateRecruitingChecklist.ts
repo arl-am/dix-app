@@ -71,6 +71,9 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
   const dashcamDeposit = agent?.cr6cd_dashcamdepositvalue ?? 100;
   const dashcamWeekly = 10;
   const eldDataFee = agent?.cr6cd_elddatafeevalue ?? 0;
+  const eldDataFeeRequired = agent?.cr6cd_elddatafeerequired ?? false;
+  const platedepositFull = agent?.cr6cd_platedepositfullvalue;
+  const pdiWeeklyDeposit = pdiMonthly > 0 ? Math.round(pdiMonthly / 4 * 100) / 100 : 0;
   const truckValue = parseFloat(f.truckValue || '0');
   const purchaseDate = f.purchaseDate ? format(new Date(f.purchaseDate), 'MM/dd/yyyy') : '—';
   const fullAddr = `${f.vendorAddress || ''}${f.vendorAddress ? ', ' : ''}${f.vendorCity || ''}${f.vendorCity && f.vendorState ? ', ' : ''}${f.vendorState || ''} ${f.vendorZipCode || ''}`.trim();
@@ -79,21 +82,32 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
   const monthlyItems: { name: string; value: number; note?: string; biweeklyValue?: number }[] = [];
   const oneTimeItems: { name: string; value: number; note?: string }[] = [];
 
-  if (s.buydown) weeklyItems.push({ name: 'Insurance Buy-Down', value: buyDownValue });
-  if (s.irp_plate_prepaid) weeklyItems.push({ name: 'IRP Plate (Prepay)', value: plateWeekly });
-  if (s.irp_plate_settlements) weeklyItems.push({ name: 'IRP Plate (Settlements)', value: 150, note: '$50/week + deposit' });
-  if (s.ifta) weeklyItems.push({ name: 'IFTA', value: iftaValue });
-  if (s.prepass_tolls_bypass) weeklyItems.push({ name: 'Pre-Pass Tolls & Bypass', value: prePassTolls });
-  if (s.prepass_bypass) weeklyItems.push({ name: 'Pre-Pass Bypass Only', value: prePassBypass });
-  if (s.maintenance_fund) weeklyItems.push({ name: 'Maintenance Fund', value: maintenanceFundValue });
+  if (s.pdi && pdiWeeklyDeposit > 0) weeklyItems.push({ name: 'PDI Deposit', value: pdiWeeklyDeposit, note: 'Collected in 4 payments' });
   if (s.security_deposit && !ti.security_deposit && !ri.security_deposit) weeklyItems.push({ name: 'Security Deposit', value: securityWeekly, note: `Full value ${fmtCurrency(securityFull)}` });
-  if (s.eld_deposit && !ti.eld && !ri.eld) weeklyItems.push({ name: 'ELD', value: eldWeekly });
-  if (s.dashcam_deposit && !ti.dashcam && !ri.dashcam) weeklyItems.push({ name: 'Dashcam', value: dashcamWeekly });
-  if (eldDataFee > 0 && s.eld_deposit) weeklyItems.push({ name: 'ELD Data Fee', value: eldDataFee });
+  if (s.eld_deposit && !ti.eld && !ri.eld) weeklyItems.push({ name: 'ELD Deposit', value: eldWeekly, note: `Full value ${fmtCurrency(eldFull)}` });
+  if (s.eld_deposit && eldDataFeeRequired) weeklyItems.push({ name: 'ELD Data Fee', value: eldDataFee });
+  if (s.dashcam_deposit && !ti.dashcam && !ri.dashcam) weeklyItems.push({ name: 'DashCam Deposit', value: dashcamWeekly, note: 'Full value $100.00' });
+  if (s.buydown) weeklyItems.push({ name: 'Buy-Down Program', value: buyDownValue });
+  if (s.ifta) weeklyItems.push({ name: 'IFTA', value: iftaValue });
+  if (s.irp_plate_prepaid) weeklyItems.push({ name: 'IRP Plate (Prepay)', value: plateWeekly });
+  if (s.irp_plate_settlements) {
+    weeklyItems.push({ name: 'IRP Plate Usage', value: plateWeekly });
+    weeklyItems.push({
+      name: 'IRP Plate Deposit',
+      value: plateDeposit,
+      note: typeof platedepositFull === 'number' && Number.isFinite(platedepositFull)
+        ? `Full value ${fmtCurrency(platedepositFull)}`
+        : undefined,
+    });
+  }
+  if (s.prepass_tolls_bypass) weeklyItems.push({ name: 'PrePass: Tolls & Bypass', value: prePassTolls });
+  if (s.prepass_bypass) weeklyItems.push({ name: 'PrePass: Bypass', value: prePassBypass });
+  if (s.maintenance_fund) weeklyItems.push({ name: 'Maintenance Fund', value: maintenanceFundValue });
+  if (s.chassis_usage && agent?.cr6cd_trailerusagerequired) weeklyItems.push({ name: 'Chassis Usage', value: agent?.cr6cd_trailerusagevalue ?? 0 });
 
   if (s.occacc) monthlyItems.push({ name: 'Occ/Acc Insurance', value: occAccValue, biweeklyValue: occAccValue / 2 });
   if (s.bobtail) monthlyItems.push({ name: 'Bobtail Insurance', value: bobtailValue });
-  if (s.pdi) monthlyItems.push({ name: 'Physical Damage Insurance', value: pdiMonthly });
+  if (s.pdi) monthlyItems.push({ name: 'Physical Damage Ins (PDI)', value: pdiMonthly });
 
   if (s.irp_plate_prepaid || s.irp_plate_settlements) oneTimeItems.push({ name: 'IRP Plate Admin Fee', value: agent?.cr6cd_plateadminfee ?? 75 });
   if (s.rfid) oneTimeItems.push({ name: 'RFID Tag', value: agent?.cr6cd_rfidvalue ?? 35 });
@@ -299,8 +313,18 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
   doc.setFontSize(16); doc.text(fmtCurrency(estMonthly), pageWidth - margin - 5, yPos + 7, { align: 'right' });
   doc.setDrawColor(71, 85, 105); doc.setLineWidth(0.2); doc.line(margin + 3, yPos + 10, pageWidth - margin - 3, yPos + 10);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(148, 163, 184);
-  doc.text('Weekly settlements:', margin + 5, yPos + 15); doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold');
-  doc.text(`${fmtCurrency(weeklyTotal)}/week`, margin + 35, yPos + 15);
+  doc.text('Weekly settlements:', margin + 5, yPos + 15);
+  let cursorX = margin + 35;
+  doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold');
+  const weeklyStr = `${fmtCurrency(weeklyTotal)}/week`;
+  doc.text(weeklyStr, cursorX, yPos + 15);
+  cursorX += doc.getTextWidth(weeklyStr);
+  doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184);
+  const multStr = ' × 4 = ';
+  doc.text(multStr, cursorX, yPos + 15);
+  cursorX += doc.getTextWidth(multStr);
+  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold');
+  doc.text(fmtCurrency(weeklyTotal * 4), cursorX, yPos + 15);
   doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184);
   doc.text(`After deposits end: ${fmtCurrency(monthlyTotal)}/month`, pageWidth - margin - 5, yPos + 15, { align: 'right' });
   if (oneTimeTotal > 0) { doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184); doc.text('One-time charges:', margin + 5, yPos + 19); doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold'); doc.text(`${fmtCurrency(oneTimeTotal)}`, margin + 35, yPos + 19); }
