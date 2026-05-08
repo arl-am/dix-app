@@ -72,14 +72,6 @@ async function fetchAgents(): Promise<Agent[]> {
     orderBy: ['cr6cd_terminal asc'],
   });
   const rows = (result.data ?? []) as unknown as Record<string, unknown>[];
-  if (typeof window !== 'undefined' && rows.length > 0) {
-    (window as unknown as { __dixAgentsRaw?: unknown }).__dixAgentsRaw = rows[0];
-    const r0 = rows[0];
-    const interesting = Object.keys(r0).filter((k) =>
-      /eld|plate|liquor/i.test(k),
-    );
-    (window as unknown as { __dixAgentsKeys?: unknown }).__dixAgentsKeys = interesting.map((k) => `${k}=${JSON.stringify(r0[k])}`);
-  }
   return rows.map((r) => {
     const out: Record<string, unknown> = { ...r };
     for (const f of NUMERIC_FIELDS) {
