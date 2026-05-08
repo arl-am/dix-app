@@ -1076,7 +1076,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
           const isLocal = window.location.hostname === 'localhost';
           if (isLocal) {
             await new Promise((r) => setTimeout(r, 3000));
-            window.open('about:blank', '_blank');
+            window.open('about:blank', '_blank', 'noopener,noreferrer');
           } else {
             const { Cr6cd_dix_driversService } = await import('../../generated');
             await Cr6cd_dix_driversService.update(driverId, {
@@ -1289,7 +1289,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
           + '&EquipmentRequested=' + encodeURIComponent(equipReq)
           + '&Deductions=' + encodeURIComponent(deductionsStr);
 
-        window.open(url, '_blank');
+        window.open(url, '_blank', 'noopener,noreferrer');
         markDownloaded(docId);
       } else if (docId === 'addmove_email') {
         if (!driverId) {
