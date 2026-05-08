@@ -60,26 +60,34 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
     const monthly: { label: string; value: number; subtitle?: string }[] = [];
     const onetime: { label: string; value: number }[] = [];
 
+    const num = (v: number | null | undefined): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+    const fullValueSubtitle = (v: number | null | undefined): string | undefined =>
+      typeof v === 'number' && Number.isFinite(v) ? `Full value ${formatCurrency(v)}` : undefined;
+
     for (const d of DEDUCTIONS) {
       if (!selections[d.key]) continue;
-      const val = d.getValueFromAgent(agent) || 0;
+      const val = num(d.getValueFromAgent(agent));
 
       if (d.key === 'security_deposit') {
-        weekly.push({ label: 'Security Deposit', value: val, subtitle: `Full value ${formatCurrency(agent.cr6cd_securitydepositfullvalue)}` });
+        weekly.push({ label: 'Security Deposit', value: val, subtitle: fullValueSubtitle(agent.cr6cd_securitydepositfullvalue) });
       } else if (d.key === 'eld_deposit') {
-        weekly.push({ label: 'ELD Deposit', value: val, subtitle: `Full value ${formatCurrency(agent.cr6cd_elddepositfullvalue)}` });
-        if (agent.cr6cd_elddatafeerequired) weekly.push({ label: 'ELD Data Fee', value: agent.cr6cd_elddatafeevalue });
+        weekly.push({ label: 'ELD Deposit', value: val, subtitle: fullValueSubtitle(agent.cr6cd_elddepositfullvalue) });
+        if (agent.cr6cd_elddatafeerequired) weekly.push({ label: 'ELD Data Fee', value: num(agent.cr6cd_elddatafeevalue) });
       } else if (d.key === 'dashcam_deposit') {
-        weekly.push({ label: 'DashCam Deposit', value: val, subtitle: 'Full value $100' });
+        weekly.push({ label: 'DashCam Deposit', value: val, subtitle: 'Full value $100.00' });
       } else if (d.key === 'irp_plate_settlements') {
         weekly.push({ label: 'IRP Plate Usage', value: val });
-        weekly.push({ label: 'IRP Plate Deposit', value: agent.cr6cd_platedepositvalue, subtitle: `Full value ${formatCurrency(agent.cr6cd_platedepositfullvalue)}` });
-        onetime.push({ label: 'IRP Plate Admin Fee', value: agent.cr6cd_plateadminfee });
+        weekly.push({ label: 'IRP Plate Deposit', value: num(agent.cr6cd_platedepositvalue), subtitle: fullValueSubtitle(agent.cr6cd_platedepositfullvalue) });
+        onetime.push({ label: 'IRP Plate Admin Fee', value: num(agent.cr6cd_plateadminfee) });
       } else if (d.key === 'pdi') {
         weekly.push({ label: 'PDI Deposit', value: pdiWeeklyDeposit, subtitle: 'Collected in 4 payments' });
         monthly.push({ label: 'Physical Damage Ins (PDI)', value: pdiMonthly });
       } else if (d.key === 'occacc') {
-        monthly.push({ label: 'Occ/Acc Insurance', value: val, subtitle: `(Billed bi-weekly at ${formatCurrency(agent.cr6cd_occaccbiweekly)})` });
+        const biweekly = agent.cr6cd_occaccbiweekly;
+        const occSubtitle = typeof biweekly === 'number' && Number.isFinite(biweekly)
+          ? `(Billed bi-weekly at ${formatCurrency(biweekly)})`
+          : undefined;
+        monthly.push({ label: 'Occ/Acc Insurance', value: val, subtitle: occSubtitle });
       } else if (d.key === 'maintenance_fund') {
         const amt = parseFloat(maintenanceAmount) || 0;
         weekly.push({ label: 'Maintenance Fund', value: amt });
@@ -151,7 +159,13 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
                         'transition-all duration-300',
                         isSelected ? 'text-foreground font-semibold' : 'text-muted-foreground/70',
                       )}>
-                        {d.key === 'pdi' ? formatCurrency(pdiMonthly) : val !== null ? formatCurrency(val) : d.key === 'irp_plate_prepaid' ? '' : '—'}
+                        {d.key === 'pdi'
+                          ? formatCurrency(pdiMonthly)
+                          : typeof val === 'number' && Number.isFinite(val)
+                          ? formatCurrency(val)
+                          : d.key === 'irp_plate_prepaid'
+                          ? ''
+                          : '—'}
                       </span>
                       <div className={cn(
                         'w-[22px] h-[22px] rounded-full flex items-center justify-center flex-shrink-0',
