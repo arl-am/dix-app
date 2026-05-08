@@ -292,26 +292,17 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
 
   // Total footer
   if (yPos > 225) { doc.addPage(); yPos = margin; }
-  const fh = oneTimeTotal > 0 ? 30 : 26;
+  const fh = oneTimeTotal > 0 ? 26 : 22;
   doc.setFillColor(...hexToRgb(navyColor)); doc.roundedRect(margin, yPos, pageWidth - margin * 2, fh, 2, 2, 'F');
   doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
   doc.text('Estimated Monthly Total', margin + 5, yPos + 7);
   doc.setFontSize(16); doc.text(fmtCurrency(estMonthly), pageWidth - margin - 5, yPos + 7, { align: 'right' });
-  doc.setDrawColor(71, 85, 105); doc.setLineWidth(0.2); doc.line(margin + 3, yPos + 10, pageWidth - margin - 3, yPos + 10);
-  doc.setFontSize(8);
-  const labelX = margin + 5;
-  const valueX = margin + 38;
-  let footerLineY = yPos + 15;
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184); doc.text('Weekly settlements:', labelX, footerLineY);
-  doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold'); doc.text(`${fmtCurrency(weeklyTotal)}/week`, valueX, footerLineY);
-  footerLineY += 4;
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184); doc.text('After deposits end:', labelX, footerLineY);
-  doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold'); doc.text(`${fmtCurrency(monthlyTotal)}/month`, valueX, footerLineY);
-  if (oneTimeTotal > 0) {
-    footerLineY += 4;
-    doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184); doc.text('One-time charges:', labelX, footerLineY);
-    doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold'); doc.text(`${fmtCurrency(oneTimeTotal)}`, valueX, footerLineY);
-  }
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(148, 163, 184);
+  doc.text(`After deposits end: ${fmtCurrency(monthlyTotal)}/month`, pageWidth - margin - 5, yPos + 12, { align: 'right' });
+  doc.setDrawColor(71, 85, 105); doc.setLineWidth(0.2); doc.line(margin + 3, yPos + 15, pageWidth - margin - 3, yPos + 15);
+  doc.text('Weekly settlements:', margin + 5, yPos + 19); doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold');
+  doc.text(`${fmtCurrency(weeklyTotal)}/week`, margin + 35, yPos + 19);
+  if (oneTimeTotal > 0) { doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184); doc.text('One-time charges:', margin + 5, yPos + 23); doc.setTextColor(226, 232, 240); doc.setFont('helvetica', 'bold'); doc.text(`${fmtCurrency(oneTimeTotal)}`, margin + 35, yPos + 23); }
   yPos += fh + 8;
 
   // Signature
