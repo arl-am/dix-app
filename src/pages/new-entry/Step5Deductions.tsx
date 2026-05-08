@@ -105,7 +105,7 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
   const weeklyTotal = summary.weekly.reduce((s, i) => s + i.value, 0);
   const monthlyTotal = summary.monthly.reduce((s, i) => s + i.value, 0);
   const onetimeTotal = summary.onetime.reduce((s, i) => s + i.value, 0);
-  const estimatedMonthly = weeklyTotal * 4 + monthlyTotal + onetimeTotal;
+  const estimatedMonthly = weeklyTotal * 4 + monthlyTotal;
 
   const chassisDisabled = !agent?.cr6cd_trailerusagerequired && agent !== null;
 
