@@ -230,6 +230,12 @@ export default function Step6Review({
   const [showTruckBoxModal, setShowTruckBoxModal] = useState(false);
   const [truckBoxClosing, setTruckBoxClosing] = useState(false);
   const [tbSameAddr, setTbSameAddr] = useState(false);
+  const [tbErrors, setTbErrors] = useState<Set<string>>(new Set());
+  const TRUCK_BOX_REQUIRED: (keyof TruckBoxFormData)[] = [
+    'terminal', 'sendingTo', 'receiverName', 'receiverPhone',
+    'street', 'city', 'state', 'zipCode',
+    'deliveryType', 'billingInfo', 'truckColor', 'cableType',
+  ];
   const defaultOnItems: BoxItems = { bols: true, logBook: true, insuranceCard: true, greenRegulationBook: true, zipTies: true, doorStrap: true, doorSigns: true, iftaStickers: true, fuelCard: false, rfidTag: false, prePass: false, hazmatBooks: false, eld: false, dashCam: false, mdLiquor: false };
   const [truckBoxData, setTruckBoxData] = useState<TruckBoxFormData>({
     terminal: '', date: new Date().toISOString().split('T')[0], sendingTo: '', receiverName: '',
@@ -243,6 +249,14 @@ export default function Step6Review({
 
   const openTruckBoxModal = () => {
     setTbSameAddr(false);
+    setTbErrors(new Set());
+    const deductionDrivenItems: Partial<BoxItems> = {
+      eld: !!selections.eld_deposit,
+      dashCam: !!selections.dashcam_deposit,
+      rfidTag: !!selections.rfid,
+      prePass: !!(selections.prepass_tolls_bypass || selections.prepass_bypass),
+      iftaStickers: !!selections.ifta || defaultOnItems.iftaStickers,
+    };
     setTruckBoxData((d) => ({
       ...d,
       terminal: agent?.cr6cd_terminal || '',
@@ -253,7 +267,7 @@ export default function Step6Review({
       sentBy: currentUserName,
       recruiterName: currentUserName,
       street: '', city: '', state: '', zipCode: '',
-      boxItems: { ...defaultOnItems, mdLiquor: mdLiquorRequired },
+      boxItems: { ...defaultOnItems, ...deductionDrivenItems, mdLiquor: mdLiquorRequired },
     }));
     setShowTruckBoxModal(true);
   };
@@ -261,24 +275,69 @@ export default function Step6Review({
   const handleTbSameAddr = (v: boolean) => {
     setTbSameAddr(v);
     if (v) {
-      setTruckBoxData((d) => ({ ...d, street: form.streetAddress || '', city: form.city || '', state: form.state || '', zipCode: form.zipCode || '' }));
+      const next = { street: form.streetAddress || '', city: form.city || '', state: form.state || '', zipCode: form.zipCode || '' };
+      setTruckBoxData((d) => ({ ...d, ...next }));
+      setTbErrors((prev) => {
+        if (prev.size === 0) return prev;
+        const out = new Set(prev);
+        (['street', 'city', 'state', 'zipCode'] as const).forEach((k) => { if (next[k]) out.delete(k); });
+        return out;
+      });
     }
   };
 
   const closeTruckBoxModal = () => { setTruckBoxClosing(true); setTimeout(() => { setShowTruckBoxModal(false); setTruckBoxClosing(false); }, 200); };
 
   const handleTruckBoxGenerate = async () => {
+    const missing = new Set<string>();
+    TRUCK_BOX_REQUIRED.forEach((k) => {
+      const v = truckBoxData[k];
+      if (typeof v !== 'string' || v.trim() === '') missing.add(k as string);
+    });
+    if (missing.size > 0) {
+      setTbErrors(missing);
+      toast.error(`Please fill in all required fields (${missing.size} missing)`);
+      return;
+    }
+    setTbErrors(new Set());
     try { await generateTruckBoxForms(truckBoxData); toast.success('Truck Box Forms downloaded'); closeTruckBoxModal(); }
     catch (err) { toast.error(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`); }
   };
 
-  const tbField = (key: keyof TruckBoxFormData, label: string, opts?: { type?: string }) => (
-    <div className="space-y-1.5">
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
-      <input type={opts?.type || 'text'} value={(truckBoxData[key] as string) || ''} onChange={(e) => setTruckBoxData((d) => ({ ...d, [key]: e.target.value }))}
-        className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground" />
-    </div>
-  );
+  const clearTbError = (key: keyof TruckBoxFormData) => {
+    setTbErrors((prev) => {
+      if (!prev.has(key as string)) return prev;
+      const next = new Set(prev); next.delete(key as string); return next;
+    });
+  };
+
+  const tbReqLabel = (key: keyof TruckBoxFormData, label: string) => {
+    const required = TRUCK_BOX_REQUIRED.includes(key);
+    return (
+      <label className="text-xs font-medium text-muted-foreground">
+        {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
+      </label>
+    );
+  };
+
+  const tbField = (key: keyof TruckBoxFormData, label: string, opts?: { type?: string }) => {
+    const invalid = tbErrors.has(key as string);
+    return (
+      <div className="space-y-1.5">
+        {tbReqLabel(key, label)}
+        <input type={opts?.type || 'text'} value={(truckBoxData[key] as string) || ''}
+          onChange={(e) => { setTruckBoxData((d) => ({ ...d, [key]: e.target.value })); clearTbError(key); }}
+          className={cn(
+            'w-full h-9 rounded-lg border bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:ring-2 placeholder:text-muted-foreground',
+            invalid ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-input focus:border-primary focus:ring-primary/20',
+          )} />
+      </div>
+    );
+  };
+
+  const tbSelectTrigger = (key: keyof TruckBoxFormData) => tbErrors.has(key as string)
+    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
+    : undefined;
 
   const BOX_ITEM_LABELS: [keyof BoxItems, string][] = [
     ['bols', 'BOLs'], ['logBook', 'Log Book'], ['insuranceCard', 'Insurance Card'],
@@ -519,8 +578,8 @@ export default function Step6Review({
               <div className="mt-2 grid grid-cols-2 gap-3">
                 {tbField('terminal', 'Terminal')}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Sending To</label>
-                  <CustomSelect options={[{ value: 'Terminal', label: 'Terminal' }, { value: 'Driver', label: 'Driver' }, { value: 'Vendor/Truck Owner', label: 'Vendor/Truck Owner' }]} value={truckBoxData.sendingTo} onChange={(v) => setTruckBoxData((d) => ({ ...d, sendingTo: v }))} placeholder="Select..." />
+                  {tbReqLabel('sendingTo', 'Sending To')}
+                  <CustomSelect options={[{ value: 'Terminal', label: 'Terminal' }, { value: 'Driver', label: 'Driver' }, { value: 'Vendor/Truck Owner', label: 'Vendor/Truck Owner' }]} value={truckBoxData.sendingTo} onChange={(v) => { setTruckBoxData((d) => ({ ...d, sendingTo: v })); clearTbError('sendingTo'); }} placeholder="Select..." triggerClassName={tbSelectTrigger('sendingTo')} />
                 </div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-3">
@@ -538,20 +597,20 @@ export default function Step6Review({
               </div>
               <div className="mt-2 grid grid-cols-4 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Street</label>
-                  <input type="text" disabled={tbSameAddr} value={truckBoxData.street} onChange={(e) => setTruckBoxData((d) => ({ ...d, street: e.target.value }))} className={cn('w-full h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20', tbSameAddr && 'opacity-50 cursor-not-allowed bg-muted')} />
+                  {tbReqLabel('street', 'Street')}
+                  <input type="text" disabled={tbSameAddr} value={truckBoxData.street} onChange={(e) => { setTruckBoxData((d) => ({ ...d, street: e.target.value })); clearTbError('street'); }} className={cn('w-full h-9 rounded-lg border bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:ring-2', tbErrors.has('street') ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-input focus:border-primary focus:ring-primary/20', tbSameAddr && 'opacity-50 cursor-not-allowed bg-muted')} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">City</label>
-                  <input type="text" disabled={tbSameAddr} value={truckBoxData.city} onChange={(e) => setTruckBoxData((d) => ({ ...d, city: e.target.value }))} className={cn('w-full h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20', tbSameAddr && 'opacity-50 cursor-not-allowed bg-muted')} />
+                  {tbReqLabel('city', 'City')}
+                  <input type="text" disabled={tbSameAddr} value={truckBoxData.city} onChange={(e) => { setTruckBoxData((d) => ({ ...d, city: e.target.value })); clearTbError('city'); }} className={cn('w-full h-9 rounded-lg border bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:ring-2', tbErrors.has('city') ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-input focus:border-primary focus:ring-primary/20', tbSameAddr && 'opacity-50 cursor-not-allowed bg-muted')} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">State</label>
-                  <CustomSelect options={US_STATES.map((s) => ({ value: s, label: s }))} value={truckBoxData.state} onChange={(v) => { if (!tbSameAddr) setTruckBoxData((d) => ({ ...d, state: v })); }} placeholder="State..." disabled={tbSameAddr} />
+                  {tbReqLabel('state', 'State')}
+                  <CustomSelect options={US_STATES.map((s) => ({ value: s, label: s }))} value={truckBoxData.state} onChange={(v) => { if (!tbSameAddr) { setTruckBoxData((d) => ({ ...d, state: v })); clearTbError('state'); } }} placeholder="State..." disabled={tbSameAddr} triggerClassName={tbSelectTrigger('state')} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Zip Code</label>
-                  <input type="text" disabled={tbSameAddr} value={truckBoxData.zipCode} onChange={(e) => setTruckBoxData((d) => ({ ...d, zipCode: e.target.value }))} className={cn('w-full h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20', tbSameAddr && 'opacity-50 cursor-not-allowed bg-muted')} />
+                  {tbReqLabel('zipCode', 'Zip Code')}
+                  <input type="text" disabled={tbSameAddr} value={truckBoxData.zipCode} onChange={(e) => { setTruckBoxData((d) => ({ ...d, zipCode: e.target.value })); clearTbError('zipCode'); }} className={cn('w-full h-9 rounded-lg border bg-background px-3 text-sm shadow-sm outline-none transition-all duration-200 focus:ring-2', tbErrors.has('zipCode') ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20' : 'border-input focus:border-primary focus:ring-primary/20', tbSameAddr && 'opacity-50 cursor-not-allowed bg-muted')} />
                 </div>
               </div>
             </div>
@@ -559,7 +618,7 @@ export default function Step6Review({
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Delivery & Billing</span>
               <div className="mt-2 grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Delivery Type</label>
+                  {tbReqLabel('deliveryType', 'Delivery Type')}
                   <CustomSelect options={[
                     { value: 'Priority Overnight (By 10:00 AM)', label: 'Priority Overnight (By 10:00 AM)' },
                     { value: 'Standard Overnight (By 9:00 PM)', label: 'Standard Overnight (By 9:00 PM)' },
@@ -568,10 +627,10 @@ export default function Step6Review({
                     { value: 'Express Saver (By 4:30 PM In 3 Business Days)', label: 'Express Saver (3 Business Days)' },
                     { value: 'Saturday', label: 'Saturday' },
                     { value: 'Ground', label: 'Ground' },
-                  ]} value={truckBoxData.deliveryType} onChange={(v) => setTruckBoxData((d) => ({ ...d, deliveryType: v }))} placeholder="Select..." />
+                  ]} value={truckBoxData.deliveryType} onChange={(v) => { setTruckBoxData((d) => ({ ...d, deliveryType: v })); clearTbError('deliveryType'); }} placeholder="Select..." triggerClassName={tbSelectTrigger('deliveryType')} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Billing</label>
+                  {tbReqLabel('billingInfo', 'Billing')}
                   <CustomSelect options={[
                     { value: 'ARL Transport LLC', label: 'ARL Transport LLC' },
                     { value: 'ARL Logistics', label: 'ARL Logistics' },
@@ -580,7 +639,7 @@ export default function Step6Review({
                     { value: 'First Out', label: 'First Out' },
                     { value: 'MIA', label: 'MIA' },
                     { value: 'Bill', label: 'Bill' },
-                  ]} value={truckBoxData.billingInfo} onChange={(v) => setTruckBoxData((d) => ({ ...d, billingInfo: v }))} placeholder="Select..." />
+                  ]} value={truckBoxData.billingInfo} onChange={(v) => { setTruckBoxData((d) => ({ ...d, billingInfo: v })); clearTbError('billingInfo'); }} placeholder="Select..." triggerClassName={tbSelectTrigger('billingInfo')} />
                 </div>
                 {tbField('truckColor', 'Truck Color')}
               </div>
@@ -628,8 +687,8 @@ export default function Step6Review({
             </div>
             <div className="border-t border-border/40 pt-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Cable Type</label>
-                <CustomSelect options={['6 Pin', '9 Pin', 'Volvo 13', 'Mack 13', 'OBD2'].map((v) => ({ value: v, label: v }))} value={truckBoxData.cableType} onChange={(v) => setTruckBoxData((d) => ({ ...d, cableType: v }))} placeholder="Select..." />
+                {tbReqLabel('cableType', 'Cable Type')}
+                <CustomSelect options={['6 Pin', '9 Pin', 'Volvo 13', 'Mack 13', 'OBD2'].map((v) => ({ value: v, label: v }))} value={truckBoxData.cableType} onChange={(v) => { setTruckBoxData((d) => ({ ...d, cableType: v })); clearTbError('cableType'); }} placeholder="Select..." triggerClassName={tbSelectTrigger('cableType')} />
               </div>
             </div>
           </div>
