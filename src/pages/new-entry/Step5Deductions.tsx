@@ -61,8 +61,8 @@ export default function Step5Deductions({ agent, selections, onToggle, iftaNumbe
     const onetime: { label: string; value: number }[] = [];
 
     const num = (v: number | null | undefined): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
-    const fullValueSubtitle = (v: number | null | undefined): string | undefined =>
-      typeof v === 'number' && Number.isFinite(v) ? `Full value ${formatCurrency(v)}` : undefined;
+    const fullValueSubtitle = (v: number | null | undefined): string =>
+      `Full value ${typeof v === 'number' && Number.isFinite(v) ? formatCurrency(v) : '—'}`;
 
     for (const d of DEDUCTIONS) {
       if (!selections[d.key]) continue;

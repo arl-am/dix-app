@@ -30,8 +30,14 @@ function pickCaseInsensitive(row: Record<string, unknown>, target: string): unkn
 
 function toNumber(v: unknown): number | undefined {
   if (v === null || v === undefined || v === '') return undefined;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : undefined;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : undefined;
+  if (typeof v === 'string') {
+    const cleaned = v.replace(/[$,\s]/g, '');
+    if (cleaned === '') return undefined;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  return undefined;
 }
 
 function toBoolean(v: unknown): boolean {
@@ -66,6 +72,14 @@ async function fetchAgents(): Promise<Agent[]> {
     orderBy: ['cr6cd_terminal asc'],
   });
   const rows = (result.data ?? []) as unknown as Record<string, unknown>[];
+  if (typeof window !== 'undefined' && rows.length > 0) {
+    (window as unknown as { __dixAgentsRaw?: unknown }).__dixAgentsRaw = rows[0];
+    const r0 = rows[0];
+    const interesting = Object.keys(r0).filter((k) =>
+      /eld|plate|liquor/i.test(k),
+    );
+    (window as unknown as { __dixAgentsKeys?: unknown }).__dixAgentsKeys = interesting.map((k) => `${k}=${JSON.stringify(r0[k])}`);
+  }
   return rows.map((r) => {
     const out: Record<string, unknown> = { ...r };
     for (const f of NUMERIC_FIELDS) {

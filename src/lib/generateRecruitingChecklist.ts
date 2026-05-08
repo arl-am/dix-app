@@ -64,16 +64,20 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
   const maintenanceFundValue = parseFloat(data.maintenanceAmount) || 0;
   const plateWeekly = agent?.cr6cd_plateweeklyvalue ?? 0;
   const plateDeposit = agent?.cr6cd_platedepositvalue ?? 500;
-  const securityFull = agent?.cr6cd_securitydepositfullvalue ?? 2000;
+  const securityFullRaw = agent?.cr6cd_securitydepositfullvalue;
   const securityWeekly = agent?.cr6cd_securitydepositweeklyvalue ?? 50;
   const eldWeekly = agent?.cr6cd_elddepositvalue ?? 0;
-  const eldFull = agent?.cr6cd_elddepositfullvalue ?? 500;
+  const eldFullRaw = agent?.cr6cd_elddepositfullvalue;
+  const fmtMaybe = (v: number | null | undefined): string =>
+    typeof v === 'number' && Number.isFinite(v) ? fmtCurrency(v) : '—';
   const dashcamDeposit = agent?.cr6cd_dashcamdepositvalue ?? 100;
   const dashcamWeekly = 10;
   const eldDataFee = agent?.cr6cd_elddatafeevalue ?? 0;
   const eldDataFeeRequired = agent?.cr6cd_elddatafeerequired ?? false;
-  const platedepositFull = agent?.cr6cd_platedepositfullvalue;
+  const platedepositFullRaw = agent?.cr6cd_platedepositfullvalue;
   const pdiWeeklyDeposit = pdiMonthly > 0 ? Math.round(pdiMonthly / 4 * 100) / 100 : 0;
+  const fullValueNote = (v: number | null | undefined): string =>
+    `Full value ${typeof v === 'number' && Number.isFinite(v) ? fmtCurrency(v) : '—'}`;
   const truckValue = parseFloat(f.truckValue || '0');
   const purchaseDate = f.purchaseDate ? format(new Date(f.purchaseDate), 'MM/dd/yyyy') : '—';
   const fullAddr = `${f.vendorAddress || ''}${f.vendorAddress ? ', ' : ''}${f.vendorCity || ''}${f.vendorCity && f.vendorState ? ', ' : ''}${f.vendorState || ''} ${f.vendorZipCode || ''}`.trim();
@@ -83,8 +87,8 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
   const oneTimeItems: { name: string; value: number; note?: string }[] = [];
 
   if (s.pdi && pdiWeeklyDeposit > 0) weeklyItems.push({ name: 'PDI Deposit', value: pdiWeeklyDeposit, note: 'Collected in 4 payments' });
-  if (s.security_deposit && !ti.security_deposit && !ri.security_deposit) weeklyItems.push({ name: 'Security Deposit', value: securityWeekly, note: `Full value ${fmtCurrency(securityFull)}` });
-  if (s.eld_deposit && !ti.eld && !ri.eld) weeklyItems.push({ name: 'ELD Deposit', value: eldWeekly, note: `Full value ${fmtCurrency(eldFull)}` });
+  if (s.security_deposit && !ti.security_deposit && !ri.security_deposit) weeklyItems.push({ name: 'Security Deposit', value: securityWeekly, note: fullValueNote(securityFullRaw) });
+  if (s.eld_deposit && !ti.eld && !ri.eld) weeklyItems.push({ name: 'ELD Deposit', value: eldWeekly, note: fullValueNote(eldFullRaw) });
   if (s.eld_deposit && eldDataFeeRequired) weeklyItems.push({ name: 'ELD Data Fee', value: eldDataFee });
   if (s.dashcam_deposit && !ti.dashcam && !ri.dashcam) weeklyItems.push({ name: 'DashCam Deposit', value: dashcamWeekly, note: 'Full value $100.00' });
   if (s.buydown) weeklyItems.push({ name: 'Buy-Down Program', value: buyDownValue });
@@ -95,9 +99,7 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
     weeklyItems.push({
       name: 'IRP Plate Deposit',
       value: plateDeposit,
-      note: typeof platedepositFull === 'number' && Number.isFinite(platedepositFull)
-        ? `Full value ${fmtCurrency(platedepositFull)}`
-        : undefined,
+      note: fullValueNote(platedepositFullRaw),
     });
   }
   if (s.prepass_tolls_bypass) weeklyItems.push({ name: 'PrePass: Tolls & Bypass', value: prePassTolls });
@@ -270,8 +272,8 @@ export async function generateRecruitingChecklist(data: RecruitingChecklistInput
 
   // Required Deductions
   drawHeader('Required Deductions', orangeAccent);
-  drawItem(9, 'Escrow', `${fmtCurrency(securityFull)} at ${fmtCurrency(securityWeekly)}/week`, s.security_deposit, !s.security_deposit, orangeAccent, { transfer: true, reactivate: true, tChecked: ti.security_deposit, rChecked: ri.security_deposit });
-  drawItem(10, 'ELD Deposit', `${fmtCurrency(eldFull)} at ${fmtCurrency(eldWeekly)}/week`, s.eld_deposit, !s.eld_deposit, orangeAccent, { transfer: true, reactivate: true, tChecked: ti.eld, rChecked: ri.eld });
+  drawItem(9, 'Escrow', `${fmtMaybe(securityFullRaw)} at ${fmtCurrency(securityWeekly)}/week`, s.security_deposit, !s.security_deposit, orangeAccent, { transfer: true, reactivate: true, tChecked: ti.security_deposit, rChecked: ri.security_deposit });
+  drawItem(10, 'ELD Deposit', `${fmtMaybe(eldFullRaw)} at ${fmtCurrency(eldWeekly)}/week`, s.eld_deposit, !s.eld_deposit, orangeAccent, { transfer: true, reactivate: true, tChecked: ti.eld, rChecked: ri.eld });
   drawItem(11, 'Dashcam Deposit', `${fmtCurrency(dashcamDeposit)} at ${fmtCurrency(dashcamWeekly)}/week`, s.dashcam_deposit, !s.dashcam_deposit, orangeAccent, { transfer: true, reactivate: true, tChecked: ti.dashcam, rChecked: ri.dashcam });
   drawItem(12, 'ELD Data Fee', eldDataFee > 0 ? `${fmtCurrency(eldDataFee)}/week` : '—', s.eld_deposit || eldDataFee > 0, !(s.eld_deposit || eldDataFee > 0), orangeAccent);
   yPos += 6;
