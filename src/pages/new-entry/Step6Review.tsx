@@ -244,8 +244,7 @@ export default function Step6Review({
     truckColor: '', motorCarrierName: '', cableType: '', recruiterName: '',
   });
 
-  const mdLiquorRaw = agent?.cr6cd_marylandliquorpermit;
-  const mdLiquorRequired = mdLiquorRaw != null && mdLiquorRaw !== 0;
+  const mdLiquorRequired = !!agent?.cr6cd_marylandliquorpermit;
 
   const openTruckBoxModal = () => {
     setTbSameAddr(false);
@@ -1266,6 +1265,11 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
         onOpenFastPassModal();
       } else if (docId === 'addmove_board') {
         const fmt = (v: number | undefined) => v != null ? `$${Number(v).toFixed(2)}` : '';
+        const fmtWhole = (v: number | undefined) => {
+          if (v == null) return '';
+          const n = Number(v);
+          return Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`;
+        };
         const deductions: string[] = [];
         if (selections.bobtail && agent?.cr6cd_bobtailvalue)
           deductions.push(`Bobtail (${fmt(agent.cr6cd_bobtailvalue)})/Month`);
@@ -1279,7 +1283,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
           deductions.push('License Plate (Paid in Full)');
         if (selections.irp_plate_settlements) {
           deductions.push(`License Plate (${fmt(agent?.cr6cd_plateweeklyvalue)})/Week`);
-          deductions.push(`Plate Deposit (${fmt(agent?.cr6cd_platedepositvalue)})/Week`);
+          deductions.push(`Plate Deposit (${fmtWhole(agent?.cr6cd_platedepositvalue)})/Week`);
         }
         if (selections.security_deposit)
           deductions.push(`Security Deposit (${fmt(agent?.cr6cd_securitydepositweeklyvalue)})/Week`);
@@ -1300,7 +1304,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
         if (selections.rfid && agent?.cr6cd_rfidvalue)
           deductions.push(`RFID (${fmt(agent.cr6cd_rfidvalue)})`);
         if (selections.chassis_usage && agent?.cr6cd_trailerusagevalue) {
-          deductions.push(`Chassis Usage Value (${fmt(agent.cr6cd_trailerusagevalue)})`);
+          deductions.push(`Chassis Usage Value (${fmt(agent.cr6cd_trailerusagevalue)})/Week`);
           if (agent?.cr6cd_trailerusageadminfee)
             deductions.push(`Chassis Usage Admin Fee (${fmt(agent.cr6cd_trailerusageadminfee)})`);
         }
@@ -1309,7 +1313,7 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
 
         const deductionsStr = deductions.length > 0
           ? '[' + deductions.map((d) => '"' + d + '"').join(', ') + ']'
-          : '["N/A"]';
+          : '["NA"]';
 
         const actionLabel = actionType === 'new' ? 'Add' : actionType === 'move' ? 'Move' : actionType || '';
         const contractLabel = contractType != null ? (CONTRACT_TYPE_LABELS[contractType] || '') : '';
