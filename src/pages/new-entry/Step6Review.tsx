@@ -1316,7 +1316,16 @@ function DocumentSections({ form, agent, actionType, contractType, selections, t
           : '["NA"]';
 
         const actionLabel = actionType === 'new' ? 'Add' : actionType === 'move' ? 'Move' : actionType || '';
-        const contractLabel = contractType != null ? (CONTRACT_TYPE_LABELS[contractType] || '') : '';
+        const MONDAY_ADD_TYPE: Record<number, string> = {
+          1: 'Vendor/Driver/Unit',
+          2: 'Driver Only',
+          3: 'Vendor/Driver',
+          4: 'Driver/Unit',
+          5: 'Unit Only',
+          6: 'Rental Tractor',
+          7: 'Trailer Only',
+        };
+        const contractLabel = contractType != null ? (MONDAY_ADD_TYPE[contractType] || '') : '';
 
         const mc = agent?.cr6cd_motorcarrier || '';
         const motorCarrier = mc === 'ARL' ? 'ARL' : mc === 'ACT' ? 'ACT' : mc === 'Partners' ? 'Partners EXP' : mc;
