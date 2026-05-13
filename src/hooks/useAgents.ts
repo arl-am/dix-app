@@ -16,7 +16,7 @@ const NUMERIC_FIELDS = [
 const BOOLEAN_FIELDS = [
   'cr6cd_elddatafeerequired', 'cr6cd_trailerusagerequired', 'cr6cd_hazmatrequired',
   'cr6cd_inventoryterminal', 'cr6cd_platemandatory', 'cr6cd_prepassrequiredifarlplate',
-  'cr6cd_rfidmandatory',
+  'cr6cd_rfidmandatory', 'cr6cd_marylandliquorpermit',
 ] as const;
 
 function pickCaseInsensitive(row: Record<string, unknown>, target: string): unknown {
@@ -80,7 +80,6 @@ async function fetchAgents(): Promise<Agent[]> {
     for (const f of BOOLEAN_FIELDS) {
       out[f] = toBoolean(pickCaseInsensitive(r, f));
     }
-    out.cr6cd_marylandliquorpermit = toNumber(pickCaseInsensitive(r, 'cr6cd_marylandliquorpermit'));
     return out;
   }) as unknown as Agent[];
 }
