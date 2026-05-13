@@ -86,6 +86,10 @@ export interface Driver {
   _cr6cd_dix_vendor_value: string;
   _cr6cd_dix_unit_value: string;
   createdon: string;
+  modifiedon?: string;
+  cr6cd_tenstreetdriverid?: string | null;
+  cr6cd_lasttenstreetsync?: string | null;
+  cr6cd_dix_modifiedbyname?: string;
   cr6cd_dix_actiontypename?: string;
   cr6cd_dix_contracttypename?: string;
   cr6cd_dix_agentname?: string;

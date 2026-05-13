@@ -10,6 +10,7 @@ import Spinner from '../components/Spinner';
 import CustomSelect from '../components/CustomSelect';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { toast } from 'sonner';
+import tenstreetLogo from '../assets/tenstreet_logo.png';
 
 function YesNo({ value }: { value: boolean | undefined }) {
   return value ? (
@@ -401,6 +402,16 @@ export default function SearchRecords() {
     ];
   })();
 
+  const driverCodeColWidth = (() => {
+    const headerLen = 'Driver Code'.length;
+    let maxLen = headerLen;
+    for (const d of drivers) {
+      const len = (d.cr6cd_dix_drivercode || '').length;
+      if (len > maxLen) maxLen = len;
+    }
+    return `${Math.max(96, maxLen * 8 + 24)}px`;
+  })();
+
   const filtered = drivers.filter((d) => {
     const q = search.trim().toLowerCase();
     const matchesSearch = (() => {
@@ -514,11 +525,12 @@ export default function SearchRecords() {
         <div className="hidden lg:flex items-center gap-4 px-6 py-3 bg-muted/50 border-b border-border text-xs font-semibold">
           <span className="w-28 flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> Terminal</span>
           <span className="w-40 flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Driver Name</span>
-          <span className="w-24">Driver Code</span>
+          <span className="shrink-0 whitespace-nowrap" style={{ width: driverCodeColWidth }}>Driver Code</span>
           <span className="w-24 flex items-center gap-1.5"><Truck className="w-3.5 h-3.5" /> Unit #</span>
           <span className="w-28">Action</span>
           <span className="w-32">Contract Type</span>
-          <span className="flex-1">Created By</span>
+          <span className="w-32">Last Tenstreet Sync</span>
+          <span className="flex-1">Last Updated By</span>
           <span className="w-36 text-center">Actions</span>
         </div>
 
@@ -538,11 +550,19 @@ export default function SearchRecords() {
                 <span className="lg:hidden text-xs text-muted-foreground">Terminal: </span>
                 <span className="text-foreground">{d.cr6cd_dix_agentname || '—'}</span>
               </div>
-              <div className="lg:w-40">
+              <div className="lg:w-40 flex items-center gap-1.5 min-w-0">
                 <span className="lg:hidden text-xs text-muted-foreground">Name: </span>
-                <span className="font-medium text-foreground">{displayDriverName(d) || '—'}</span>
+                <span className="font-medium text-foreground truncate">{displayDriverName(d) || '—'}</span>
+                {d.cr6cd_tenstreetdriverid && (
+                  <img
+                    src={tenstreetLogo}
+                    alt="Tenstreet"
+                    className="h-4 w-auto max-w-[52px] shrink-0 object-contain opacity-90"
+                    title={`Tenstreet ID: ${d.cr6cd_tenstreetdriverid}${d.cr6cd_lasttenstreetsync ? ` · Last sync: ${formatDate(d.cr6cd_lasttenstreetsync)}` : ''}`}
+                  />
+                )}
               </div>
-              <div className="lg:w-24">
+              <div className="lg:shrink-0 lg:whitespace-nowrap" style={{ width: driverCodeColWidth }}>
                 <span className="lg:hidden text-xs text-muted-foreground">Code: </span>
                 <span className="text-muted-foreground">{d.cr6cd_dix_drivercode || '—'}</span>
               </div>
@@ -558,9 +578,13 @@ export default function SearchRecords() {
               <div className="lg:w-32 text-muted-foreground text-sm">
                 {CONTRACT_TYPE_LABELS[d.cr6cd_dix_contracttype] || '—'}
               </div>
+              <div className="lg:w-32 text-muted-foreground text-sm">
+                <span className="lg:hidden text-xs text-muted-foreground">Tenstreet Sync: </span>
+                {d.cr6cd_lasttenstreetsync ? formatDate(d.cr6cd_lasttenstreetsync) : '—'}
+              </div>
               <div className="flex-1 text-muted-foreground text-sm flex items-center justify-between">
-                <span>{d.cr6cd_dix_createdbyname}</span>
-                <span className="text-xs">{formatDate(d.createdon)}</span>
+                <span>{d.cr6cd_dix_modifiedbyname || d.cr6cd_dix_createdbyname || '—'}</span>
+                <span className="text-xs">{formatDate(d.modifiedon || d.createdon)}</span>
               </div>
               <div className="lg:w-36 flex justify-center gap-1">
                 <button
