@@ -64,6 +64,14 @@
         "dixcancellationnotes": {
           "entitySetName": "cr6cd_dixcxlnotes",
           "logicalName": "cr6cd_dixcxlnote"
+        },
+        "users": {
+          "entitySetName": "systemusers",
+          "logicalName": "systemuser"
+        },
+        "scproles": {
+          "entitySetName": "cr6cd_scproles",
+          "logicalName": "cr6cd_scprole"
         }
       },
       "environmentVariableName": ""

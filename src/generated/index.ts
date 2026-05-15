@@ -18,6 +18,8 @@ export * as Cr6cd_dixcxlequipmentsModel from './models/Cr6cd_dixcxlequipmentsMod
 export * as Cr6cd_dixcxlnotesModel from './models/Cr6cd_dixcxlnotesModel';
 export * as Cr6cd_dixpresencesModel from './models/Cr6cd_dixpresencesModel';
 export * as Cr6cd_dixriderpermitsModel from './models/Cr6cd_dixriderpermitsModel';
+export * as Cr6cd_scprolesModel from './models/Cr6cd_scprolesModel';
+export * as SystemusersModel from './models/SystemusersModel';
 
 // Services
 export * from './services/Cr6cd_agentsesService';
@@ -33,3 +35,5 @@ export * from './services/Cr6cd_dixcxlequipmentsService';
 export * from './services/Cr6cd_dixcxlnotesService';
 export * from './services/Cr6cd_dixpresencesService';
 export * from './services/Cr6cd_dixriderpermitsService';
+export * from './services/Cr6cd_scprolesService';
+export * from './services/SystemusersService';

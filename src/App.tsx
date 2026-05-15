@@ -13,6 +13,7 @@ import RiderPermit from './pages/quickforms/RiderPermit';
 import IntentOfLease from './pages/quickforms/IntentOfLease';
 import IrpPlateForm from './pages/quickforms/IrpPlateForm';
 import InsuranceForm from './pages/quickforms/InsuranceForm';
+import Settings from './pages/Settings';
 import WelcomeTour from './components/WelcomeTour';
 import { PresenceProvider } from './hooks/usePresence';
 
@@ -39,6 +40,7 @@ export default function App() {
                   <Route path="/documents/intent-of-lease" element={<IntentOfLease />} />
                   <Route path="/documents/irp-plate-form" element={<IrpPlateForm />} />
                   <Route path="/documents/insurance-form" element={<InsuranceForm />} />
+                  <Route path="/settings" element={<Settings />} />
                 </Routes>
               </main>
             </div>

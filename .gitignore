@@ -35,3 +35,6 @@ yarn.lock
 
 # Local Dataverse auth cache (token + refresh token)
 scripts/.auth-cache.json
+
+# Claude Code harness state (per-session)
+.claude/

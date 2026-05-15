@@ -95,5 +95,19 @@ export const dataSourcesInfo = {
     "primaryKey": "cr6cd_dix_vendorid",
     "dataSourceType": "Dataverse",
     "apis": {}
+  },
+  "cr6cd_scproles": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "cr6cd_scproleid",
+    "dataSourceType": "Dataverse",
+    "apis": {}
+  },
+  "systemusers": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "systemuserid",
+    "dataSourceType": "Dataverse",
+    "apis": {}
   }
 };
