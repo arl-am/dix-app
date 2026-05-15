@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ArrowRightLeft, Truck } from 'lucide-react';
+import { ArrowRightLeft, RotateCcw, Truck } from 'lucide-react';
+import { toast } from 'sonner';
 import CustomSelect from '../../components/CustomSelect';
 import DatePicker from '../../components/DatePicker';
 import EquipmentRequirementCard from './EquipmentRequirementCard';
@@ -62,14 +63,53 @@ export default function Step2Equipment({ equipment, isLoading, onPrimaryChange, 
     (e) => e.cr6cd_istransferred || e.cr6cd_lifecyclestate === EQUIPMENT_LIFECYCLE.TRANSFERRED,
   );
 
+  const handleMarkAll = (key: 'transferred' | 'reactivated') => {
+    const requiredItems = sorted.filter((e) => e.cr6cd_lifecyclestate === EQUIPMENT_LIFECYCLE.NEED);
+    if (requiredItems.length === 0) {
+      toast.info('No required items to update.');
+      return;
+    }
+    const targets = requiredItems.filter((e) =>
+      key === 'transferred' ? !e.cr6cd_istransferred : !e.cr6cd_isreactivated,
+    );
+    if (targets.length === 0) {
+      toast.info(`All required items are already marked as ${key === 'transferred' ? 'Transferred' : 'Reactivated'}.`);
+      return;
+    }
+    targets.forEach((e) => onQualifierToggle(e.cr6cd_dixcxlequipmentid, key, true));
+    toast.success(`Marked ${targets.length} item${targets.length === 1 ? '' : 's'} as ${key === 'transferred' ? 'Transferred' : 'Reactivated'}.`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-card border border-border rounded-xl shadow-sm animate-fade-in-up">
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="text-base font-semibold text-foreground">Equipment & Returns</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Tag each item as Required, Not Required, Transferred, or Reactivated. Returns are tracked in the modal.
-          </p>
+        <div className="px-6 py-4 border-b border-border flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h3 className="text-base font-semibold text-foreground">Equipment & Returns</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Tag each item as Required, Not Required, Transferred, or Reactivated. Returns are tracked in the modal.
+            </p>
+          </div>
+          {!isLoading && sorted.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => handleMarkAll('reactivated')}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-sky-50 dark:hover:bg-sky-950/30 hover:border-sky-300 hover:text-sky-700 hover:-translate-y-0.5 transition-all duration-200 active:scale-95"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Mark all as Reactivated
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMarkAll('transferred')}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:border-purple-300 hover:text-purple-700 hover:-translate-y-0.5 transition-all duration-200 active:scale-95"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5" />
+                Mark all as Transferred
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="p-5">

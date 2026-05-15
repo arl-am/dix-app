@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ExternalLink, Truck, ShieldX, Package, MessageSquare, ArrowLeft } from 'lucide-react';
+import { ExternalLink, Truck, ShieldX, Package, MessageSquare, ArrowLeft, ArrowRightLeft, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import Modal from '../../components/Modal';
 import DatePicker from '../../components/DatePicker';
@@ -83,14 +83,15 @@ export default function TrackingModal({ cancellation, onClose, onOpenWizard }: P
       isLifecycleChange &&
       newLifecycle === EQUIPMENT_LIFECYCLE.RETURNED &&
       !current?.cr6cd_returneddate;
+    const clearQualifiers = isLifecycleChange && newLifecycle === EQUIPMENT_LIFECYCLE.NA;
     updateEquipment.mutate({
       cancellationId: cxlId,
       equipmentId: id,
       lifecycleState: isLifecycleChange ? newLifecycle : undefined,
       returneddate: patch.returneddate ?? (autoStampReturned ? new Date().toISOString().slice(0, 10) : undefined),
       notes: patch.notes,
-      istransferred: patch.istransferred,
-      isreactivated: patch.isreactivated,
+      istransferred: clearQualifiers ? false : patch.istransferred,
+      isreactivated: clearQualifiers ? false : patch.isreactivated,
     });
   };
 
@@ -113,6 +114,25 @@ export default function TrackingModal({ cancellation, onClose, onOpenWizard }: P
       requestreturnlabel: !!cancellation.cr6cd_dix_requestreturnlabel,
       rltrackingnumber: value || undefined,
     });
+  };
+
+  const handleMarkAll = (key: 'transferred' | 'reactivated') => {
+    if (!cxlId) return;
+    const targets = sorted.filter((e) =>
+      key === 'transferred' ? !e.cr6cd_istransferred : !e.cr6cd_isreactivated,
+    );
+    if (targets.length === 0) {
+      toast.info(`All items are already marked as ${key === 'transferred' ? 'Transferred' : 'Reactivated'}.`);
+      return;
+    }
+    targets.forEach((e) => {
+      updateEquipment.mutate({
+        cancellationId: cxlId,
+        equipmentId: e.cr6cd_dixcxlequipmentid,
+        ...(key === 'transferred' ? { istransferred: true } : { isreactivated: true }),
+      });
+    });
+    toast.success(`Marked ${targets.length} item${targets.length === 1 ? '' : 's'} as ${key === 'transferred' ? 'Transferred' : 'Reactivated'}.`);
   };
 
   const handleToggleForfeit = () => {
@@ -310,6 +330,22 @@ export default function TrackingModal({ cancellation, onClose, onOpenWizard }: P
                 >
                   <ShieldX className="w-3.5 h-3.5" />
                   {isForfeit ? 'Forfeit ✓' : 'Mark as Forfeit'}
+                </button>
+                <button
+                  onClick={() => handleMarkAll('reactivated')}
+                  disabled={sorted.length === 0}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-sky-50 dark:hover:bg-sky-950/30 hover:border-sky-300 hover:text-sky-700 hover:-translate-y-0.5 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Mark all as Reactivated
+                </button>
+                <button
+                  onClick={() => handleMarkAll('transferred')}
+                  disabled={sorted.length === 0}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:border-purple-300 hover:text-purple-700 hover:-translate-y-0.5 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                  Mark all as Transferred
                 </button>
               </div>
               <button

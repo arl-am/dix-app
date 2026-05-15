@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { ArrowRightLeft, RotateCcw, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { EQUIPMENT_LIFECYCLE } from '../../lib/cancellationConstants';
 import type { CxlEquipment } from '../../lib/mockData';
@@ -97,18 +97,18 @@ export default function EquipmentRequirementCard({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <FlagChip
-            icon={ArrowRightLeft}
+          <CheckOption
             label="Transferred"
             color={TRANSFER_COLOR}
             isOn={isTransferred}
+            disabled={!isRequired}
             onClick={() => onQualifierToggle('transferred', !isTransferred)}
           />
-          <FlagChip
-            icon={RotateCcw}
+          <CheckOption
             label="Reactivated"
             color={REACTIVATE_COLOR}
             isOn={isReactivated}
+            disabled={!isRequired}
             onClick={() => onQualifierToggle('reactivated', !isReactivated)}
           />
         </div>
@@ -124,47 +124,54 @@ export default function EquipmentRequirementCard({
   );
 }
 
-interface FlagChipProps {
-  icon: typeof ArrowRightLeft;
+interface CheckOptionProps {
   label: string;
   color: string;
   isOn: boolean;
+  disabled?: boolean;
   onClick: () => void;
 }
 
-function FlagChip({ icon: Icon, label, color, isOn, onClick }: FlagChipProps) {
+function CheckOption({ label, color, isOn, disabled, onClick }: CheckOptionProps) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
+      aria-pressed={isOn}
       className={cn(
-        'relative inline-flex items-center justify-center gap-1.5 rounded-lg h-8 text-[11px] font-semibold tracking-tight',
-        'transition-all duration-300 ease-out active:scale-[0.95]',
-        !isOn && 'border border-border bg-card/70 backdrop-blur-sm text-muted-foreground hover:border-foreground/20 hover:text-foreground hover:bg-card',
+        'group/check relative inline-flex items-center justify-start gap-2 rounded-lg h-9 px-2.5 text-[11px] font-semibold tracking-tight border',
+        'transition-all duration-200 ease-out active:scale-[0.97]',
+        disabled
+          ? 'border-border/60 bg-muted/30 text-muted-foreground/60 cursor-not-allowed opacity-60'
+          : isOn
+            ? 'bg-card border-transparent text-foreground'
+            : 'border-border bg-card/70 text-muted-foreground hover:border-foreground/20 hover:text-foreground hover:bg-card',
       )}
-      style={isOn ? {
-        backgroundColor: color,
-        color: '#fff',
-        boxShadow: `0 1px 2px ${color}40, 0 6px 16px ${color}38`,
+      style={isOn && !disabled ? {
+        borderColor: color,
+        boxShadow: `inset 0 0 0 1px ${color}, 0 1px 2px ${color}25`,
       } : undefined}
     >
-      <span className="relative w-3.5 h-3.5 inline-flex items-center justify-center">
-        <Icon
-          className={cn(
-            'absolute w-3.5 h-3.5 transition-all duration-300 ease-out',
-            isOn ? 'opacity-0 -rotate-45 scale-75' : 'opacity-100 rotate-0 scale-100',
-          )}
-          strokeWidth={2.4}
-        />
+      <span
+        aria-hidden
+        className={cn(
+          'inline-flex items-center justify-center w-4 h-4 rounded border-2 flex-shrink-0 transition-all duration-150',
+        )}
+        style={{
+          borderColor: disabled ? '#CBD5E1' : (isOn ? color : '#CBD5E1'),
+          backgroundColor: isOn && !disabled ? color : 'transparent',
+        }}
+      >
         <Check
           className={cn(
-            'absolute w-3.5 h-3.5 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]',
-            isOn ? 'opacity-100 rotate-0 scale-110' : 'opacity-0 rotate-45 scale-50',
+            'w-3 h-3 text-white transition-all duration-150',
+            isOn && !disabled ? 'opacity-100 scale-100' : 'opacity-0 scale-50',
           )}
-          strokeWidth={3.2}
+          strokeWidth={3.5}
         />
       </span>
-      {label}
+      <span className="truncate">{label}</span>
     </button>
   );
 }

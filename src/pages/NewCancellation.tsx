@@ -24,6 +24,7 @@ import TrackingModal from './cancellation/TrackingModal';
 import { cn } from '../lib/utils';
 import {
   CXL_TYPE_OPTIONS,
+  EQUIPMENT_LIFECYCLE,
   typeNeedsDriver,
   typeNeedsVendor,
   typeNeedsUnit,
@@ -37,7 +38,7 @@ function CancellationListing({ onNew, onEdit }: { onNew: () => void; onEdit: (c:
   const [search, setSearch] = useState('');
   const [terminalFilter, setTerminalFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [view, setView] = useState<'kanban' | 'table'>('kanban');
+  const [view, setView] = useState<'kanban' | 'table'>('table');
   const [trackingId, setTrackingId] = useState<string | null>(null);
   const trackingCancellation = useMemo(
     () => cancellations.find((c) => c.cr6cd_dix_cancellationid === trackingId) ?? null,
@@ -302,7 +303,13 @@ function CancellationWizard({ cancellationId, onBack }: { cancellationId: string
 
   const onPrimaryChange = (id: string, lifecycleState: number) => {
     if (!cxlId) return;
-    updateEquipment.mutate({ cancellationId: cxlId, equipmentId: id, lifecycleState });
+    const clearQualifiers = lifecycleState === EQUIPMENT_LIFECYCLE.NA;
+    updateEquipment.mutate({
+      cancellationId: cxlId,
+      equipmentId: id,
+      lifecycleState,
+      ...(clearQualifiers ? { istransferred: false, isreactivated: false } : {}),
+    });
   };
 
   const onQualifierToggle = (id: string, key: 'transferred' | 'reactivated', value: boolean) => {

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Clock, Pencil } from 'lucide-react';
 import { cn, formatDate } from '../../lib/utils';
@@ -8,8 +8,18 @@ import {
   LIFECYCLE_STYLE,
   TRACKING_PRIMARY_STATES,
   TRACKING_QUALIFIERS,
+  type LifecycleStyle,
 } from '../../lib/cancellationConstants';
 import type { CxlEquipment } from '../../lib/mockData';
+
+function pillVars(s: LifecycleStyle): CSSProperties {
+  return {
+    ['--lc-bg' as string]: s.dot + '22',
+    ['--lc-border' as string]: s.dot + '55',
+    ['--lc-text-light' as string]: s.text,
+    ['--lc-text-dark' as string]: s.dot,
+  };
+}
 
 type Patch = {
   lifecycleState?: number;
@@ -107,12 +117,8 @@ export default function EquipmentCard({ item, onUpdate, delayMs = 0 }: Props) {
 
         <div className="flex flex-wrap gap-1">
           <span
-            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border"
-            style={{
-              backgroundColor: primaryStyle.bg,
-              color: primaryStyle.text,
-              borderColor: primaryStyle.border,
-            }}
+            className="lifecycle-pill inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border"
+            style={pillVars(primaryStyle)}
           >
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: primaryStyle.dot }} />
             {isReturned && <Check className="w-3 h-3 animate-check-pop" style={{ color: primaryStyle.dot }} />}
@@ -120,12 +126,8 @@ export default function EquipmentCard({ item, onUpdate, delayMs = 0 }: Props) {
           </span>
           {isTransferred && (
             <span
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border"
-              style={{
-                backgroundColor: LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.TRANSFERRED].bg,
-                color: LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.TRANSFERRED].text,
-                borderColor: LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.TRANSFERRED].border,
-              }}
+              className="lifecycle-pill inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border"
+              style={pillVars(LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.TRANSFERRED])}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.TRANSFERRED].dot }} />
               Transferred
@@ -133,12 +135,8 @@ export default function EquipmentCard({ item, onUpdate, delayMs = 0 }: Props) {
           )}
           {isReactivated && (
             <span
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border"
-              style={{
-                backgroundColor: LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.REACTIVATED].bg,
-                color: LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.REACTIVATED].text,
-                borderColor: LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.REACTIVATED].border,
-              }}
+              className="lifecycle-pill inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border"
+              style={pillVars(LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.REACTIVATED])}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: LIFECYCLE_STYLE[EQUIPMENT_LIFECYCLE.REACTIVATED].dot }} />
               Reactivated
@@ -169,7 +167,7 @@ export default function EquipmentCard({ item, onUpdate, delayMs = 0 }: Props) {
           onClick={() => setPaletteOpen((v) => !v)}
           className={cn(
             'w-full inline-flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold h-8 px-3',
-            'border border-border bg-white hover:bg-slate-50 text-slate-700',
+            'border border-input bg-background hover:bg-accent text-foreground',
             'shadow-sm transition-all duration-200 active:scale-[0.97]',
             paletteOpen && 'shadow-md ring-2 ring-primary/20',
           )}
@@ -202,7 +200,7 @@ export default function EquipmentCard({ item, onUpdate, delayMs = 0 }: Props) {
                     'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors duration-150',
                     isCurrent ? 'bg-primary/10 font-semibold' : 'hover:bg-muted/60',
                   )}
-                  style={isCurrent ? { color: optStyle.text } : undefined}
+                  style={isCurrent ? { color: optStyle.dot } : undefined}
                 >
                   <span
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"

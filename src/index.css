@@ -256,6 +256,13 @@
 }
 .eq-text-inactive:hover { color: var(--eq-req-text-inactive-hover); }
 
+.lifecycle-pill {
+  background-color: var(--lc-bg);
+  color: var(--lc-text-light);
+  border-color: var(--lc-border);
+}
+.dark .lifecycle-pill { color: var(--lc-text-dark); }
+
 .eq-input {
   background-color: var(--eq-input-bg);
   color: var(--fg);
